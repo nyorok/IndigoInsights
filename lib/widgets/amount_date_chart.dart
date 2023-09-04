@@ -104,15 +104,7 @@ class AmountDateChart extends StatelessWidget {
   double getAmountInterval() =>
       roundToNearestPowerOf10((getAmountEnd() - getAmountStart()) / 20);
 
-  int getDateInterval() {
-    int totalDays = getDateEnd().difference(getDateStart()).inDays;
-
-    int intervals = 10;
-    int daysInMonth = 30;
-    int integerMonths = ((totalDays / daysInMonth) / intervals).floor();
-
-    return (integerMonths == 0 ? 1 : integerMonths) * 30;
-  }
+  int getDateInterval() => 4 * 30;
 
   List<LineChartBarData> getChartLines() => data
       .mapIndexed((index, lineData) => LineChartBarData(
@@ -167,8 +159,8 @@ class AmountDateChart extends StatelessWidget {
             children: [
               PageTitle(title: title),
               Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                child: Wrap(
+                  alignment: WrapAlignment.end,
                   children: labels
                       .mapIndexed((index, label) => Padding(
                             padding: const EdgeInsets.only(right: 6),
@@ -220,7 +212,9 @@ class AmountDateChart extends StatelessWidget {
                             SideTitleFitInsideData.fromTitleMeta(titleMeta),
                         axisSide: titleMeta.axisSide,
                         child: Text(
-                            '${dateTime.month}/${dateTime.year.toString().substring(2)}'),
+                          '${dateTime.month}/${dateTime.year.toString().substring(2)}',
+                          style: const TextStyle(fontSize: 9),
+                        ),
                       );
                     },
                   ),

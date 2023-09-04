@@ -63,12 +63,10 @@ class StabilityPoolInsights extends HookConsumerWidget {
     final double width = screenWidth - 640 > 640 ? 640 : screenWidth;
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: width),
-      child: Expanded(
-        child: Card(
-          elevation: 2,
-          margin: const EdgeInsets.all(8),
-          child: Padding(padding: const EdgeInsets.all(16), child: widget),
-        ),
+      child: Card(
+        elevation: 2,
+        margin: const EdgeInsets.all(8),
+        child: Padding(padding: const EdgeInsets.all(16), child: widget),
       ),
     );
   }
@@ -88,7 +86,11 @@ class StabilityPoolInsights extends HookConsumerWidget {
     final double width = screenWidth - 640 > 640 ? 640 : screenWidth;
 
     final screenHeight = MediaQuery.of(context).size.height;
-    final double height = screenHeight - 440 > 440 ? 440 : screenHeight;
+    final double height = screenHeight > screenWidth
+        ? screenHeight - 200
+        : screenHeight - 440 > 440
+            ? 440
+            : screenHeight;
 
     return ConstrainedBox(
         constraints: BoxConstraints(maxWidth: width, maxHeight: height),

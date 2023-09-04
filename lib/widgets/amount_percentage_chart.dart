@@ -154,8 +154,8 @@ class AmountPercentageChart extends StatelessWidget {
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.only(right: getLabelSize()),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                  child: Wrap(
+                    alignment: WrapAlignment.end,
                     children: labels
                         .mapIndexed((index, e) => Padding(
                               padding: const EdgeInsets.only(left: 8),

@@ -56,7 +56,7 @@ class LiquidationInsights extends HookConsumerWidget {
 
     final screenHeight = MediaQuery.of(context).size.height;
     final double height = screenHeight > screenWidth
-        ? screenHeight - 430 > 430
+        ? screenHeight - 430 > screenWidth - 40
             ? screenHeight - 430
             : 430
         : screenHeight - 68;
