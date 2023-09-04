@@ -1,6 +1,9 @@
-# indigo_insights
+# Indigo Insights
 
 Protocol Insights for the Indigo community!
+
+Access [App Site](https://nyorok.github.io/) or download [APK](https://github.com/nyorok/IndigoInsights/tree/main/release) for Android
+
 
 ## Getting Started
 
