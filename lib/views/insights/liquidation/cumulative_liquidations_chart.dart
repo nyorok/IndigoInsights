@@ -44,7 +44,7 @@ class CumulativeLiquidationsChart extends HookConsumerWidget {
           return AmountDateChart(
             title: "Cumulative Liquidations",
             currency: "ADA",
-            labels: const ["Total", "iUSD", "iBTC", "iETH"],
+            labels: const ["Total", "iBTC", "iETH", "iUSD"],
             data: [
               normalizeAmountDateData(
                   getCumulativeLiquidationsData(data: liquidations),
