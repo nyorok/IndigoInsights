@@ -26,7 +26,7 @@ class MyApp extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedMenuItem = useState(3);
+    final selectedMenuItem = useState(0);
 
     return MaterialApp(
       title: 'Indigo Insights',

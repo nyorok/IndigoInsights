@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:indigo_insights/utils/formatters.dart';
-import 'package:indigo_insights/utils/page_title.dart';
 
 class AmountPercentageData {
   final double percent;
@@ -50,7 +49,6 @@ List<AmountPercentageData> normalizeAmountPercentageData(
 class AmountPercentageChart extends StatelessWidget {
   const AmountPercentageChart(
       {Key? key,
-      required this.title,
       required this.data,
       required this.colors,
       required this.gradients,
@@ -58,7 +56,6 @@ class AmountPercentageChart extends StatelessWidget {
       required this.currency})
       : super(key: key);
 
-  final String title;
   final String currency;
   final List<List<AmountPercentageData>> data;
   final List<Color> colors;
@@ -150,7 +147,6 @@ class AmountPercentageChart extends StatelessWidget {
           padding: const EdgeInsets.only(top: 8, left: 30),
           child: Row(
             children: [
-              PageTitle(title: title),
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.only(right: getLabelSize()),

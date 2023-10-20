@@ -97,7 +97,7 @@ class _StabilityPoolInsightsState extends ConsumerState<StabilityPoolInsights>
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.only(right: 8, bottom: 8),
                     child: TabBarView(
                       controller: _tabController,
                       children: tabContents ?? [const Loader()],

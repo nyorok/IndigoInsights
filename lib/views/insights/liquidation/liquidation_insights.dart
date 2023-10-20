@@ -70,7 +70,8 @@ class LiquidationInsights extends HookConsumerWidget {
       child: Card(
         elevation: 2,
         margin: const EdgeInsets.all(8),
-        child: Padding(padding: const EdgeInsets.all(4), child: widget),
+        child: Padding(
+            padding: const EdgeInsets.only(right: 8, top: 8), child: widget),
       ),
     );
   }

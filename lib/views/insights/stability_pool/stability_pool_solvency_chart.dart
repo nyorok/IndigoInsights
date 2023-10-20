@@ -6,7 +6,6 @@ import 'package:indigo_insights/providers/asset_mcr_provider.dart';
 import 'package:indigo_insights/providers/asset_price_provider.dart';
 import 'package:indigo_insights/providers/cdp_provider.dart';
 import 'package:indigo_insights/providers/stability_pool_provider.dart';
-import 'package:indigo_insights/providers/submenu_provider.dart';
 import 'package:indigo_insights/theme/gradients.dart';
 import 'package:indigo_insights/utils/loader.dart';
 import 'package:indigo_insights/widgets/amount_percentage_chart.dart';
@@ -70,12 +69,9 @@ class StabilityPoolSolvencyChart extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chartSubmenu = ref.watch(selectedChartSubmenuProvider);
-
     return ref.watch(stabilityPoolSolvencyDataProvider(asset)).when(
         data: (stabilityPoolSolvencyData) {
           return AmountPercentageChart(
-            title: IndigoInsightsMenu.getChartSubmenuNullable(chartSubmenu),
             currency: asset,
             labels: [asset],
             data: [stabilityPoolSolvencyData],
