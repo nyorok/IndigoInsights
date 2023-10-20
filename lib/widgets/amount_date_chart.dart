@@ -33,10 +33,11 @@ List<AmountDateData> normalizeAmountDateData(
         inputIndex++;
       } else {
         if (currentDate.isAfter(getDate(inputDate))) {
-          throw Exception(
-              "normalizeAmountDateData: Input should have unique dates by interval day");
+          print(
+              "normalizeAmountDateData: ${dateFormatter(currentDate)} is after ${getDate(inputDate)}");
+        } else {
+          normalizedList.add(AmountDateData(currentDate, lastAmount));
         }
-        normalizedList.add(AmountDateData(currentDate, lastAmount));
       }
       lastAmount = inputIndex < inputList.length
           ? inputList[inputIndex].amount

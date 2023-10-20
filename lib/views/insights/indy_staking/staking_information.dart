@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/providers/stake_history_provider.dart';
 import 'package:indigo_insights/utils/formatters.dart';
 import 'package:indigo_insights/utils/loader.dart';
+import 'package:indigo_insights/utils/page_title.dart';
 
 class StakingInformation extends HookConsumerWidget {
   const StakingInformation({super.key});
@@ -24,10 +25,7 @@ class StakingInformation extends HookConsumerWidget {
 
     informationRow(String title, Widget info) =>
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 12),
-          ),
+          Text(title),
           info,
         ]);
 
@@ -55,10 +53,7 @@ class StakingInformation extends HookConsumerWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Indy Staking",
-                  style: TextStyle(fontSize: 14),
-                ),
+                const PageTitle(title: "Indy Staking"),
                 const SizedBox(height: 20),
                 informationRow('Total Staked',
                     indyAmount(stakeHistory.last.staked, context)),

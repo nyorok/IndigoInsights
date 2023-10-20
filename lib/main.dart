@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/providers/indigo_asset_provider.dart';
 import 'package:indigo_insights/theme/color_scheme.dart';
+import 'package:indigo_insights/views/insights/cdp/cdp_insights.dart';
 import 'package:indigo_insights/views/insights/liquidation/liquidation_insights.dart';
 import 'package:indigo_insights/views/insights/market/market_insights.dart';
 import 'package:indigo_insights/views/insights/stability_pool/stability_pool_insights.dart';
@@ -25,8 +26,7 @@ class MyApp extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedMenuItem = useState(1);
-    final indigoAssets = ref.watch(indigoAssetsProvider);
+    final selectedMenuItem = useState(3);
 
     return MaterialApp(
       title: 'Indigo Insights',
@@ -42,19 +42,20 @@ class MyApp extends HookConsumerWidget {
             },
           ),
         ),
-        drawer: indigoAssets.when(
-          loading: () => const Loader(),
-          error: (err, stack) => Text('Error: $err'),
-          data: (assets) => Sidebar(
-              onMenuItemPressed: (value) => selectedMenuItem.value = value,
-              selectedMenu: selectedMenuItem.value,
-              assets: assets),
-        ),
+        drawer: ref.watch(indigoAssetsProvider).when(
+              loading: () => const Loader(),
+              error: (err, stack) => Text('Error: $err'),
+              data: (assets) => Sidebar(
+                  onMenuItemPressed: (value) => selectedMenuItem.value = value,
+                  selectedMenu: selectedMenuItem.value,
+                  assets: assets),
+            ),
         body: Row(
           children: [
             Expanded(
               child: switch (selectedMenuItem.value) {
-                1 => const LiquidationInsights(),
+                0 => const LiquidationInsights(),
+                1 => const CdpInsights(),
                 2 => const IndyStakingInsights(),
                 3 => const StabilityPoolInsights(),
                 4 => const StabilityPoolAccountInsights(),
@@ -74,7 +75,7 @@ class MyApp extends HookConsumerWidget {
     return ThemeData(
       fontFamily: 'Quicksand',
       textTheme: const TextTheme(
-        bodyMedium: TextStyle(fontSize: 12.8, fontFamily: 'Hind'),
+        bodyMedium: TextStyle(fontSize: 12.8, fontFamily: 'Quicksand'),
       ),
       textSelectionTheme: const TextSelectionThemeData(
         selectionColor: Colors.blueGrey,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:indigo_insights/views/insights/liquidation/cdp_information.dart';
+import 'package:indigo_insights/providers/indigo_asset_provider.dart';
+import 'package:indigo_insights/utils/loader.dart';
 import 'package:indigo_insights/views/insights/liquidation/cumulative_liquidations_chart.dart';
 import 'package:indigo_insights/views/insights/liquidation/liquidation_information.dart';
 
@@ -19,8 +20,18 @@ class LiquidationInsights extends HookConsumerWidget {
               children: [
                 Column(
                   children: [
-                    informationCard(const CdpInformation(), context),
-                    informationCard(const LiquidationInformation(), context),
+                    ...ref.watch(indigoAssetsProvider).when(
+                          data: (indigoAssets) => indigoAssets
+                              .map((e) => informationCard(
+                                  LiquidationInformation(
+                                    indigoAsset: e,
+                                  ),
+                                  context))
+                              .toList(),
+                          loading: () => [const Loader()],
+                          error: (error, stackTrace) =>
+                              [Text(error.toString())],
+                        )
                   ],
                 ),
                 chartCard(const CumulativeLiquidationsChart(), context)
@@ -37,10 +48,7 @@ class LiquidationInsights extends HookConsumerWidget {
     final double width = screenWidth - 480 > 480 ? 480 : screenWidth;
 
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: width,
-        maxHeight: 170,
-      ),
+      constraints: BoxConstraints(maxWidth: width),
       child: Card(
         elevation: 2,
         margin: const EdgeInsets.all(8),
@@ -55,11 +63,7 @@ class LiquidationInsights extends HookConsumerWidget {
         screenWidth - 480 > 480 ? screenWidth - 480 : screenWidth;
 
     final screenHeight = MediaQuery.of(context).size.height;
-    final double height = screenHeight > screenWidth
-        ? screenHeight - 430 > screenWidth - 40
-            ? screenHeight - 430
-            : 430
-        : screenHeight - 68;
+    final double height = screenHeight - 68;
 
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: width, maxHeight: height),

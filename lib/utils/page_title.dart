@@ -13,7 +13,7 @@ class PageTitle extends StatelessWidget {
     return Text(
       title,
       style: const TextStyle(
-          fontSize: 18, fontWeight: FontWeight.w400, fontFamily: "Quicksand"),
+          fontSize: 18, fontWeight: FontWeight.w500, fontFamily: "Quicksand"),
     );
   }
 }
