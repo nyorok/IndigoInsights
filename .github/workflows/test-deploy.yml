@@ -2,8 +2,6 @@ name: Deploy Test Web App to GitHub Pages
 
 on:
   pull_request:
-    branches:
-      - '*'      
     branches-ignore:
       - main
 
