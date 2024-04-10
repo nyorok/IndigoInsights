@@ -2,8 +2,8 @@ name: Deploy Test Web App to GitHub Pages
 
 on:
   pull_request:
-    branches-ignore:
-      - main
+    branches:
+      - '*'
 
 jobs:
   build-and-deploy:
