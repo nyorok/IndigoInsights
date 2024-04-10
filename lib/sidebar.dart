@@ -27,33 +27,9 @@ class Sidebar extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Image.asset('assets/logo-48.png', width: 30, height: 30),
-            Row(
-              children: [
-                const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 5),
-                    child: PageTitle(title: 'Indigo Insights')),
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'By ',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                      Image.asset(
-                        'assets/pwg-40.png',
-                        width: 20,
-                        height: 20,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 5),
+                child: PageTitle(title: 'Indigo Insights')),
           ],
         ),
       );
