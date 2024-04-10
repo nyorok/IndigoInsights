@@ -22,7 +22,7 @@ jobs:
           flutter-version-file: pubspec.yaml
 
       - name: Build web app
-        run: flutter build web
+        run: flutter build web --release --base-href /IndigoInsights/
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
