@@ -6,6 +6,7 @@ import 'package:indigo_insights/providers/asset_status_provider.dart';
 import 'package:indigo_insights/providers/stability_pool_provider.dart';
 import 'package:indigo_insights/providers/sundae_swap/sundae_swap_asset_pool_provider.dart';
 import 'package:indigo_insights/providers/vy_finance/vy_finance_asset_pool_provider.dart';
+import 'package:indigo_insights/theme/color_scheme.dart';
 import 'package:indigo_insights/utils/formatters.dart';
 import 'package:indigo_insights/utils/loader.dart';
 import 'package:indigo_insights/utils/page_title.dart';
@@ -127,8 +128,8 @@ class IndigoAssetMarketDistributionPieChart extends HookConsumerWidget {
               Expanded(
                 child: DistributionPieChartWidget(
                   pieValues: marketData,
-                  colorRange: generateColorRange(const Color(0xFFa500e1),
-                      const Color(0xFF5839eb), marketData.length),
+                  colorRange: generateColorRange(
+                      Colors.green, secondaryRed, marketData.length),
                 ),
               ),
             ],

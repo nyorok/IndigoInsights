@@ -76,7 +76,7 @@ class StabilityPoolSolvencyChart extends HookConsumerWidget {
             labels: [asset],
             data: [stabilityPoolSolvencyData],
             colors: const [Colors.blueAccent],
-            gradients: [greenRedGradient],
+            gradients: [greenBlueGradient],
           );
         },
         error: (error, stackTrade) => Text(error.toString()),

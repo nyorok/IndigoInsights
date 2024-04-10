@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/providers/stability_pool_account_provider.dart';
 import 'package:indigo_insights/providers/stability_pool_provider.dart';
+import 'package:indigo_insights/theme/color_scheme.dart';
 import 'package:indigo_insights/utils/formatters.dart';
 import 'package:indigo_insights/utils/loader.dart';
 import 'package:indigo_insights/utils/page_title.dart';
@@ -82,8 +83,8 @@ class StabilityPoolAccountDistributionPieChart extends HookConsumerWidget {
               Expanded(
                 child: DistributionPieChartWidget(
                   pieValues: accountDistribution,
-                  colorRange: generateColorRange(const Color(0xFFa500e1),
-                      const Color(0xFF5839eb), accountDistribution.length),
+                  colorRange: generateColorRange(
+                      Colors.green, secondaryRed, accountDistribution.length),
                 ),
               ),
             ],
