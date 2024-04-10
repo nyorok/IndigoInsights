@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:indigo_insights/theme/color_scheme.dart';
 
 const indigoGradient = LinearGradient(
     begin: Alignment.topCenter,
@@ -32,50 +33,50 @@ final greyGradient = LinearGradient(
       Colors.blueGrey,
     ]);
 
-final limeGradient = LinearGradient(
+final whiteGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Colors.lime.shade900,
-      Colors.limeAccent,
+      Colors.white38,
+      Colors.white10,
     ]);
 
 final orangeTransparentGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Colors.deepOrange.withOpacity(0.8),
-      Colors.orangeAccent.withOpacity(0.4),
+      Color.fromRGBO(255, 103, 54, 0.9),
+      Color.fromRGBO(255, 103, 54, 0.4),
     ]);
 
 final blueTransparentGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Colors.blue.shade900.withOpacity(0.8),
-      Colors.blue.shade100.withOpacity(0.4),
+      Colors.blue.shade900.withOpacity(0.9),
+      Colors.blue.shade900.withOpacity(0.4),
     ]);
 
 final greyTransparentGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Colors.blueGrey.shade900.withOpacity(0.8),
-      Colors.blueGrey.withOpacity(0.4),
+      Colors.blueGrey.shade900.withOpacity(0.9),
+      Colors.blueGrey.shade900.withOpacity(0.6),
     ]);
 
-final greenRedGradient = LinearGradient(
+final greenBlueGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     stops: const [
       0,
-      0.46,
-      0.6,
+      0.5,
+      0.8,
       1
     ],
     colors: [
+      Colors.green,
       Colors.blue.shade900,
-      Colors.blue.shade900,
-      Colors.redAccent.shade400,
-      Colors.red.shade900,
+      secondaryRed,
+      primaryRed,
     ]);

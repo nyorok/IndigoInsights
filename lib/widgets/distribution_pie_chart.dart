@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -48,12 +50,14 @@ class DistributionPieChartWidget extends HookWidget {
             PieChartData(
                 sections: pieValues.mapIndexed((index, tuple) {
                   final isTouched = index == touchedIndex.value;
+                  final logValue =
+                      -1 / log(tuple.value / pieValues.map((x) => x.value).sum);
 
                   return PieChartSectionData(
                     color: colorRange[index],
-                    value: tuple.value,
+                    value: logValue,
                     title: isTouched ? tuple.touchedInfo : tuple.title,
-                    radius: isTouched ? shortestSide / 8 : shortestSide / 10,
+                    radius: shortestSide / (isTouched ? 8 : 10),
                     titleStyle: TextStyle(
                       fontSize: isTouched ? 18.0 : 12.0,
                       fontWeight: FontWeight.w400,

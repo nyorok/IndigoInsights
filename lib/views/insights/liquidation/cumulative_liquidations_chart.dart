@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/models/liquidation.dart';
 import 'package:indigo_insights/providers/liquidation_provider.dart';
+import 'package:indigo_insights/theme/color_scheme.dart';
 import 'package:indigo_insights/theme/gradients.dart';
 import 'package:indigo_insights/utils/loader.dart';
 import 'package:indigo_insights/widgets/amount_date_chart.dart';
@@ -66,14 +67,14 @@ class CumulativeLiquidationsChart extends HookConsumerWidget {
                   startDate,
                   endDate),
             ],
-            colors: const [
-              Colors.yellowAccent,
-              Colors.orangeAccent,
-              Colors.blueGrey,
-              Colors.blueAccent,
+            colors: [
+              Colors.white,
+              secondaryRed,
+              Colors.blueGrey.shade700,
+              Colors.blue.shade700,
             ],
             gradients: [
-              limeGradient,
+              whiteGradient,
               orangeTransparentGradient,
               greyTransparentGradient,
               blueTransparentGradient,

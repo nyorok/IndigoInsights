@@ -3,9 +3,9 @@
     "short_name": "indigo_insights",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#16244f",
-    "theme_color": "#16244f",
-    "description": "Protocol Insights for the Indigo community!",
+    "background_color": "#hexcode",
+    "theme_color": "#hexcode",
+    "description": "A new Flutter project.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

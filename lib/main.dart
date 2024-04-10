@@ -34,7 +34,32 @@ class MyApp extends HookConsumerWidget {
       home: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-          title: const Text('Indigo Insights'),
+          title: Row(
+            children: [
+              const Text('Indigo Insights'),
+              const SizedBox(width: 6),
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'By ',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    Image.asset(
+                      'assets/pwg-40.png',
+                      width: 20,
+                      height: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
           leading: IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () async {

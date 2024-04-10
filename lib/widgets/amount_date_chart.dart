@@ -238,7 +238,8 @@ class AmountDateChart extends StatelessWidget {
               lineBarsData: getChartLines(),
               lineTouchData: LineTouchData(
                 touchTooltipData: LineTouchTooltipData(
-                  tooltipBgColor: Theme.of(context).colorScheme.onBackground,
+                  getTooltipColor: (x) =>
+                      Theme.of(context).colorScheme.onBackground,
                   getTooltipItems: (List<LineBarSpot> touchedSpots) {
                     return touchedSpots.map((LineBarSpot touchedSpot) {
                       final spotData =
