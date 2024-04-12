@@ -1,11 +1,11 @@
 {
-    "name": "indigo_insights",
-    "short_name": "indigo_insights",
+    "name": "Indigo Insights",
+    "short_name": "Indigo Insights",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#hexcode",
     "theme_color": "#hexcode",
-    "description": "A new Flutter project.",
+    "description": "Indigo Insights for the Indigo community made by PWG.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
