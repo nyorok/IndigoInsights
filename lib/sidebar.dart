@@ -11,11 +11,10 @@ class Sidebar extends ConsumerWidget {
   final List<IndigoAsset> assets;
 
   const Sidebar(
-      {Key? key,
+      {super.key,
       required this.onMenuItemPressed,
       required this.selectedMenu,
-      required this.assets})
-      : super(key: key);
+      required this.assets});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -9,7 +9,7 @@ import 'package:indigo_insights/utils/loader.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
 class LiquidationsTable extends HookConsumerWidget {
-  const LiquidationsTable({Key? key}) : super(key: key);
+  const LiquidationsTable({super.key});
 
   List<PlutoColumn> getColumns(String asset) => [
         PlutoColumn(
@@ -104,6 +104,7 @@ class LiquidationsTable extends HookConsumerWidget {
       data: (liquidations) {
         return PlutoGrid(
             key: Key(asset),
+            mode: PlutoGridMode.readOnly,
             columns: getColumns(asset),
             rows: mapToPlutoRow(
                 liquidations.where((liq) => liq.asset == asset).toList()),
@@ -133,9 +134,9 @@ class LiquidationsTable extends HookConsumerWidget {
           cellTextStyle: TextStyle(color: colorScheme.onPrimary),
           columnTextStyle: TextStyle(color: colorScheme.onPrimary),
           iconColor: colorScheme.onPrimary,
-          activatedColor: colorScheme.onBackground,
-          borderColor: colorScheme.onBackground,
-          gridBorderColor: colorScheme.onBackground,
+          activatedColor: colorScheme.surface,
+          borderColor: colorScheme.surface,
+          gridBorderColor: colorScheme.surface,
           activatedBorderColor: colorScheme.onTertiary,
         ),
       );

@@ -48,13 +48,12 @@ List<AmountPercentageData> normalizeAmountPercentageData(
 
 class AmountPercentageChart extends StatelessWidget {
   const AmountPercentageChart(
-      {Key? key,
+      {super.key,
       required this.data,
       required this.colors,
       required this.gradients,
       required this.labels,
-      required this.currency})
-      : super(key: key);
+      required this.currency});
 
   final String currency;
   final List<List<AmountPercentageData>> data;
@@ -237,8 +236,7 @@ class AmountPercentageChart extends StatelessWidget {
               lineBarsData: getChartLines(),
               lineTouchData: LineTouchData(
                 touchTooltipData: LineTouchTooltipData(
-                  getTooltipColor: (x) =>
-                      Theme.of(context).colorScheme.onBackground,
+                  getTooltipColor: (x) => Theme.of(context).colorScheme.surface,
                   getTooltipItems: (List<LineBarSpot> touchedSpots) {
                     return touchedSpots.map((LineBarSpot touchedSpot) {
                       final spotData =

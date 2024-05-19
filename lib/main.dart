@@ -34,6 +34,7 @@ class MyApp extends HookConsumerWidget {
       home: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
+          backgroundColor: colorScheme.surfaceContainerLow,
           title: Row(
             children: [
               const Text('Indigo Insights'),
@@ -41,9 +42,9 @@ class MyApp extends HookConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 16),
                 child: Image.asset(
-                  'assets/pwg-40.png',
-                  width: 20,
-                  height: 20,
+                  'assets/pwg-logo-50.png',
+                  width: 25,
+                  height: 25,
                 ),
               ),
             ],
@@ -95,9 +96,8 @@ class MyApp extends HookConsumerWidget {
       ),
       iconTheme: const IconThemeData(color: Colors.white),
       dataTableTheme: DataTableThemeData(headingRowColor:
-          MaterialStateProperty.resolveWith<Color?>(
-              (Set<MaterialState> states) {
-        if (states.contains(MaterialState.hovered)) {
+          WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+        if (states.contains(WidgetState.hovered)) {
           return Theme.of(context).colorScheme.primary.withOpacity(0.08);
         }
         return null;

@@ -3,7 +3,6 @@ class IndigoAsset {
   final DateTime createdAt;
   final double? delistPrice;
   final String hash;
-  final int mcr;
   final String oracleNftCs;
   final String oracleNftTn;
   final String outputHash;
@@ -16,7 +15,6 @@ class IndigoAsset {
     required this.createdAt,
     this.delistPrice,
     required this.hash,
-    required this.mcr,
     required this.oracleNftCs,
     required this.oracleNftTn,
     required this.outputHash,
@@ -33,7 +31,6 @@ class IndigoAsset {
           ? double.parse(json['delist_price'])
           : null,
       hash: json['hash'],
-      mcr: json['mcr'],
       oracleNftCs: json['oracle_nft_cs'],
       oracleNftTn: json['oracle_nft_tn'],
       outputHash: json['output_hash'],
@@ -49,7 +46,6 @@ class IndigoAsset {
       'createdAt': createdAt,
       'delist_price': delistPrice,
       'hash': hash,
-      'mcr': mcr,
       'oracle_nft_cs': oracleNftCs,
       'oracle_nft_tn': oracleNftCs,
       'output_hash': outputHash,
