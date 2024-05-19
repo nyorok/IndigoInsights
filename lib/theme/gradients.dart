@@ -33,7 +33,7 @@ final greyGradient = LinearGradient(
       Colors.blueGrey,
     ]);
 
-final whiteGradient = LinearGradient(
+const whiteGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
@@ -41,7 +41,7 @@ final whiteGradient = LinearGradient(
       Colors.white10,
     ]);
 
-final orangeTransparentGradient = LinearGradient(
+const orangeTransparentGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
