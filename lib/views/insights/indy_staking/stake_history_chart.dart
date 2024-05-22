@@ -31,7 +31,7 @@ class StakeHistoryChart extends HookConsumerWidget {
           return AmountDateChart(
             title: "Staking History",
             currency: "INDY",
-            labels: const ["INDY Staked"],
+            labels: const ["Staked"],
             data: [stakeHistoryData],
             colors: const [Colors.deepPurpleAccent],
             gradients: const [indigoGradient],

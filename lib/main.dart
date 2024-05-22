@@ -4,11 +4,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/providers/indigo_asset_provider.dart';
 import 'package:indigo_insights/theme/color_scheme.dart';
 import 'package:indigo_insights/views/insights/cdp/cdp_insights.dart';
+import 'package:indigo_insights/views/insights/indy_staking/indy_staking_insights.dart';
 import 'package:indigo_insights/views/insights/liquidation/liquidation_insights.dart';
 import 'package:indigo_insights/views/insights/market/market_insights.dart';
 import 'package:indigo_insights/views/insights/stability_pool/stability_pool_insights.dart';
 import 'package:indigo_insights/views/insights/stability_pool_account/stability_pool_account_insights.dart';
-import 'package:indigo_insights/views/insights/indy_staking/indy_staking_insights.dart';
+import 'package:indigo_insights/views/insights/staking_rewards/staking_rewards_insights.dart';
 import 'package:indigo_insights/views/tables/cdps_table.dart';
 import 'package:indigo_insights/views/tables/liquidations_table.dart';
 
@@ -71,11 +72,12 @@ class MyApp extends HookConsumerWidget {
                 0 => const LiquidationInsights(),
                 1 => const CdpInsights(),
                 2 => const IndyStakingInsights(),
-                3 => const StabilityPoolInsights(),
-                4 => const StabilityPoolAccountInsights(),
-                5 => const MarketInsights(),
-                6 => centeredPageContainer(const LiquidationsTable()),
-                7 => centeredPageContainer(const CdpsTable()),
+                3 => const StakingRewardsInsights(),
+                4 => const StabilityPoolInsights(),
+                5 => const StabilityPoolAccountInsights(),
+                6 => const MarketInsights(),
+                7 => centeredPageContainer(const LiquidationsTable()),
+                8 => centeredPageContainer(const CdpsTable()),
                 _ => Text("Invalid Page: ${selectedMenuItem.value}"),
               },
             ),
