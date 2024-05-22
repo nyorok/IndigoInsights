@@ -13,7 +13,7 @@ class StakeHistoryChart extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     getStakeHistoriesData(List<StakeHistory> stakeHistories) {
-      return stakeHistories
+      final data = stakeHistories
           .groupFoldBy<DateTime, double>(
             (item) => DateTime(item.date.year, item.date.month, item.date.day),
             (a, b) => (a ?? 0) + b.staked,
@@ -21,6 +21,13 @@ class StakeHistoryChart extends HookConsumerWidget {
           .entries
           .map((entry) => AmountDateData(entry.key, entry.value))
           .toList();
+
+      data.sortBy((d) => d.date);
+      final firstDate = data.first.date;
+      data.add(AmountDateData(firstDate.add(const Duration(days: -1)), 0));
+      data.sortBy((d) => d.date);
+
+      return data;
     }
 
     return ref.watch(stakeHistoriesProvider).when(
