@@ -131,6 +131,7 @@ class AmountDateChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     DateTime? previousDateLabel;
+    double? previousAmountLabel;
 
     if (colors.length < data.length) {
       throw Exception("Not enough colors for each data line");
@@ -243,12 +244,22 @@ class AmountDateChart extends StatelessWidget {
                   sideTitles: SideTitles(
                     reservedSize: getLabelSize(),
                     showTitles: true,
-                    getTitlesWidget: (value, titleMeta) => Padding(
-                      padding: const EdgeInsets.only(left: 12),
-                      child: Row(children: [
-                        Text(numberAbbreviatedFormatter(value, abbreviation))
-                      ]),
-                    ),
+                    getTitlesWidget: (value, titleMeta) {
+                      if (previousAmountLabel != null &&
+                          (value - previousAmountLabel!).abs() <
+                              getAmountInterval()) {
+                        previousAmountLabel = value;
+                        return const SizedBox();
+                      }
+                      previousAmountLabel = value;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 12),
+                        child: Row(children: [
+                          Text(numberAbbreviatedFormatter(value, abbreviation))
+                        ]),
+                      );
+                    },
                   ),
                 ),
               ),
