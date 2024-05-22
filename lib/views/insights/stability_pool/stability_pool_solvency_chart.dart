@@ -73,7 +73,7 @@ class StabilityPoolSolvencyChart extends HookConsumerWidget {
         data: (stabilityPoolSolvencyData) {
           return AmountPercentageChart(
             currency: asset,
-            labels: [asset],
+            labels: const ['Balance'],
             data: [stabilityPoolSolvencyData],
             colors: const [Colors.blueAccent],
             gradients: [greenBlueGradient],

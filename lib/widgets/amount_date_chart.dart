@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:indigo_insights/utils/formatters.dart';
+import 'package:intl/intl.dart' as intl;
 
 import '../utils/page_title.dart';
 
@@ -14,11 +15,12 @@ class AmountDateData {
   const AmountDateData(this.date, this.amount);
 }
 
+DateTime getDate(DateTime date) => DateTime(date.year, date.month, date.day);
+
 List<AmountDateData> normalizeAmountDateData(
     List<AmountDateData> inputList, DateTime startDate, DateTime endDate) {
   List<AmountDateData> normalizedList = [];
 
-  getDate(DateTime date) => DateTime(date.year, date.month, date.day);
   DateTime currentDate = getDate(startDate);
   double lastAmount = inputList.first.amount;
   int inputIndex = 0;
@@ -72,24 +74,26 @@ class AmountDateChart extends StatelessWidget {
   DateTime getDateStart() =>
       data.expand((list) => list).map((e) => e.date).reduce((value, element) =>
           value.microsecondsSinceEpoch < element.microsecondsSinceEpoch
-              ? value
-              : element);
+              ? getDate(value.toUtc())
+              : getDate(element.toUtc()));
 
   DateTime getDateEnd() =>
       data.expand((list) => list).map((e) => e.date).reduce((value, element) =>
           value.microsecondsSinceEpoch > element.microsecondsSinceEpoch
-              ? value
-              : element);
+              ? getDate(value.toUtc())
+              : getDate(element.toUtc()));
 
   double getAmountStart() => data
       .expand((list) => list)
       .map((e) => e.amount)
       .reduce((value, element) => value < element ? value : element);
 
-  double getAmountEnd() => roundToNearestPowerOf10(data
-      .expand((list) => list)
-      .map((e) => e.amount)
-      .reduce((value, element) => value > element ? value : element));
+  double getAmountEnd() =>
+      roundToNearestPowerOf10(data
+          .expand((list) => list)
+          .map((e) => e.amount)
+          .reduce((value, element) => value > element ? value : element)) *
+      1.2;
 
   double roundToNearestPowerOf10(double value) {
     if (value == 0) return 0;
@@ -104,7 +108,8 @@ class AmountDateChart extends StatelessWidget {
   double getAmountInterval() =>
       roundToNearestPowerOf10((getAmountEnd() - getAmountStart()) / 20);
 
-  int getDateInterval() => 4 * 30;
+  int getDateInterval() =>
+      (getDateStart().difference(getDateEnd()).inDays / 6).abs().ceil();
 
   List<LineChartBarData> getChartLines() => data
       .mapIndexed((index, lineData) => LineChartBarData(
@@ -112,7 +117,9 @@ class AmountDateChart extends StatelessWidget {
             belowBarData: BarAreaData(show: true, gradient: gradients[index]),
             spots: lineData
                 .map((dotData) => FlSpot(
-                    dotData.date.millisecondsSinceEpoch.toDouble(),
+                    getDate(dotData.date.toUtc())
+                        .millisecondsSinceEpoch
+                        .toDouble(),
                     dotData.amount))
                 .toList(),
             isCurved: true,
@@ -123,6 +130,8 @@ class AmountDateChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    DateTime? previousDateLabel;
+
     if (colors.length < data.length) {
       throw Exception("Not enough colors for each data line");
     }
@@ -205,14 +214,25 @@ class AmountDateChart extends StatelessWidget {
                     showTitles: true,
                     reservedSize: 36,
                     getTitlesWidget: (value, titleMeta) {
-                      final dateTime =
-                          DateTime.fromMillisecondsSinceEpoch(value.floor());
+                      final dateTime = getDate(
+                          DateTime.fromMillisecondsSinceEpoch(value.toInt())
+                              .toUtc());
+                      if (previousDateLabel != null &&
+                          dateTime.difference(previousDateLabel!).inDays.abs() <
+                              getDateInterval()) {
+                        previousDateLabel = dateTime;
+                        return const SizedBox();
+                      }
+                      previousDateLabel = dateTime;
+
                       return SideTitleWidget(
                         fitInside:
                             SideTitleFitInsideData.fromTitleMeta(titleMeta),
                         axisSide: titleMeta.axisSide,
                         child: Text(
-                          '${dateTime.month}/${dateTime.year.toString().substring(2)}',
+                          getDateInterval() >= 30
+                              ? '${dateTime.month}/${dateTime.year.toString().substring(2)}'
+                              : intl.DateFormat('yyyy-MM-dd').format(dateTime),
                           style: const TextStyle(fontSize: 9),
                         ),
                       );
@@ -237,14 +257,23 @@ class AmountDateChart extends StatelessWidget {
               lineBarsData: getChartLines(),
               lineTouchData: LineTouchData(
                 touchTooltipData: LineTouchTooltipData(
+                  maxContentWidth: 240,
                   getTooltipColor: (x) => Theme.of(context).colorScheme.surface,
                   getTooltipItems: (List<LineBarSpot> touchedSpots) {
                     return touchedSpots.map((LineBarSpot touchedSpot) {
                       final spotData =
                           touchedSpot.bar.spots[touchedSpot.spotIndex];
                       final double amount = spotData.y;
+
+                      final DateTime date = DateTime.fromMillisecondsSinceEpoch(
+                          touchedSpots
+                              .first.bar.spots[touchedSpots.first.spotIndex].x
+                              .toInt());
+                      final String formattedDate =
+                          intl.DateFormat('yyyy/MM/dd').format(date);
+
                       return LineTooltipItem(
-                        "${labels[touchedSpot.barIndex]}: ${numberFormatter(amount, 0)} $currency",
+                        "${touchedSpot.barIndex == 0 ? '$formattedDate ${labels[touchedSpot.barIndex]}' : labels[touchedSpot.barIndex]}: ${numberFormatter(amount, 0)} $currency",
                         TextStyle(
                             color: colors[touchedSpot.barIndex],
                             fontWeight: FontWeight.w500,
