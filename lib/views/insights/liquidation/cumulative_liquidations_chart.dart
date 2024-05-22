@@ -21,7 +21,7 @@ class CumulativeLiquidationsChart extends HookConsumerWidget {
       liquidations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
       double cumulativeSum = 0.0;
-      return liquidations
+      final liqData = liquidations
           .groupFoldBy<DateTime, double>(
             (item) => DateTime(
                 item.createdAt.year, item.createdAt.month, item.createdAt.day),
@@ -34,13 +34,22 @@ class CumulativeLiquidationsChart extends HookConsumerWidget {
 
         return AmountDateData(liq.date, cumulativeSum);
       }).toList();
+
+      liqData.sortBy((d) => d.date);
+      final firstDate = liqData.first.date;
+      liqData.add(AmountDateData(firstDate.add(const Duration(days: -1)), 0));
+      liqData.sortBy((d) => d.date);
+
+      return liqData;
     }
 
     return ref.watch(liquidationProvider).when(
         data: (liquidations) {
           liquidations.sortBy((l) => l.createdAt);
-          final startDate = liquidations.first.createdAt;
-          final endDate = liquidations.last.createdAt;
+          final startDate =
+              liquidations.first.createdAt.add(const Duration(days: -1));
+          final endDate =
+              liquidations.last.createdAt.add(const Duration(days: -1));
 
           return AmountDateChart(
             title: "Cumulative Liquidations",

@@ -13,7 +13,7 @@ class StakingRewardsChart extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     getRedemptionStakingFeesData(List<Redemption> redemptions) {
-      return redemptions
+      final data = redemptions
           .groupFoldBy<DateTime, double>(
             (item) => DateTime(
                 item.createdAt.year, item.createdAt.month, item.createdAt.day),
@@ -22,6 +22,12 @@ class StakingRewardsChart extends HookConsumerWidget {
           .entries
           .map((entry) => AmountDateData(entry.key, entry.value))
           .toList();
+      data.sortBy((d) => d.date);
+      final firstDate = data.first.date;
+      data.add(AmountDateData(firstDate.add(const Duration(days: -1)), 0));
+      data.sortBy((d) => d.date);
+
+      return data;
     }
 
     return ref.watch(redemptionsProvider).when(
