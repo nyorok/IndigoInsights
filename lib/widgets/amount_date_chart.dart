@@ -227,8 +227,6 @@ class AmountDateChart extends StatelessWidget {
                       previousDateLabel = dateTime;
 
                       return SideTitleWidget(
-                        fitInside:
-                            SideTitleFitInsideData.fromTitleMeta(titleMeta),
                         axisSide: titleMeta.axisSide,
                         child: Text(
                           getDateInterval() >= 30
@@ -268,6 +266,8 @@ class AmountDateChart extends StatelessWidget {
               lineBarsData: getChartLines(),
               lineTouchData: LineTouchData(
                 touchTooltipData: LineTouchTooltipData(
+                  fitInsideHorizontally: true,
+                  fitInsideVertically: true,
                   maxContentWidth: 240,
                   getTooltipColor: (x) => Theme.of(context).colorScheme.surface,
                   getTooltipItems: (List<LineBarSpot> touchedSpots) {
