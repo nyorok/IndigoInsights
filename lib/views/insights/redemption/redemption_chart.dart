@@ -29,12 +29,15 @@ class RedemptionChart extends HookConsumerWidget {
       return data;
     }
 
-    final dataByAsset = redemptionsByAsset.entries.map((entry) => (
-          label: entry.key,
-          color: Colors.blueAccent,
-          gradient: blueTransparentGradient,
-          data: getRedemptionData(entry.value)
-        ));
+    final dataByAsset = redemptionsByAsset.entries
+        .map((entry) => (
+              label: entry.key,
+              color: getColorByAsset(entry.key),
+              gradient: getGradientByAsset(entry.key),
+              data: getRedemptionData(entry.value)
+            ))
+        .sortedBy((e) => e.label);
+
     final redemptionsData = getRedemptionData(redemptionsByAsset.values
         .expand((redemptions) => redemptions)
         .toList());
