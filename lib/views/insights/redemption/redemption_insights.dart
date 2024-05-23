@@ -53,7 +53,7 @@ class RedemptionInsights extends HookConsumerWidget {
       constraints: BoxConstraints(
         minWidth: 360,
         maxWidth: width,
-        maxHeight: 170,
+        maxHeight: 189,
       ),
       child: Card(
         elevation: 2,

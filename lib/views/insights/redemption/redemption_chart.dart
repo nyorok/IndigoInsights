@@ -43,7 +43,7 @@ class RedemptionChart extends HookConsumerWidget {
         .toList());
 
     return AmountDateChart(
-      title: "Staking Rewards",
+      title: "ADA Returned",
       currency: "ADA",
       labels: ['Total', ...dataByAsset.map((a) => a.label)],
       data: [redemptionsData, ...dataByAsset.map((a) => a.data)],

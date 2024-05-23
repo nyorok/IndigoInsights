@@ -11,13 +11,14 @@ class RedemptionInformation extends HookConsumerWidget {
   final String asset;
   final List<Redemption> redemptions;
 
-  adaAmount(double amount, BuildContext context) => Row(
+  tokenAmount(double amount, BuildContext context, {String token = 'ADA'}) =>
+      Row(
         children: [
           Text(
             numberFormatter(amount, 2),
           ),
           Text(
-            " ADA",
+            " $token",
             style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
           ),
         ],
@@ -56,15 +57,26 @@ class RedemptionInformation extends HookConsumerWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       PageTitle(title: "$asset Redemptions"),
       const SizedBox(height: 20),
-      informationRow('Total Redemptions',
-          adaAmount(redemptions.map((r) => r.lovelacesReturned).sum, context)),
-      informationRow('Redemptions (Last 24h)',
-          adaAmount(rewardsLast1.map((r) => r.lovelacesReturned).sum, context)),
-      informationRow('Redemptions (Last Week)',
-          adaAmount(rewardsLast7.map((r) => r.lovelacesReturned).sum, context)),
       informationRow(
-          'Redemptions (Last Month)',
-          adaAmount(
+          'Total Redeemed',
+          tokenAmount(redemptions.map((r) => r.redeemedAmount).sum, context,
+              token: asset)),
+      const SizedBox(height: 5),
+      informationRow(
+          'Total Returned',
+          tokenAmount(
+              redemptions.map((r) => r.lovelacesReturned).sum, context)),
+      informationRow(
+          'Last 24h',
+          tokenAmount(
+              rewardsLast1.map((r) => r.lovelacesReturned).sum, context)),
+      informationRow(
+          'Last Week',
+          tokenAmount(
+              rewardsLast7.map((r) => r.lovelacesReturned).sum, context)),
+      informationRow(
+          'Last Month',
+          tokenAmount(
               rewardsLast30.map((r) => r.lovelacesReturned).sum, context)),
     ]);
   }
