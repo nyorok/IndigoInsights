@@ -26,6 +26,7 @@ class RedemptionInsights extends HookConsumerWidget {
                       return [
                         Column(
                             children: redemptionsByAsset.entries
+                                .sortedBy((e) => e.key)
                                 .map((entry) => informationCard(
                                     RedemptionInformation(
                                         entry.key, entry.value),
