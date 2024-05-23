@@ -7,6 +7,7 @@ import 'package:indigo_insights/views/insights/cdp/cdp_insights.dart';
 import 'package:indigo_insights/views/insights/indy_staking/indy_staking_insights.dart';
 import 'package:indigo_insights/views/insights/liquidation/liquidation_insights.dart';
 import 'package:indigo_insights/views/insights/market/market_insights.dart';
+import 'package:indigo_insights/views/insights/redemption/redemption_insights.dart';
 import 'package:indigo_insights/views/insights/stability_pool/stability_pool_insights.dart';
 import 'package:indigo_insights/views/insights/stability_pool_account/stability_pool_account_insights.dart';
 import 'package:indigo_insights/views/insights/staking_rewards/staking_rewards_insights.dart';
@@ -73,11 +74,12 @@ class MyApp extends HookConsumerWidget {
                 1 => const CdpInsights(),
                 2 => const IndyStakingInsights(),
                 3 => const StakingRewardsInsights(),
-                4 => const StabilityPoolInsights(),
-                5 => const StabilityPoolAccountInsights(),
-                6 => const MarketInsights(),
-                7 => centeredPageContainer(const LiquidationsTable()),
-                8 => centeredPageContainer(const CdpsTable()),
+                4 => const RedemptionInsights(),
+                5 => const StabilityPoolInsights(),
+                6 => const StabilityPoolAccountInsights(),
+                7 => const MarketInsights(),
+                8 => centeredPageContainer(const LiquidationsTable()),
+                9 => centeredPageContainer(const CdpsTable()),
                 _ => Text("Invalid Page: ${selectedMenuItem.value}"),
               },
             ),

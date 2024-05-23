@@ -121,9 +121,10 @@ class Sidebar extends ConsumerWidget {
                   getListTile(title: 'CDP', menuIndex: 1),
                   getListTile(title: 'Indy Staking', menuIndex: 2),
                   getListTile(title: 'Staking Rewards', menuIndex: 3),
-                  getListTile(title: 'Stability Pool', menuIndex: 4),
-                  getListTile(title: 'Stability Pool Account', menuIndex: 5),
-                  getListTile(title: 'Market', menuIndex: 6),
+                  getListTile(title: 'Redemption', menuIndex: 4),
+                  getListTile(title: 'Stability Pool', menuIndex: 5),
+                  getListTile(title: 'Stability Pool Account', menuIndex: 6),
+                  getListTile(title: 'Market', menuIndex: 7),
                   Padding(
                     padding: const EdgeInsets.only(top: 12, bottom: 4),
                     child: Text(
@@ -134,7 +135,7 @@ class Sidebar extends ConsumerWidget {
                   ),
                   getExpansionTile(
                     title: 'Liquidations',
-                    menuIndex: 7,
+                    menuIndex: 8,
                     children: assets
                         .map((submenu) => getSubmenuListTile(
                               submenu: submenu,
@@ -152,7 +153,7 @@ class Sidebar extends ConsumerWidget {
                   ),
                   getExpansionTile(
                     title: "CDPs",
-                    menuIndex: 8,
+                    menuIndex: 9,
                     children: assets
                         .map((submenu) => getSubmenuListTile(
                               submenu: submenu,

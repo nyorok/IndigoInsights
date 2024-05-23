@@ -1,6 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:indigo_insights/theme/color_scheme.dart';
 
+Color getColorByAsset(String asset) => switch (asset) {
+      'iUSD' => Colors.blueAccent,
+      'iBTC' => Colors.orangeAccent,
+      'iETH' => Colors.blueGrey,
+      _ => Colors.greenAccent
+    };
+
+LinearGradient getGradientByAsset(String asset) => switch (asset) {
+      'iUSD' => blueTransparentGradient,
+      'iBTC' => orangeTransparentGradient,
+      'iETH' => greyTransparentGradient,
+      _ => greenTransparentGradient
+    };
+
 const indigoGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
@@ -63,6 +77,14 @@ final greyTransparentGradient = LinearGradient(
     colors: [
       Colors.blueGrey.shade900.withOpacity(0.9),
       Colors.blueGrey.shade900.withOpacity(0.6),
+    ]);
+
+final greenTransparentGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Colors.green.shade900.withOpacity(0.9),
+      Colors.green.shade900.withOpacity(0.4),
     ]);
 
 final greenBlueGradient = LinearGradient(
