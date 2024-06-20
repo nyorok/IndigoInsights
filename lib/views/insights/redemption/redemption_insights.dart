@@ -1,44 +1,120 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:indigo_insights/models/cdp.dart';
+import 'package:indigo_insights/providers/asset_price_provider.dart';
+import 'package:indigo_insights/providers/cdp_provider.dart';
 import 'package:indigo_insights/providers/redemption_provider.dart';
 import 'package:indigo_insights/utils/loader.dart';
+import 'package:indigo_insights/views/insights/redemption/redeemable_over_rmrs_chart.dart';
 import 'package:indigo_insights/views/insights/redemption/redemption_chart.dart';
 import 'package:indigo_insights/views/insights/redemption/redemption_information.dart';
 
-class RedemptionInsights extends HookConsumerWidget {
+final cdpsAndPriceProvider = FutureProvider<
+    ({
+      List<Cdp> cdps,
+      double adaPrice,
+    })>((ref) async {
+  final cdps = await ref
+      .watch(cdpsProvider.future)
+      .then((value) => value.where((e) => e.asset == 'iUSD').toList());
+
+  final price = await ref
+      .watch(assetPricesProvider.future)
+      .then((value) => value.firstWhere((e) => e.asset == 'iUSD').price);
+
+  return (cdps: cdps, adaPrice: price);
+});
+
+class RedemptionInsights extends StatefulHookConsumerWidget {
   const RedemptionInsights({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StatefulHookConsumerWidget> createState() =>
+      _RedemptionInsightsState();
+}
+
+class _RedemptionInsightsState extends ConsumerState<RedemptionInsights>
+    with TickerProviderStateMixin {
+  TabController? _tabController;
+
+  @override
+  void initState() {
+    _tabController = TabController(length: 2, vsync: this);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _tabController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tabLabels = List.from(["Redemption History", "Redeemable over RMRs"])
+        .map((e) => Tab(
+              text: e,
+            ))
+        .toList();
+
     return SingleChildScrollView(
       child: SelectionArea(
         child: Padding(
           padding: const EdgeInsets.only(top: 8.0),
           child: Align(
             alignment: Alignment.topLeft,
-            child: Wrap(
-              children: ref.watch(redemptionsProvider).when(
-                    data: (redemptions) {
-                      final redemptionsByAsset =
-                          redemptions.groupListsBy((r) => r.asset);
-
-                      return [
-                        Column(
-                            children: redemptionsByAsset.entries
-                                .sortedBy((e) => e.key)
-                                .map((entry) => informationCard(
-                                    RedemptionInformation(
-                                        entry.key, entry.value),
-                                    context))
-                                .toList()),
-                        chartCard(RedemptionChart(redemptionsByAsset), context)
-                      ];
-                    },
-                    error: (error, stackTrace) => [Text(error.toString())],
-                    loading: () => [const Loader()],
+            child: Wrap(children: [
+              Column(
+                children: ref.watch(redemptionsProvider).when(
+                      data: (redemptions) => redemptions
+                          .groupListsBy((r) => r.asset)
+                          .entries
+                          .sortedBy((e) => e.key)
+                          .map((entry) => informationCard(
+                              RedemptionInformation(entry.key, entry.value),
+                              context))
+                          .toList(),
+                      error: (error, stackTrace) => [Text(error.toString())],
+                      loading: () => [const Loader()],
+                    ),
+              ),
+              chartCard(
+                  Column(
+                    children: [
+                      TabBar(
+                        unselectedLabelColor: Colors.white,
+                        labelColor: Colors.white,
+                        tabs: tabLabels,
+                        controller: _tabController,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 8, bottom: 8),
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              ref.watch(redemptionsProvider).when(
+                                  data: (redemptions) => RedemptionChart(
+                                      redemptions.groupListsBy((r) => r.asset)),
+                                  error: (error, stackTrace) =>
+                                      Text(error.toString()),
+                                  loading: () => const Loader()),
+                              ref.watch(cdpsAndPriceProvider).when(
+                                  data: (data) => RedeemableOverRmrsChart(
+                                      data.cdps, data.adaPrice),
+                                  error: (error, stackTrace) =>
+                                      Text(error.toString()),
+                                  loading: () => const Loader()),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-            ),
+                  context)
+            ]),
           ),
         ),
       ),

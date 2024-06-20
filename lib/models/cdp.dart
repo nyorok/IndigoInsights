@@ -20,8 +20,8 @@ class Cdp {
         collateralAmount: json['collateralAmount'] / 1000000,
         mintedAmount: json['mintedAmount'] / 1000000,
         outputIndex: json['output_index'],
-        outputHash: json['output_hash'],
-        owner: json['owner']);
+        outputHash: json['output_hash'] ?? '',
+        owner: json['owner'] ?? '');
   }
 
   Map<String, dynamic> toJson() {
