@@ -141,7 +141,7 @@ class Sidebar extends ConsumerWidget {
                               submenu: submenu,
                               getTitle:
                                   IndigoInsightsMenu.getIndigoAssetSubmenu,
-                              menuIndex: 6,
+                              menuIndex: 8,
                               selectedSubmenu: ref
                                   .watch(selectedLiquidationsSubmenuProvider),
                               setSubmenu: (submenu) => ref
@@ -159,7 +159,7 @@ class Sidebar extends ConsumerWidget {
                               submenu: submenu,
                               getTitle:
                                   IndigoInsightsMenu.getIndigoAssetSubmenu,
-                              menuIndex: 7,
+                              menuIndex: 9,
                               selectedSubmenu:
                                   ref.watch(selectedCdpsSubmenuProvider),
                               setSubmenu: (submenu) => ref
