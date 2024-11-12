@@ -5,6 +5,20 @@ import 'package:indigo_insights/providers/submenu_provider.dart';
 import 'package:indigo_insights/utils/page_title.dart';
 import 'package:url_launcher/link.dart';
 
+enum SidebarMenu {
+  liquidation,
+  cdps,
+  mintedSupply,
+  indyStaking,
+  stakingRewards,
+  redemption,
+  stabilityPool,
+  stabilityPoolAccount,
+  market,
+  liquidationTable,
+  cdpsTable
+}
+
 class Sidebar extends ConsumerWidget {
   final Function(int) onMenuItemPressed;
   final int selectedMenu;
@@ -117,14 +131,30 @@ class Sidebar extends ConsumerWidget {
                           color: Theme.of(context).colorScheme.onTertiary),
                     ),
                   ),
-                  getListTile(title: 'Liquidation', menuIndex: 0),
-                  getListTile(title: 'CDP', menuIndex: 1),
-                  getListTile(title: 'Indy Staking', menuIndex: 2),
-                  getListTile(title: 'Staking Rewards', menuIndex: 3),
-                  getListTile(title: 'Redemption', menuIndex: 4),
-                  getListTile(title: 'Stability Pool', menuIndex: 5),
-                  getListTile(title: 'Stability Pool Account', menuIndex: 6),
-                  getListTile(title: 'Market', menuIndex: 7),
+                  getListTile(
+                      title: 'Liquidation',
+                      menuIndex: SidebarMenu.liquidation.index),
+                  getListTile(title: 'CDP', menuIndex: SidebarMenu.cdps.index),
+                  getListTile(
+                      title: 'Minted Supply',
+                      menuIndex: SidebarMenu.mintedSupply.index),
+                  getListTile(
+                      title: 'Indy Staking',
+                      menuIndex: SidebarMenu.indyStaking.index),
+                  getListTile(
+                      title: 'Staking Rewards',
+                      menuIndex: SidebarMenu.stakingRewards.index),
+                  getListTile(
+                      title: 'Redemption',
+                      menuIndex: SidebarMenu.redemption.index),
+                  getListTile(
+                      title: 'Stability Pool',
+                      menuIndex: SidebarMenu.stabilityPool.index),
+                  getListTile(
+                      title: 'Stability Pool Account',
+                      menuIndex: SidebarMenu.stabilityPoolAccount.index),
+                  getListTile(
+                      title: 'Market', menuIndex: SidebarMenu.market.index),
                   Padding(
                     padding: const EdgeInsets.only(top: 12, bottom: 4),
                     child: Text(
@@ -135,7 +165,7 @@ class Sidebar extends ConsumerWidget {
                   ),
                   getExpansionTile(
                     title: 'Liquidations',
-                    menuIndex: 8,
+                    menuIndex: SidebarMenu.liquidationTable.index,
                     children: assets
                         .map((submenu) => getSubmenuListTile(
                               submenu: submenu,
@@ -153,7 +183,7 @@ class Sidebar extends ConsumerWidget {
                   ),
                   getExpansionTile(
                     title: "CDPs",
-                    menuIndex: 9,
+                    menuIndex: SidebarMenu.cdpsTable.index,
                     children: assets
                         .map((submenu) => getSubmenuListTile(
                               submenu: submenu,
