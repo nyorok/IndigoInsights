@@ -7,6 +7,7 @@ import 'package:indigo_insights/views/insights/cdp/cdp_insights.dart';
 import 'package:indigo_insights/views/insights/indy_staking/indy_staking_insights.dart';
 import 'package:indigo_insights/views/insights/liquidation/liquidation_insights.dart';
 import 'package:indigo_insights/views/insights/market/market_insights.dart';
+import 'package:indigo_insights/views/insights/minted_supply/minted_supply_insights.dart';
 import 'package:indigo_insights/views/insights/redemption/redemption_insights.dart';
 import 'package:indigo_insights/views/insights/stability_pool/stability_pool_insights.dart';
 import 'package:indigo_insights/views/insights/stability_pool_account/stability_pool_account_insights.dart';
@@ -69,18 +70,21 @@ class MyApp extends HookConsumerWidget {
         body: Row(
           children: [
             Expanded(
-              child: switch (selectedMenuItem.value) {
-                0 => const LiquidationInsights(),
-                1 => const CdpInsights(),
-                2 => const IndyStakingInsights(),
-                3 => const StakingRewardsInsights(),
-                4 => const RedemptionInsights(),
-                5 => const StabilityPoolInsights(),
-                6 => const StabilityPoolAccountInsights(),
-                7 => const MarketInsights(),
-                8 => centeredPageContainer(const LiquidationsTable()),
-                9 => centeredPageContainer(const CdpsTable()),
-                _ => Text("Invalid Page: ${selectedMenuItem.value}"),
+              child: switch (SidebarMenu.values[selectedMenuItem.value]) {
+                SidebarMenu.liquidation => const LiquidationInsights(),
+                SidebarMenu.cdps => const CdpInsights(),
+                SidebarMenu.mintedSupply => const MintedSupplyInsights(),
+                SidebarMenu.indyStaking => const IndyStakingInsights(),
+                SidebarMenu.stakingRewards => const StakingRewardsInsights(),
+                SidebarMenu.redemption => const RedemptionInsights(),
+                SidebarMenu.stabilityPool => const StabilityPoolInsights(),
+                SidebarMenu.stabilityPoolAccount =>
+                  const StabilityPoolAccountInsights(),
+                SidebarMenu.market => const MarketInsights(),
+                SidebarMenu.liquidationTable =>
+                  centeredPageContainer(const LiquidationsTable()),
+                SidebarMenu.cdpsTable =>
+                  centeredPageContainer(const CdpsTable())
               },
             ),
           ],
