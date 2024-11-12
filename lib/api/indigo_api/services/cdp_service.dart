@@ -9,7 +9,7 @@ class CdpService extends IndigoApi {
 
   Future<List<CdpsStats>> fetchCdpsStats(String asset) {
     return getAll<CdpsStats>(
-        '/api/cdps/stats?page=1&perPage=26000&filterBy=$asset',
+        '/api/cdps/stats?page=1&perPage=50000&filterBy=$asset',
         CdpsStats.fromJson);
   }
 }
