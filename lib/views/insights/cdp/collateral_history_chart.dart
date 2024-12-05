@@ -8,27 +8,12 @@ import 'package:indigo_insights/theme/gradients.dart';
 import 'package:indigo_insights/utils/loader.dart';
 import 'package:indigo_insights/widgets/amount_date_chart.dart';
 
-class MintedSupplyHistoryChart extends HookConsumerWidget {
-  const MintedSupplyHistoryChart(this.indigoAsset, {super.key});
+class CollateralHistoryChart extends HookConsumerWidget {
+  const CollateralHistoryChart(this.indigoAsset, {super.key});
   final IndigoAsset indigoAsset;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    getMintedSupplyHistory(List<CdpsStats> cdpsStats) {
-      final data = cdpsStats
-          .groupFoldBy<DateTime, double>(
-            (item) => DateTime(item.time.year, item.time.month, item.time.day),
-            (a, b) => (a ?? 0) > b.totalMinted ? (a ?? 0) : b.totalMinted,
-          )
-          .entries
-          .map((entry) => AmountDateData(entry.key, entry.value))
-          .toList();
-
-      data.sortBy((d) => d.date);
-
-      return data;
-    }
-
     getCollateralHistory(List<CdpsStats> cdpsStats) {
       final data = cdpsStats
           .groupFoldBy<DateTime, double>(
@@ -47,13 +32,13 @@ class MintedSupplyHistoryChart extends HookConsumerWidget {
 
     return ref.watch(cdpsStatsProvider(indigoAsset.asset)).when(
         data: (cdpsStats) {
-          final mintedSupplyHistory = getMintedSupplyHistory(cdpsStats);
+          final collateralHistory = getCollateralHistory(cdpsStats);
 
           return AmountDateChart(
-            title: "Minted Supply History",
+            title: "Collateral History",
             currency: indigoAsset.asset,
-            labels: const ["Minted Supply"],
-            data: [mintedSupplyHistory],
+            labels: const ["Total Collateral"],
+            data: [collateralHistory],
             colors: [getColorByAsset(indigoAsset.asset)],
             gradients: [getGradientByAsset(indigoAsset.asset)],
             minY: 0,

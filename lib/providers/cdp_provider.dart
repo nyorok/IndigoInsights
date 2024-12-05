@@ -9,5 +9,6 @@ final cdpsProvider = FutureProvider<List<Cdp>>((ref) async {
 
 final cdpsStatsProvider =
     FutureProvider.family<List<CdpsStats>, String>((ref, asset) async {
-  return await CdpService().fetchCdpsStats(asset);
+  return await CdpService()
+      .fetchCdpsStats(asset, DateTime(DateTime.now().year, 1, 1));
 });

@@ -1,22 +1,23 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:indigo_insights/models/indigo_asset.dart';
 import 'package:indigo_insights/models/liquidation.dart';
 import 'package:indigo_insights/providers/liquidation_provider.dart';
-import 'package:indigo_insights/theme/color_scheme.dart';
 import 'package:indigo_insights/theme/gradients.dart';
 import 'package:indigo_insights/utils/loader.dart';
 import 'package:indigo_insights/widgets/amount_date_chart.dart';
 
 class CumulativeLiquidationsChart extends HookConsumerWidget {
-  const CumulativeLiquidationsChart({super.key});
+  const CumulativeLiquidationsChart(this.indigoAsset, {super.key});
+
+  final IndigoAsset indigoAsset;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    getCumulativeLiquidationsData(
-        {required List<Liquidation> data, String? asset}) {
+    getCumulativeLiquidationsData({required List<Liquidation> data}) {
       final liquidations =
-          data.where((l) => asset == null || l.asset == asset).toList();
+          data.where((l) => l.asset == indigoAsset.asset).toList();
 
       liquidations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
@@ -54,40 +55,15 @@ class CumulativeLiquidationsChart extends HookConsumerWidget {
           return AmountDateChart(
             title: "Cumulative Liquidations",
             currency: "ADA",
-            labels: const ["Total", "iBTC", "iETH", "iUSD"],
+            labels: [indigoAsset.asset],
             data: [
               normalizeAmountDateData(
                   getCumulativeLiquidationsData(data: liquidations),
                   startDate,
-                  endDate),
-              normalizeAmountDateData(
-                  getCumulativeLiquidationsData(
-                      data: liquidations, asset: "iBTC"),
-                  startDate,
-                  endDate),
-              normalizeAmountDateData(
-                  getCumulativeLiquidationsData(
-                      data: liquidations, asset: "iETH"),
-                  startDate,
-                  endDate),
-              normalizeAmountDateData(
-                  getCumulativeLiquidationsData(
-                      data: liquidations, asset: "iUSD"),
-                  startDate,
-                  endDate),
+                  endDate)
             ],
-            colors: [
-              Colors.white,
-              secondaryRed,
-              Colors.blueGrey.shade700,
-              Colors.blue.shade700,
-            ],
-            gradients: [
-              whiteGradient,
-              orangeTransparentGradient,
-              greyTransparentGradient,
-              blueTransparentGradient,
-            ],
+            colors: [getColorByAsset(indigoAsset.asset)],
+            gradients: [getGradientByAsset(indigoAsset.asset)],
           );
         },
         error: (error, stackTrade) => Text(error.toString()),

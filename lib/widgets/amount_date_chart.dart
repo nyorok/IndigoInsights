@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -62,7 +60,9 @@ class AmountDateChart extends StatelessWidget {
       required this.colors,
       required this.gradients,
       required this.labels,
-      required this.currency});
+      required this.currency,
+      this.minY,
+      this.maxY});
 
   final String title;
   final String currency;
@@ -70,6 +70,8 @@ class AmountDateChart extends StatelessWidget {
   final List<Color> colors;
   final List<Gradient?> gradients;
   final List<String> labels;
+  final double? minY;
+  final double? maxY;
 
   DateTime getDateStart() =>
       data.expand((list) => list).map((e) => e.date).reduce((value, element) =>
@@ -83,30 +85,22 @@ class AmountDateChart extends StatelessWidget {
               ? getDate(value.toUtc())
               : getDate(element.toUtc()));
 
-  double getAmountStart() => data
-      .expand((list) => list)
-      .map((e) => e.amount)
-      .reduce((value, element) => value < element ? value : element);
-
-  double getAmountEnd() =>
-      roundToNearestPowerOf10(data
+  double getAmountStart() =>
+      minY ??
+      data
           .expand((list) => list)
           .map((e) => e.amount)
-          .reduce((value, element) => value > element ? value : element)) *
-      1.2;
+          .reduce((value, element) => value < element ? value : element);
 
-  double roundToNearestPowerOf10(double value) {
-    if (value == 0) return 0;
+  double getAmountEnd() =>
+      maxY ??
+      data
+              .expand((list) => list)
+              .map((e) => e.amount)
+              .reduce((value, element) => value > element ? value : element) *
+          1.2;
 
-    int power = (log(value) / log(10)).floor();
-    double base = pow(10, power).toDouble();
-    int firstDigit = (value / base).ceil();
-
-    return firstDigit * base;
-  }
-
-  double getAmountInterval() =>
-      roundToNearestPowerOf10((getAmountEnd() - getAmountStart()) / 20);
+  double getAmountInterval() => (getAmountEnd() - getAmountStart()) / 20;
 
   int getDateInterval() =>
       (getDateStart().difference(getDateEnd()).inDays / 6).abs().ceil();
@@ -131,7 +125,8 @@ class AmountDateChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     DateTime? previousDateLabel;
-    double? previousAmountLabel;
+    double? previousAmount;
+    double? interval;
 
     if (colors.length < data.length) {
       throw Exception("Not enough colors for each data line");
@@ -243,18 +238,23 @@ class AmountDateChart extends StatelessWidget {
                     reservedSize: getLabelSize(),
                     showTitles: true,
                     getTitlesWidget: (value, titleMeta) {
-                      if (previousAmountLabel != null &&
-                          (value - previousAmountLabel!).abs() <
-                              getAmountInterval()) {
-                        previousAmountLabel = value;
-                        return const SizedBox();
+                      if (previousAmount == null) {
+                        previousAmount = value;
+                      } else {
+                        if (interval == null) {
+                          interval = value - previousAmount!;
+                        } else {
+                          if (value.remainder(interval!) > 0) {
+                            return const SizedBox();
+                          }
+                        }
                       }
-                      previousAmountLabel = value;
 
                       return Padding(
                         padding: const EdgeInsets.only(left: 12),
                         child: Row(children: [
-                          Text(numberAbbreviatedFormatter(value, abbreviation))
+                          Text(
+                              '${numberAbbreviated(value, abbreviation).toStringAsFixed(2)}${abbreviation?.name ?? ''}')
                         ]),
                       );
                     },

@@ -10,7 +10,6 @@ enum SidebarMenu {
   cdps,
   mintedSupply,
   indyStaking,
-  stakingRewards,
   redemption,
   stabilityPool,
   stabilityPoolAccount,
@@ -132,21 +131,18 @@ class Sidebar extends ConsumerWidget {
                     ),
                   ),
                   getListTile(
-                      title: 'Liquidation',
-                      menuIndex: SidebarMenu.liquidation.index),
-                  getListTile(title: 'CDP', menuIndex: SidebarMenu.cdps.index),
-                  getListTile(
                       title: 'Minted Supply',
                       menuIndex: SidebarMenu.mintedSupply.index),
+                  getListTile(title: 'CDP', menuIndex: SidebarMenu.cdps.index),
                   getListTile(
-                      title: 'Indy Staking',
-                      menuIndex: SidebarMenu.indyStaking.index),
-                  getListTile(
-                      title: 'Staking Rewards',
-                      menuIndex: SidebarMenu.stakingRewards.index),
+                      title: 'Liquidation',
+                      menuIndex: SidebarMenu.liquidation.index),
                   getListTile(
                       title: 'Redemption',
                       menuIndex: SidebarMenu.redemption.index),
+                  getListTile(
+                      title: 'Indy Staking',
+                      menuIndex: SidebarMenu.indyStaking.index),
                   getListTile(
                       title: 'Stability Pool',
                       menuIndex: SidebarMenu.stabilityPool.index),
@@ -171,7 +167,7 @@ class Sidebar extends ConsumerWidget {
                               submenu: submenu,
                               getTitle:
                                   IndigoInsightsMenu.getIndigoAssetSubmenu,
-                              menuIndex: 8,
+                              menuIndex: SidebarMenu.liquidationTable.index,
                               selectedSubmenu: ref
                                   .watch(selectedLiquidationsSubmenuProvider),
                               setSubmenu: (submenu) => ref
@@ -189,7 +185,7 @@ class Sidebar extends ConsumerWidget {
                               submenu: submenu,
                               getTitle:
                                   IndigoInsightsMenu.getIndigoAssetSubmenu,
-                              menuIndex: 9,
+                              menuIndex: SidebarMenu.cdpsTable.index,
                               selectedSubmenu:
                                   ref.watch(selectedCdpsSubmenuProvider),
                               setSubmenu: (submenu) => ref

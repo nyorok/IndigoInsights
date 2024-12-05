@@ -5,6 +5,7 @@ import 'package:indigo_insights/providers/cdp_provider.dart';
 import 'package:indigo_insights/utils/formatters.dart';
 import 'package:indigo_insights/utils/loader.dart';
 import 'package:indigo_insights/utils/page_title.dart';
+import 'package:indigo_insights/widgets/percentage_gain.dart';
 
 class MintedSupplyInformation extends HookConsumerWidget {
   const MintedSupplyInformation({super.key, required this.indigoAsset});
@@ -37,8 +38,19 @@ class MintedSupplyInformation extends HookConsumerWidget {
     return ref.watch(cdpsStatsProvider(indigoAsset.asset)).when(
           data: (cdpsStats) {
             // Calculate total minted and total collateral from cdpsStats
-            final totalMinted = cdpsStats.last.totalMinted;
-            final totalCollateral = cdpsStats.last.totalCollateral;
+            final currentMinted = cdpsStats.last.totalMinted;
+            final yearStartMinted = cdpsStats.first.totalMinted;
+            final lastMonthMinted = cdpsStats
+                .where((cs) => cs.time.isAfter(
+                    cdpsStats.last.time.add(const Duration(days: -30))))
+                .reduce((a, b) => a.time.isBefore(b.time) ? a : b)
+                .totalMinted;
+
+            final lastDayMinted = cdpsStats
+                .where((cs) => cs.time
+                    .isAfter(cdpsStats.last.time.add(const Duration(days: -1))))
+                .reduce((a, b) => a.time.isBefore(b.time) ? a : b)
+                .totalMinted;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,12 +59,22 @@ class MintedSupplyInformation extends HookConsumerWidget {
                 const SizedBox(height: 32),
                 informationRow(
                   'Total Minted Supply',
-                  assetAmount(totalMinted, indigoAsset.asset, context),
+                  assetAmount(currentMinted, indigoAsset.asset, context),
                 ),
                 const Divider(),
                 informationRow(
-                  'Total Collateral',
-                  assetAmount(totalCollateral, "ADA", context),
+                  'Minted Change (Last 24h)',
+                  PercentageGain(lastDayMinted, currentMinted),
+                ),
+                const Divider(),
+                informationRow(
+                  'Minted Change (Last Month)',
+                  PercentageGain(lastMonthMinted, currentMinted),
+                ),
+                const Divider(),
+                informationRow(
+                  'Minted Change (YTD)',
+                  PercentageGain(yearStartMinted, currentMinted),
                 ),
               ],
             );
