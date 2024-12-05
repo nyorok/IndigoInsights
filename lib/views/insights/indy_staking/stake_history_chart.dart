@@ -42,6 +42,7 @@ class StakeHistoryChart extends HookConsumerWidget {
             data: [stakeHistoryData],
             colors: const [Colors.deepPurpleAccent],
             gradients: const [indigoGradient],
+            maxY: stakeHistoryData.last.amount * 1.2,
           );
         },
         error: (error, stackTrade) => Text(error.toString()),

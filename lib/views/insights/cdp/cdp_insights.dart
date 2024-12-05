@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:indigo_insights/providers/indigo_asset_provider.dart';
-import 'package:indigo_insights/utils/loader.dart';
 import 'package:indigo_insights/views/insights/cdp/cdp_information.dart';
+import 'package:indigo_insights/views/insights/cdp/collateral_history_chart.dart';
+import 'package:indigo_insights/widgets/indigo_asset_tabs.dart';
+import 'package:indigo_insights/widgets/scrollable_information_cards.dart';
 
 class CdpInsights extends HookConsumerWidget {
   const CdpInsights({super.key});
@@ -17,38 +18,13 @@ class CdpInsights extends HookConsumerWidget {
             alignment: Alignment.topLeft,
             child: Wrap(
               children: [
-                ...ref.watch(indigoAssetsProvider).when(
-                      data: (indigoAssets) => indigoAssets
-                          .map((e) => informationCard(
-                              CdpInformation(
-                                indigoAsset: e,
-                              ),
-                              context))
-                          .toList(),
-                      loading: () => [const Loader()],
-                      error: (error, stackTrace) => [Text(error.toString())],
-                    )
+                ScrollableInformationCards(
+                    (e) => CdpInformation(indigoAsset: e)),
+                IndigoAssetTabs((e) => CollateralHistoryChart(e))
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  ConstrainedBox informationCard(Widget widget, BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final double width = screenWidth - 480 > 480 ? 480 : screenWidth;
-
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: width,
-        maxHeight: 240,
-      ),
-      child: Card(
-        elevation: 2,
-        margin: const EdgeInsets.all(8),
-        child: Padding(padding: const EdgeInsets.all(16), child: widget),
       ),
     );
   }

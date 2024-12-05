@@ -2,16 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:indigo_insights/theme/color_scheme.dart';
 
 Color getColorByAsset(String asset) => switch (asset) {
-      'iUSD' => Colors.blueAccent,
-      'iBTC' => Colors.orangeAccent,
-      'iETH' => Colors.blueGrey,
+      'iUSD' => const Color(0xFF70D150),
+      'iBTC' => const Color(0xFFFF9416),
+      'iETH' => Colors.white,
+      'iSOL' => const Color(0xFF9945FF),
       _ => Colors.greenAccent
     };
 
 LinearGradient getGradientByAsset(String asset) => switch (asset) {
-      'iUSD' => blueTransparentGradient,
-      'iBTC' => orangeTransparentGradient,
-      'iETH' => greyTransparentGradient,
+      'iUSD' => usdTransparentGradient,
+      'iBTC' => btcTransparentGradient,
+      'iETH' => ethTransparentGradient,
+      'iSOL' => solTransparentGradient,
       _ => greenTransparentGradient
     };
 
@@ -55,29 +57,39 @@ const whiteGradient = LinearGradient(
       Colors.white10,
     ]);
 
-const orangeTransparentGradient = LinearGradient(
+final btcTransparentGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color.fromRGBO(255, 103, 54, 0.9),
-      Color.fromRGBO(255, 103, 54, 0.4),
+      Colors.white.withOpacity(0.7),
+      const Color(0xFFFF9416).withOpacity(0.4),
     ]);
 
-final blueTransparentGradient = LinearGradient(
+final usdTransparentGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Colors.blue.shade900.withOpacity(0.9),
-      Colors.blue.shade900.withOpacity(0.4),
+      Colors.white.withOpacity(0.7),
+      const Color(0xFF70D150).withOpacity(0.4),
     ]);
 
-final greyTransparentGradient = LinearGradient(
+final ethTransparentGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Colors.blueGrey.shade900.withOpacity(0.9),
-      Colors.blueGrey.shade900.withOpacity(0.6),
+      Colors.white.withOpacity(0.7),
+      const Color(0xFF141414).withOpacity(0.4),
     ]);
+
+final solTransparentGradient = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  colors: [
+    Colors.white.withOpacity(0.7),
+    const Color(0xFF00FFA3).withOpacity(0.7),
+    const Color(0xFF9945FF).withOpacity(0.6),
+  ],
+);
 
 final greenTransparentGradient = LinearGradient(
     begin: Alignment.topCenter,

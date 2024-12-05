@@ -24,13 +24,14 @@ class LiquidationInformation extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    adaAmount(double amount, BuildContext context) => Row(
+    assetAmount(double amount, BuildContext context, {String asset = "ADA"}) =>
+        Row(
           children: [
             Text(
               numberFormatter(amount, 2),
             ),
             Text(
-              " ADA",
+              " $asset",
               style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
             ),
           ],
@@ -46,8 +47,6 @@ class LiquidationInformation extends HookConsumerWidget {
           data: (liquidations) {
             liquidations.sortBy((liq) => liq.createdAt);
 
-            final liquidationsDuration =
-                DateTime.now().difference(liquidations.first.createdAt);
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -64,12 +63,20 @@ class LiquidationInformation extends HookConsumerWidget {
                 const SizedBox(height: 32),
                 informationRow(
                     'Total Liquidated',
-                    adaAmount(liquidations.map((c) => c.collateralAbsorbed).sum,
+                    assetAmount(
+                        liquidations.map((c) => c.collateralAbsorbed).sum,
                         context)),
                 const Divider(),
                 informationRow(
+                  'Total iAssets Burned',
+                  assetAmount(
+                      liquidations.map((c) => c.iAssetBurned).sum, context,
+                      asset: indigoAsset.asset),
+                ),
+                const Divider(),
+                informationRow(
                     'Biggest Liquidation',
-                    adaAmount(
+                    assetAmount(
                         liquidations.map((c) => c.collateralAbsorbed).reduce(
                             (value, element) =>
                                 value > element ? value : element),
@@ -77,7 +84,7 @@ class LiquidationInformation extends HookConsumerWidget {
                 const Divider(),
                 informationRow(
                     'SP ADA Rewards (Total)',
-                    adaAmount(
+                    assetAmount(
                         liquidations
                             .map((c) => (c.collateralAbsorbed * 0.98 -
                                 c.iAssetBurned * c.oraclePrice))
@@ -85,30 +92,11 @@ class LiquidationInformation extends HookConsumerWidget {
                         context)),
                 const Divider(),
                 informationRow(
-                    'SP ADA Rewards (Average per Day)',
-                    adaAmount(
-                        liquidations
-                                .map((c) => (c.collateralAbsorbed * 0.98 -
-                                    c.iAssetBurned * c.oraclePrice))
-                                .reduce((value, element) => value + element) /
-                            liquidationsDuration.inDays,
-                        context)),
-                const Divider(),
-                informationRow(
                     'Governance ADA Rewards (Total)',
-                    adaAmount(
+                    assetAmount(
                         liquidations
                             .map((c) => c.collateralAbsorbed * 0.02)
                             .reduce((value, element) => value + element),
-                        context)),
-                const Divider(),
-                informationRow(
-                    'Governance ADA Rewards (Average per Day)',
-                    adaAmount(
-                        liquidations
-                                .map((c) => c.collateralAbsorbed * 0.02)
-                                .reduce((value, element) => value + element) /
-                            liquidationsDuration.inDays,
                         context)),
               ],
             );
