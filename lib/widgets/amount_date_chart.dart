@@ -222,7 +222,7 @@ class AmountDateChart extends StatelessWidget {
                       previousDateLabel = dateTime;
 
                       return SideTitleWidget(
-                        axisSide: titleMeta.axisSide,
+                        meta: titleMeta,
                         child: Text(
                           getDateInterval() >= 30
                               ? '${dateTime.month}/${dateTime.year.toString().substring(2)}'

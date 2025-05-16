@@ -138,7 +138,7 @@ class PercentageAmountChart extends StatelessWidget {
                         return SideTitleWidget(
                           fitInside:
                               SideTitleFitInsideData.fromTitleMeta(titleMeta),
-                          axisSide: titleMeta.axisSide,
+                          meta: titleMeta,
                           child: Text(
                             '${value.toInt()}%',
                             style: const TextStyle(fontSize: 12.8),
