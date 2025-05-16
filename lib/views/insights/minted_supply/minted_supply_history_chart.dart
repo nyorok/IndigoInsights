@@ -29,22 +29,6 @@ class MintedSupplyHistoryChart extends HookConsumerWidget {
       return data;
     }
 
-    getCollateralHistory(List<CdpsStats> cdpsStats) {
-      final data = cdpsStats
-          .groupFoldBy<DateTime, double>(
-            (item) => DateTime(item.time.year, item.time.month, item.time.day),
-            (a, b) =>
-                (a ?? 0) > b.totalCollateral ? (a ?? 0) : b.totalCollateral,
-          )
-          .entries
-          .map((entry) => AmountDateData(entry.key, entry.value))
-          .toList();
-
-      data.sortBy((d) => d.date);
-
-      return data;
-    }
-
     return ref.watch(cdpsStatsProvider(indigoAsset.asset)).when(
         data: (cdpsStats) {
           final mintedSupplyHistory = getMintedSupplyHistory(cdpsStats);

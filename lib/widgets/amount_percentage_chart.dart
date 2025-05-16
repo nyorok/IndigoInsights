@@ -212,7 +212,7 @@ class AmountPercentageChart extends StatelessWidget {
                       return SideTitleWidget(
                         fitInside:
                             SideTitleFitInsideData.fromTitleMeta(titleMeta),
-                        axisSide: titleMeta.axisSide,
+                        meta: titleMeta,
                         child: Text('${(-value * 100).round()}%'),
                       );
                     },
