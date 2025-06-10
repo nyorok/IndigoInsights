@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:indigo_insights/utils/formatters.dart';
 
 class AmountPercentageData {
@@ -13,9 +14,10 @@ class AmountPercentageData {
 }
 
 List<AmountPercentageData> normalizeAmountPercentageData(
-    List<AmountPercentageData> inputList,
-    int maxPercentage,
-    double initialAmount) {
+  List<AmountPercentageData> inputList,
+  int maxPercentage,
+  double initialAmount,
+) {
   List<AmountPercentageData> normalizedList = [];
 
   int currentPercent = 0;
@@ -26,16 +28,22 @@ List<AmountPercentageData> normalizeAmountPercentageData(
     if (inputIndex < inputList.length) {
       final percent = (inputList[inputIndex].percent * 100).round();
       if (percent == currentPercent) {
-        normalizedList.add(AmountPercentageData(
-            currentPercent / 100.0, inputList[inputIndex].amount));
+        normalizedList.add(
+          AmountPercentageData(
+            currentPercent / 100.0,
+            inputList[inputIndex].amount,
+          ),
+        );
         inputIndex++;
       } else {
         if (currentPercent > percent) {
           throw Exception(
-              "normalizeAmountPercentageData: Input should have unique percents by interval 1");
+            "normalizeAmountPercentageData: Input should have unique percents by interval 1",
+          );
         }
-        normalizedList
-            .add(AmountPercentageData(currentPercent / 100.0, lastAmount));
+        normalizedList.add(
+          AmountPercentageData(currentPercent / 100.0, lastAmount),
+        );
       }
       lastAmount = inputList[inputIndex].amount;
     }
@@ -47,13 +55,14 @@ List<AmountPercentageData> normalizeAmountPercentageData(
 }
 
 class AmountPercentageChart extends StatelessWidget {
-  const AmountPercentageChart(
-      {super.key,
-      required this.data,
-      required this.colors,
-      required this.gradients,
-      required this.labels,
-      required this.currency});
+  const AmountPercentageChart({
+    super.key,
+    required this.data,
+    required this.colors,
+    required this.gradients,
+    required this.labels,
+    required this.currency,
+  });
 
   final String currency;
   final List<List<AmountPercentageData>> data;
@@ -97,16 +106,18 @@ class AmountPercentageChart extends StatelessWidget {
       roundToNearestPowerOf10((getAmountEnd() - getAmountStart()) / 20);
 
   List<LineChartBarData> getChartLines() => data
-      .mapIndexed((index, lineData) => LineChartBarData(
-            color: colors[index],
-            belowBarData: BarAreaData(show: true, gradient: gradients[index]),
-            spots: lineData
-                .map((dotData) => FlSpot(dotData.percent, dotData.amount))
-                .toList(),
-            isCurved: true,
-            curveSmoothness: 0.01,
-            dotData: const FlDotData(show: false),
-          ))
+      .mapIndexed(
+        (index, lineData) => LineChartBarData(
+          color: colors[index],
+          belowBarData: BarAreaData(show: true, gradient: gradients[index]),
+          spots: lineData
+              .map((dotData) => FlSpot(dotData.percent, dotData.amount))
+              .toList(),
+          isCurved: true,
+          curveSmoothness: 0.01,
+          dotData: const FlDotData(show: false),
+        ),
+      )
       .toList();
 
   @override
@@ -131,8 +142,8 @@ class AmountPercentageChart extends StatelessWidget {
     double getLabelSize() {
       final painter = TextPainter(
         text: TextSpan(
-            text:
-                "-${numberAbbreviatedFormatter(getAmountEnd(), abbreviation)}"),
+          text: "-${numberAbbreviatedFormatter(getAmountEnd(), abbreviation)}",
+        ),
         textDirection: TextDirection.ltr,
       );
       painter.layout();
@@ -152,21 +163,24 @@ class AmountPercentageChart extends StatelessWidget {
                   child: Wrap(
                     alignment: WrapAlignment.end,
                     children: labels
-                        .mapIndexed((index, e) => Padding(
-                              padding: const EdgeInsets.only(left: 8),
-                              child: Text(
-                                e,
-                                style: TextStyle(
-                                    color: colors[index],
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12.8,
-                                    fontFamily: "Quicksand"),
+                        .mapIndexed(
+                          (index, e) => Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Text(
+                              e,
+                              style: TextStyle(
+                                color: colors[index],
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12.8,
+                                fontFamily: "Quicksand",
                               ),
-                            ))
+                            ),
+                          ),
+                        )
                         .toList(),
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -189,15 +203,19 @@ class AmountPercentageChart extends StatelessWidget {
               ),
               titlesData: FlTitlesData(
                 topTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                        reservedSize: 15,
-                        showTitles: true,
-                        getTitlesWidget: (value, titleMeta) => const Text(""))),
+                  sideTitles: SideTitles(
+                    reservedSize: 15,
+                    showTitles: true,
+                    getTitlesWidget: (value, titleMeta) => const Text(""),
+                  ),
+                ),
                 leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                        reservedSize: 30,
-                        showTitles: true,
-                        getTitlesWidget: (value, titleMeta) => const Text(""))),
+                  sideTitles: SideTitles(
+                    reservedSize: 30,
+                    showTitles: true,
+                    getTitlesWidget: (value, titleMeta) => const Text(""),
+                  ),
+                ),
                 bottomTitles: AxisTitles(
                   axisNameWidget: const Text(
                     "ADA Price Fluctuation",
@@ -210,8 +228,9 @@ class AmountPercentageChart extends StatelessWidget {
                     reservedSize: 28,
                     getTitlesWidget: (value, titleMeta) {
                       return SideTitleWidget(
-                        fitInside:
-                            SideTitleFitInsideData.fromTitleMeta(titleMeta),
+                        fitInside: SideTitleFitInsideData.fromTitleMeta(
+                          titleMeta,
+                        ),
                         meta: titleMeta,
                         child: Text('${(-value * 100).round()}%'),
                       );
@@ -224,9 +243,11 @@ class AmountPercentageChart extends StatelessWidget {
                     showTitles: true,
                     getTitlesWidget: (value, titleMeta) => Padding(
                       padding: const EdgeInsets.only(left: 12),
-                      child: Row(children: [
-                        Text(numberAbbreviatedFormatter(value, abbreviation))
-                      ]),
+                      child: Row(
+                        children: [
+                          Text(numberAbbreviatedFormatter(value, abbreviation)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -245,10 +266,11 @@ class AmountPercentageChart extends StatelessWidget {
                       return LineTooltipItem(
                         "${labels[touchedSpot.barIndex]}: ${numberFormatter(amount, 0)} $currency",
                         TextStyle(
-                            color: colors[touchedSpot.barIndex],
-                            fontWeight: FontWeight.w500,
-                            fontSize: 11,
-                            fontFamily: "Quicksand"),
+                          color: colors[touchedSpot.barIndex],
+                          fontWeight: FontWeight.w500,
+                          fontSize: 11,
+                          fontFamily: "Quicksand",
+                        ),
                       );
                     }).toList();
                   },
@@ -259,6 +281,6 @@ class AmountPercentageChart extends StatelessWidget {
           ),
         ),
       ],
-    );
+    ).animate().fade(duration: 500.ms, curve: Curves.easeInOut);
   }
 }

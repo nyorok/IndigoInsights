@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:indigo_insights/utils/formatters.dart';
 import 'package:intl/intl.dart' as intl;
 
@@ -16,7 +17,10 @@ class AmountDateData {
 DateTime getDate(DateTime date) => DateTime(date.year, date.month, date.day);
 
 List<AmountDateData> normalizeAmountDateData(
-    List<AmountDateData> inputList, DateTime startDate, DateTime endDate) {
+  List<AmountDateData> inputList,
+  DateTime startDate,
+  DateTime endDate,
+) {
   List<AmountDateData> normalizedList = [];
 
   DateTime currentDate = getDate(startDate);
@@ -28,13 +32,15 @@ List<AmountDateData> normalizeAmountDateData(
     if (inputIndex < inputList.length) {
       final inputDate = inputList[inputIndex].date;
       if (currentDate.isAtSameMomentAs(getDate(inputDate))) {
-        normalizedList
-            .add(AmountDateData(currentDate, inputList[inputIndex].amount));
+        normalizedList.add(
+          AmountDateData(currentDate, inputList[inputIndex].amount),
+        );
         inputIndex++;
       } else {
         if (currentDate.isAfter(getDate(inputDate))) {
           print(
-              "normalizeAmountDateData: ${dateFormatter(currentDate)} is after ${getDate(inputDate)}");
+            "normalizeAmountDateData: ${dateFormatter(currentDate)} is after ${getDate(inputDate)}",
+          );
         } else {
           normalizedList.add(AmountDateData(currentDate, lastAmount));
         }
@@ -53,16 +59,17 @@ List<AmountDateData> normalizeAmountDateData(
 }
 
 class AmountDateChart extends StatelessWidget {
-  const AmountDateChart(
-      {super.key,
-      required this.title,
-      required this.data,
-      required this.colors,
-      required this.gradients,
-      required this.labels,
-      required this.currency,
-      this.minY,
-      this.maxY});
+  const AmountDateChart({
+    super.key,
+    required this.title,
+    required this.data,
+    required this.colors,
+    required this.gradients,
+    required this.labels,
+    required this.currency,
+    this.minY,
+    this.maxY,
+  });
 
   final String title;
   final String currency;
@@ -73,17 +80,25 @@ class AmountDateChart extends StatelessWidget {
   final double? minY;
   final double? maxY;
 
-  DateTime getDateStart() =>
-      data.expand((list) => list).map((e) => e.date).reduce((value, element) =>
-          value.microsecondsSinceEpoch < element.microsecondsSinceEpoch
-              ? getDate(value.toUtc())
-              : getDate(element.toUtc()));
+  DateTime getDateStart() => data
+      .expand((list) => list)
+      .map((e) => e.date)
+      .reduce(
+        (value, element) =>
+            value.microsecondsSinceEpoch < element.microsecondsSinceEpoch
+            ? getDate(value.toUtc())
+            : getDate(element.toUtc()),
+      );
 
-  DateTime getDateEnd() =>
-      data.expand((list) => list).map((e) => e.date).reduce((value, element) =>
-          value.microsecondsSinceEpoch > element.microsecondsSinceEpoch
-              ? getDate(value.toUtc())
-              : getDate(element.toUtc()));
+  DateTime getDateEnd() => data
+      .expand((list) => list)
+      .map((e) => e.date)
+      .reduce(
+        (value, element) =>
+            value.microsecondsSinceEpoch > element.microsecondsSinceEpoch
+            ? getDate(value.toUtc())
+            : getDate(element.toUtc()),
+      );
 
   double getAmountStart() =>
       minY ??
@@ -106,20 +121,25 @@ class AmountDateChart extends StatelessWidget {
       (getDateStart().difference(getDateEnd()).inDays / 6).abs().ceil();
 
   List<LineChartBarData> getChartLines() => data
-      .mapIndexed((index, lineData) => LineChartBarData(
-            color: colors[index],
-            belowBarData: BarAreaData(show: true, gradient: gradients[index]),
-            spots: lineData
-                .map((dotData) => FlSpot(
-                    getDate(dotData.date.toUtc())
-                        .millisecondsSinceEpoch
-                        .toDouble(),
-                    dotData.amount))
-                .toList(),
-            isCurved: true,
-            curveSmoothness: 0.01,
-            dotData: const FlDotData(show: false),
-          ))
+      .mapIndexed(
+        (index, lineData) => LineChartBarData(
+          color: colors[index],
+          belowBarData: BarAreaData(show: true, gradient: gradients[index]),
+          spots: lineData
+              .map(
+                (dotData) => FlSpot(
+                  getDate(
+                    dotData.date.toUtc(),
+                  ).millisecondsSinceEpoch.toDouble(),
+                  dotData.amount,
+                ),
+              )
+              .toList(),
+          isCurved: true,
+          curveSmoothness: 0.01,
+          dotData: FlDotData(show: false),
+        ),
+      )
       .toList();
 
   @override
@@ -148,7 +168,8 @@ class AmountDateChart extends StatelessWidget {
     double getLabelSize() {
       final painter = TextPainter(
         text: TextSpan(
-            text: numberAbbreviatedFormatter(getAmountEnd(), abbreviation)),
+          text: numberAbbreviatedFormatter(getAmountEnd(), abbreviation),
+        ),
         textDirection: TextDirection.ltr,
       );
       painter.layout();
@@ -162,25 +183,30 @@ class AmountDateChart extends StatelessWidget {
           padding: const EdgeInsets.only(top: 8, left: 30),
           child: Row(
             children: [
-              PageTitle(title: title),
+              PageTitle(
+                title: title,
+              ).animate().fade(duration: 300.ms, curve: Curves.easeInOut),
               Expanded(
                 child: Wrap(
                   alignment: WrapAlignment.end,
                   children: labels
-                      .mapIndexed((index, label) => Padding(
-                            padding: const EdgeInsets.only(right: 6),
-                            child: Text(
-                              label,
-                              style: TextStyle(
-                                  color: colors[index],
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 12.8,
-                                  fontFamily: "Quicksand"),
+                      .mapIndexed(
+                        (index, label) => Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              color: colors[index],
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12.8,
+                              fontFamily: "Quicksand",
                             ),
-                          ))
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
-              )
+              ).animate().fade(duration: 300.ms, curve: Curves.easeInOut),
             ],
           ),
         ),
@@ -193,26 +219,32 @@ class AmountDateChart extends StatelessWidget {
               maxY: getAmountEnd(),
               titlesData: FlTitlesData(
                 topTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                        reservedSize: 15,
-                        showTitles: true,
-                        getTitlesWidget: (value, titleMeta) => const Text(""))),
+                  sideTitles: SideTitles(
+                    reservedSize: 15,
+                    showTitles: true,
+                    getTitlesWidget: (value, titleMeta) => const Text(""),
+                  ),
+                ),
                 leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                        reservedSize: 30,
-                        showTitles: true,
-                        getTitlesWidget: (value, titleMeta) => const Text(""))),
+                  sideTitles: SideTitles(
+                    reservedSize: 30,
+                    showTitles: true,
+                    getTitlesWidget: (value, titleMeta) => const Text(""),
+                  ),
+                ),
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
-                    interval: Duration(days: getDateInterval())
-                        .inMilliseconds
-                        .toDouble(),
+                    interval: Duration(
+                      days: getDateInterval(),
+                    ).inMilliseconds.toDouble(),
                     showTitles: true,
                     reservedSize: 36,
                     getTitlesWidget: (value, titleMeta) {
                       final dateTime = getDate(
-                          DateTime.fromMillisecondsSinceEpoch(value.toInt())
-                              .toUtc());
+                        DateTime.fromMillisecondsSinceEpoch(
+                          value.toInt(),
+                        ).toUtc(),
+                      );
                       if (previousDateLabel != null &&
                           dateTime.difference(previousDateLabel!).inDays.abs() <
                               getDateInterval()) {
@@ -252,10 +284,13 @@ class AmountDateChart extends StatelessWidget {
 
                       return Padding(
                         padding: const EdgeInsets.only(left: 12),
-                        child: Row(children: [
-                          Text(
-                              '${numberAbbreviated(value, abbreviation).toStringAsFixed(2)}${abbreviation?.name ?? ''}')
-                        ]),
+                        child: Row(
+                          children: [
+                            Text(
+                              '${numberAbbreviated(value, abbreviation).toStringAsFixed(2)}${abbreviation?.name ?? ''}',
+                            ),
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -277,19 +312,25 @@ class AmountDateChart extends StatelessWidget {
                       final double amount = spotData.y;
 
                       final DateTime date = DateTime.fromMillisecondsSinceEpoch(
-                          touchedSpots
-                              .first.bar.spots[touchedSpots.first.spotIndex].x
-                              .toInt());
-                      final String formattedDate =
-                          intl.DateFormat('yyyy/MM/dd').format(date);
+                        touchedSpots
+                            .first
+                            .bar
+                            .spots[touchedSpots.first.spotIndex]
+                            .x
+                            .toInt(),
+                      );
+                      final String formattedDate = intl.DateFormat(
+                        'yyyy/MM/dd',
+                      ).format(date);
 
                       return LineTooltipItem(
                         "${touchedSpot.barIndex == 0 ? '$formattedDate ${labels[touchedSpot.barIndex]}' : labels[touchedSpot.barIndex]}: ${numberFormatter(amount, 0)} $currency",
                         TextStyle(
-                            color: colors[touchedSpot.barIndex],
-                            fontWeight: FontWeight.w500,
-                            fontSize: 11,
-                            fontFamily: "Quicksand"),
+                          color: colors[touchedSpot.barIndex],
+                          fontWeight: FontWeight.w500,
+                          fontSize: 11,
+                          fontFamily: "Quicksand",
+                        ),
                       );
                     }).toList();
                   },
@@ -298,7 +339,7 @@ class AmountDateChart extends StatelessWidget {
               ),
             ),
           ),
-        ),
+        ).animate().fade(duration: 500.ms, curve: Curves.easeInOut),
       ],
     );
   }

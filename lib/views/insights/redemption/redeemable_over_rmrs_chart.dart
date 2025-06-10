@@ -6,6 +6,7 @@ import 'package:indigo_insights/models/indigo_asset.dart';
 import 'package:indigo_insights/providers/asset_price_provider.dart';
 import 'package:indigo_insights/providers/cdp_provider.dart';
 import 'package:indigo_insights/theme/gradients.dart';
+import 'package:indigo_insights/utils/loader.dart';
 import 'package:indigo_insights/widgets/percentage_amount_chart.dart';
 
 double calculateRedeemableAmount(Cdp cdp, double rmr, double adaPrice) {
@@ -16,22 +17,21 @@ double calculateRedeemableAmount(Cdp cdp, double rmr, double adaPrice) {
       (rmr - 1);
 }
 
-final cdpsAndPriceProvider = FutureProvider.family<
-    ({
-      List<Cdp> cdps,
-      double adaPrice,
-    }),
-    String>((ref, asset) async {
-  final cdps = await ref
-      .watch(cdpsProvider.future)
-      .then((value) => value.where((e) => e.asset == asset).toList());
+final cdpsAndPriceProvider =
+    FutureProvider.family<({List<Cdp> cdps, double adaPrice}), String>((
+      ref,
+      asset,
+    ) async {
+      final cdps = await ref
+          .watch(cdpsProvider.future)
+          .then((value) => value.where((e) => e.asset == asset).toList());
 
-  final price = await ref
-      .watch(assetPricesProvider.future)
-      .then((value) => value.firstWhere((e) => e.asset == asset).price);
+      final price = await ref
+          .watch(assetPricesProvider.future)
+          .then((value) => value.firstWhere((e) => e.asset == asset).price);
 
-  return (cdps: cdps, adaPrice: price);
-});
+      return (cdps: cdps, adaPrice: price);
+    });
 
 class RedeemableOverRmrsChart extends HookConsumerWidget {
   const RedeemableOverRmrsChart(this.indigoAsset, {super.key});
@@ -43,8 +43,14 @@ class RedeemableOverRmrsChart extends HookConsumerWidget {
 
     getRedeemableOverRmrsData(List<Cdp> cdps, double adaPrice) {
       final redeemablePerCdp = cdps
-          .map((e) => rmrs.map((rmr) => PercentageAmountData(
-              rmr, calculateRedeemableAmount(e, rmr / 100, adaPrice))))
+          .map(
+            (e) => rmrs.map(
+              (rmr) => PercentageAmountData(
+                rmr,
+                calculateRedeemableAmount(e, rmr / 100, adaPrice),
+              ),
+            ),
+          )
           .expand((e) => e)
           .where((e) => e.amount.abs() > 0)
           .toList();
@@ -63,7 +69,9 @@ class RedeemableOverRmrsChart extends HookConsumerWidget {
       return data;
     }
 
-    return ref.watch(cdpsAndPriceProvider(indigoAsset.asset)).when(
+    return ref
+        .watch(cdpsAndPriceProvider(indigoAsset.asset))
+        .when(
           data: (data) {
             final cdps = data.cdps;
             final adaPrice = data.adaPrice;
@@ -78,7 +86,7 @@ class RedeemableOverRmrsChart extends HookConsumerWidget {
               gradients: [getGradientByAsset(indigoAsset.asset)],
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const Loader(),
           error: (error, stackTrace) => Center(child: Text('Error: $error')),
         );
   }
