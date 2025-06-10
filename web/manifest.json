@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#272860",
     "theme_color": "#272860",
-    "description": "Indigo Insights for the Indigo community made by PWG.",
+    "description": "Indigo Insights made for the Indigo community made by PWG.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
