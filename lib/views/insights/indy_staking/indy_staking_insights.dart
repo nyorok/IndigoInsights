@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/views/insights/indy_staking/stake_history_chart.dart';
 import 'package:indigo_insights/views/insights/indy_staking/staking_information.dart';
@@ -21,7 +22,7 @@ class IndyStakingInsights extends HookConsumerWidget {
                     informationCard(const StakingInformation(), context),
                   ],
                 ),
-                chartCard(const StakeHistoryChart(), context)
+                chartCard(const StakeHistoryChart(), context),
               ],
             ),
           ),
@@ -44,20 +45,21 @@ class IndyStakingInsights extends HookConsumerWidget {
         elevation: 2,
         margin: const EdgeInsets.all(8),
         child: Padding(padding: const EdgeInsets.all(16), child: widget),
-      ),
+      ).animate().slideX(duration: (200).ms, curve: Curves.easeInOut),
     );
   }
 
   chartCard(Widget widget, BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final double width =
-        screenWidth - 480 > 480 ? screenWidth - 480 : screenWidth;
+    final double width = screenWidth - 480 > 480
+        ? screenWidth - 480
+        : screenWidth;
 
     final screenHeight = MediaQuery.of(context).size.height;
     final double height = screenHeight > screenWidth
         ? screenHeight - 260 > 430
-            ? screenHeight - 260
-            : 430
+              ? screenHeight - 260
+              : 430
         : screenHeight - 68;
 
     return ConstrainedBox(

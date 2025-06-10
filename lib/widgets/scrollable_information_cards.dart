@@ -1,7 +1,10 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/models/indigo_asset.dart';
 import 'package:indigo_insights/providers/indigo_asset_provider.dart';
+import 'package:indigo_insights/utils/loader.dart';
 
 class ScrollableInformationCards extends ConsumerWidget {
   final Widget Function(IndigoAsset) cardContentBuilder;
@@ -13,9 +16,14 @@ class ScrollableInformationCards extends ConsumerWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final double maxCardWidth = screenWidth - 480 > 480 ? 480 : screenWidth;
 
-    return ref.watch(indigoAssetsProvider).when(
+    return ref
+        .watch(indigoAssetsProvider)
+        .when(
           data: (indigoAssets) {
-            final informationCards = indigoAssets.map((indigoAsset) {
+            final informationCards = indigoAssets.mapIndexed((
+              index,
+              indigoAsset,
+            ) {
               return ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: maxCardWidth),
                 child: Card(
@@ -26,6 +34,9 @@ class ScrollableInformationCards extends ConsumerWidget {
                     child: cardContentBuilder(indigoAsset),
                   ),
                 ),
+              ).animate().slideX(
+                duration: ((index + 2) * 100).ms,
+                curve: Curves.easeInOut,
               );
             }).toList();
 
@@ -37,7 +48,8 @@ class ScrollableInformationCards extends ConsumerWidget {
 
                 return isWide
                     ? SizedBox(
-                        height: MediaQuery.of(context).size.height -
+                        height:
+                            MediaQuery.of(context).size.height -
                             statusBarHeight -
                             appBarHeight -
                             8,
@@ -45,19 +57,19 @@ class ScrollableInformationCards extends ConsumerWidget {
                           child: Column(
                             children: informationCards.isNotEmpty
                                 ? informationCards
-                                : [const CircularProgressIndicator()],
+                                : [const Loader()],
                           ),
                         ),
                       )
                     : Column(
                         children: informationCards.isNotEmpty
                             ? informationCards
-                            : [const CircularProgressIndicator()],
+                            : [const Loader()],
                       );
               },
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const Loader(),
           error: (error, stackTrace) => Center(child: Text(error.toString())),
         );
   }

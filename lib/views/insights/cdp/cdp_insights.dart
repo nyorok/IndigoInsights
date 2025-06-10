@@ -19,8 +19,9 @@ class CdpInsights extends HookConsumerWidget {
             child: Wrap(
               children: [
                 ScrollableInformationCards(
-                    (e) => CdpInformation(indigoAsset: e)),
-                IndigoAssetTabs((e) => CollateralHistoryChart(e))
+                  (e) => CdpInformation(indigoAsset: e),
+                ),
+                IndigoAssetTabs((e) => CollateralHistoryChart(e)),
               ],
             ),
           ),

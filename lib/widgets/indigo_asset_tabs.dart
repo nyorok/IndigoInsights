@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/models/indigo_asset.dart';
 import 'package:indigo_insights/providers/indigo_asset_provider.dart';
@@ -32,22 +33,27 @@ class _IndigoAssetTabsState extends ConsumerState<IndigoAssetTabs>
 
   @override
   Widget build(BuildContext context) {
-    return ref.watch(indigoAssetsProvider).when(
+    return ref
+        .watch(indigoAssetsProvider)
+        .when(
           data: (indigoAssets) {
             _tabController = TabController(
               length: indigoAssets.length,
               vsync: this,
             );
 
-            final tabLabels =
-                indigoAssets.map((asset) => Tab(text: asset.asset)).toList();
+            final tabLabels = indigoAssets
+                .map((asset) => Tab(text: asset.asset))
+                .toList();
 
-            final tabContents =
-                indigoAssets.map(widget.tabContentBuilder).toList();
+            final tabContents = indigoAssets
+                .map(widget.tabContentBuilder)
+                .toList();
 
             final screenWidth = MediaQuery.of(context).size.width;
-            final double width =
-                screenWidth - 480 > 480 ? screenWidth - 480 : screenWidth;
+            final double width = screenWidth - 480 > 480
+                ? screenWidth - 480
+                : screenWidth;
 
             final screenHeight = MediaQuery.of(context).size.height;
             final double height = screenHeight - 68;
@@ -83,6 +89,8 @@ class _IndigoAssetTabsState extends ConsumerState<IndigoAssetTabs>
           },
           loading: () => const Loader(),
           error: (error, stackTrace) => Text(error.toString()),
-        );
+        )
+        .animate()
+        .fade(duration: 500.ms, curve: Curves.easeInOut);
   }
 }

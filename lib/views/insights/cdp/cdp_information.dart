@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/models/asset_price.dart';
 import 'package:indigo_insights/models/cdp.dart';
@@ -11,21 +12,23 @@ import 'package:indigo_insights/utils/loader.dart';
 import 'package:indigo_insights/utils/page_title.dart';
 import 'package:indigo_insights/widgets/percentage_gain.dart';
 
-final cdpsInformationProvider = FutureProvider.family<
-    ({List<Cdp> cdps, AssetPrice assetPrice, List<CdpsStats> cdpsStats}),
-    String>((ref, asset) async {
-  final cdps = await ref
-      .watch(cdpsProvider.future)
-      .then((value) => value.where((e) => e.asset == asset).toList());
+final cdpsInformationProvider =
+    FutureProvider.family<
+      ({List<Cdp> cdps, AssetPrice assetPrice, List<CdpsStats> cdpsStats}),
+      String
+    >((ref, asset) async {
+      final cdps = await ref
+          .watch(cdpsProvider.future)
+          .then((value) => value.where((e) => e.asset == asset).toList());
 
-  final assetPrice = await ref
-      .watch(assetPricesProvider.future)
-      .then((value) => value.firstWhere((e) => e.asset == asset));
+      final assetPrice = await ref
+          .watch(assetPricesProvider.future)
+          .then((value) => value.firstWhere((e) => e.asset == asset));
 
-  final cdpsStats = await ref.watch(cdpsStatsProvider(asset).future);
+      final cdpsStats = await ref.watch(cdpsStatsProvider(asset).future);
 
-  return (cdps: cdps, assetPrice: assetPrice, cdpsStats: cdpsStats);
-});
+      return (cdps: cdps, assetPrice: assetPrice, cdpsStats: cdpsStats);
+    });
 
 class CdpInformation extends HookConsumerWidget {
   const CdpInformation({super.key, required this.indigoAsset});
@@ -34,28 +37,30 @@ class CdpInformation extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    calculatedAmount(double amount, BuildContext context,
-            {String substring = "ADA"}) =>
-        Row(
-          children: [
-            Text(
-              numberFormatter(amount, 2),
-            ),
-            Text(
-              " $substring",
-              style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
-            ),
-          ],
-        );
+    calculatedAmount(
+      double amount,
+      BuildContext context, {
+      String substring = "ADA",
+    }) => Row(
+      children: [
+        Text(numberFormatter(amount, 2)),
+        Text(
+          " $substring",
+          style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
+        ),
+      ],
+    );
 
-    informationRow(String title, Widget info) =>
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text(title),
-          info,
-        ]);
+    informationRow(String title, Widget info) => Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [Text(title), info],
+    ).animate().scaleY(duration: 300.ms, curve: Curves.easeInOut);
 
     Widget informationRowWithTooltip(
-        String title, Widget info, String tooltip) {
+      String title,
+      Widget info,
+      String tooltip,
+    ) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -69,9 +74,9 @@ class CdpInformation extends HookConsumerWidget {
               ],
             ),
           ),
-          info
+          info,
         ],
-      );
+      ).animate().scaleY(duration: 300.ms, curve: Curves.easeInOut);
     }
 
     double calculateTopCdpsDomination(List<Cdp> cdps, int topCount) {
@@ -85,8 +90,9 @@ class CdpInformation extends HookConsumerWidget {
           .reduce((value, element) => value + element);
 
       // Calculate the total collateral
-      final totalCollateral =
-          sortedCollaterals.reduce((value, element) => value + element);
+      final totalCollateral = sortedCollaterals.reduce(
+        (value, element) => value + element,
+      );
 
       // Return the domination percentage
       return (topCollateralsSum / totalCollateral) * 100;
@@ -113,7 +119,9 @@ class CdpInformation extends HookConsumerWidget {
       return Colors.red; // Highly Concentrated
     }
 
-    return ref.watch(cdpsInformationProvider(indigoAsset.asset)).when(
+    return ref
+        .watch(cdpsInformationProvider(indigoAsset.asset))
+        .when(
           data: (data) {
             final cdps = data.cdps;
             final assetPrice = data.assetPrice;
@@ -122,53 +130,68 @@ class CdpInformation extends HookConsumerWidget {
             final currentCollateral = cdpsStats.last.totalCollateral;
             final yearStartCollateral = cdpsStats.first.totalCollateral;
             final lastMonthCollateral = cdpsStats
-                .where((cs) => cs.time.isAfter(
-                    cdpsStats.last.time.add(const Duration(days: -30))))
+                .where(
+                  (cs) => cs.time.isAfter(
+                    cdpsStats.last.time.add(const Duration(days: -30)),
+                  ),
+                )
                 .reduce((a, b) => a.time.isBefore(b.time) ? a : b)
                 .totalCollateral;
 
             final lastDayCollateral = cdpsStats
-                .where((cs) => cs.time
-                    .isAfter(cdpsStats.last.time.add(const Duration(days: -1))))
+                .where(
+                  (cs) => cs.time.isAfter(
+                    cdpsStats.last.time.add(const Duration(days: -1)),
+                  ),
+                )
                 .reduce((a, b) => a.time.isBefore(b.time) ? a : b)
                 .totalCollateral;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                PageTitle(title: indigoAsset.asset),
+                PageTitle(
+                  title: indigoAsset.asset,
+                ).animate().scaleY(duration: 300.ms, curve: Curves.easeInOut),
                 const SizedBox(height: 20),
                 informationRow('Open CDPs', Text(cdps.length.toString())),
                 const Divider(),
                 informationRow(
-                    'Collateral Ratio',
-                    calculatedAmount(
-                        100 *
-                            cdps
-                                .map((c) => (c.collateralAmount))
-                                .reduce((value, element) => value + element) /
-                            (cdps.map((c) => (c.mintedAmount)).reduce(
-                                    (value, element) => value + element) *
-                                assetPrice.price),
-                        context,
-                        substring: "%")),
-                const Divider(),
-                informationRow(
-                    'Total Collateral',
-                    calculatedAmount(
+                  'Collateral Ratio',
+                  calculatedAmount(
+                    100 *
                         cdps
                             .map((c) => (c.collateralAmount))
-                            .reduce((value, element) => value + element),
-                        context)),
+                            .reduce((value, element) => value + element) /
+                        (cdps
+                                .map((c) => (c.mintedAmount))
+                                .reduce((value, element) => value + element) *
+                            assetPrice.price),
+                    context,
+                    substring: "%",
+                  ),
+                ),
                 const Divider(),
                 informationRow(
-                    'Total Minted',
-                    calculatedAmount(
-                        (cdps
-                            .map((c) => (c.mintedAmount))
-                            .reduce((value, element) => value + element)),
-                        context,
-                        substring: indigoAsset.asset)),
+                  'Total Collateral',
+                  calculatedAmount(
+                    cdps
+                        .map((c) => (c.collateralAmount))
+                        .reduce((value, element) => value + element),
+                    context,
+                  ),
+                ),
+                const Divider(),
+                informationRow(
+                  'Total Minted',
+                  calculatedAmount(
+                    (cdps
+                        .map((c) => (c.mintedAmount))
+                        .reduce((value, element) => value + element)),
+                    context,
+                    substring: indigoAsset.asset,
+                  ),
+                ),
                 const Divider(),
                 informationRow(
                   'Collateral Change (Last 24h)',
@@ -195,18 +218,18 @@ class CdpInformation extends HookConsumerWidget {
                 ),
                 const Divider(),
                 informationRowWithTooltip(
-                    'Collateral Distribution (HHI)',
-                    Text(
-                      calculateHHI(cdps).toStringAsFixed(2),
-                      style:
-                          TextStyle(color: getColorForHHI(calculateHHI(cdps))),
-                    ),
-                    'HHI measures concentration:\n- 0 to 0.10: Highly Diverse (Green)\n- 0.10 to 0.25: Moderately Concentrated (Yellow)\n- > 0.25: Highly Concentrated (Red)')
+                  'Collateral Distribution (HHI)',
+                  Text(
+                    calculateHHI(cdps).toStringAsFixed(2),
+                    style: TextStyle(color: getColorForHHI(calculateHHI(cdps))),
+                  ),
+                  'HHI measures concentration:\n- 0 to 0.10: Highly Diverse (Green)\n- 0.10 to 0.25: Moderately Concentrated (Yellow)\n- > 0.25: Highly Concentrated (Red)',
+                ),
               ],
             );
           },
           error: (error, stackTrace) => Text(error.toString()),
-          loading: () => const Loader(),
+          loading: () => const SizedBox(height: 20, child: Loader()),
         );
   }
 }

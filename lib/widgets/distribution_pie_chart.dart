@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import 'package:flutter_hooks/flutter_hooks.dart';
 
@@ -13,8 +14,8 @@ List<Color> generateColorRange(Color startColor, Color endColor, int steps) {
 
   for (int i = 0; i < steps; i++) {
     final double factor = i * stepSize;
-    int red =
-        (startColor.red + (factor * (endColor.red - startColor.red))).round();
+    int red = (startColor.red + (factor * (endColor.red - startColor.red)))
+        .round();
     int green =
         (startColor.green + (factor * (endColor.green - startColor.green)))
             .round();
@@ -28,8 +29,11 @@ List<Color> generateColorRange(Color startColor, Color endColor, int steps) {
 }
 
 class DistributionPieChartWidget extends HookWidget {
-  const DistributionPieChartWidget(
-      {super.key, required this.pieValues, required this.colorRange});
+  const DistributionPieChartWidget({
+    super.key,
+    required this.pieValues,
+    required this.colorRange,
+  });
 
   final List<({String title, double value, String touchedInfo})> pieValues;
   final List<Color> colorRange;
@@ -44,10 +48,11 @@ class DistributionPieChartWidget extends HookWidget {
     return Center(
       child: AspectRatio(
         aspectRatio: 1,
-        child: LayoutBuilder(builder: (context, constraints) {
-          final shortestSide = constraints.biggest.shortestSide;
-          return PieChart(
-            PieChartData(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final shortestSide = constraints.biggest.shortestSide;
+            return PieChart(
+              PieChartData(
                 sections: pieValues.mapIndexed((index, tuple) {
                   final isTouched = index == touchedIndex.value;
                   final logValue =
@@ -64,29 +69,32 @@ class DistributionPieChartWidget extends HookWidget {
                       color: Colors.white,
                       fontFamily: "Quicksand",
                       shadows: const [
-                        Shadow(color: Colors.black, blurRadius: 2)
+                        Shadow(color: Colors.black, blurRadius: 2),
                       ],
                     ),
                   );
                 }).toList(),
                 pieTouchData: PieTouchData(
-                    touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                  if (!event.isInterestedForInteractions ||
-                      pieTouchResponse == null ||
-                      pieTouchResponse.touchedSection == null) {
-                    touchedIndex.value = -1;
-                  } else {
-                    touchedIndex.value =
-                        pieTouchResponse.touchedSection!.touchedSectionIndex;
-                  }
-                }),
+                  touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                    if (!event.isInterestedForInteractions ||
+                        pieTouchResponse == null ||
+                        pieTouchResponse.touchedSection == null) {
+                      touchedIndex.value = -1;
+                    } else {
+                      touchedIndex.value =
+                          pieTouchResponse.touchedSection!.touchedSectionIndex;
+                    }
+                  },
+                ),
                 sectionsSpace: 2,
-                centerSpaceRadius: shortestSide / 2.8),
-            swapAnimationDuration: const Duration(milliseconds: 200),
-            swapAnimationCurve: Curves.linear,
-          );
-        }),
+                centerSpaceRadius: shortestSide / 2.8,
+              ),
+              swapAnimationDuration: const Duration(milliseconds: 200),
+              swapAnimationCurve: Curves.linear,
+            );
+          },
+        ),
       ),
-    );
+    ).animate().fade(duration: 500.ms, curve: Curves.easeInOut);
   }
 }
