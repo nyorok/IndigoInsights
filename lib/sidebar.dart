@@ -6,6 +6,7 @@ import 'package:indigo_insights/theme/gradients.dart';
 import 'package:indigo_insights/utils/page_title.dart';
 
 enum SidebarMenu {
+  cdpPosition,
   mintedSupply,
   cdps,
   liquidation,
@@ -109,6 +110,10 @@ class Sidebar extends ConsumerWidget {
                           duration: 200.ms,
                           curve: Curves.easeInOut,
                         ),
+                  ),
+                  getListTile(
+                    title: 'CDP Position',
+                    menuIndex: SidebarMenu.cdpPosition.index,
                   ),
                   getListTile(
                     title: 'Minted Supply',

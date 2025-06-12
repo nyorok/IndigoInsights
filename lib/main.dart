@@ -6,6 +6,7 @@ import 'package:indigo_insights/theme/color_scheme.dart';
 import 'package:indigo_insights/theme/gradients.dart';
 import 'package:indigo_insights/utils/page_title.dart';
 import 'package:indigo_insights/views/insights/cdp/cdp_insights.dart';
+import 'package:indigo_insights/views/insights/cdp_position/cdp_position_insights.dart';
 import 'package:indigo_insights/views/insights/indy_staking/indy_staking_insights.dart';
 import 'package:indigo_insights/views/insights/liquidation/liquidation_insights.dart';
 import 'package:indigo_insights/views/insights/market/market_insights.dart';
@@ -64,6 +65,7 @@ class MyApp extends HookConsumerWidget {
               child: Container(
                 decoration: BoxDecoration(gradient: indigoDarkGradient),
                 child: switch (SidebarMenu.values[selectedMenuItem.value]) {
+                  SidebarMenu.cdpPosition => const CdpPositionInsights(),
                   SidebarMenu.liquidation => const LiquidationInsights(),
                   SidebarMenu.cdps => const CdpInsights(),
                   SidebarMenu.mintedSupply => const MintedSupplyInsights(),
