@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -32,13 +34,14 @@ class PercentageAmountChart extends StatelessWidget {
   final List<Color> colors;
   final List<Gradient?> gradients;
   final List<String> labels;
+  static const double _rightLabelWidth = 44;
 
   double getAmountEnd() => data
       .expand((list) => list)
       .map((e) => e.amount)
       .reduce((value, element) => value > element ? value : element);
 
-  getChartBars() {
+  getChartBars(double widgetWidth) {
     final bars = data
         .mapIndexed(
           (index, groupData) =>
@@ -65,7 +68,12 @@ class PercentageAmountChart extends StatelessWidget {
           return (
             key: entry.key,
             bar: BarChartRodData(
-              width: 5,
+              width:
+                  (widgetWidth - _rightLabelWidth) // chart width
+                      /
+                      100 // total number of bars
+                      -
+                  1.2, // space between bars
               borderRadius: BorderRadius.zero,
               toY: rodStackItems.last.toY,
               rodStackItems: rodStackItems,
@@ -73,12 +81,12 @@ class PercentageAmountChart extends StatelessWidget {
           );
         })
         .toList();
-
+    log("${bars.length}");
     return bars
         .map(
           (b) => BarChartGroupData(
             x: double.parse(b.key).toInt(),
-            barsSpace: 50,
+            barsSpace: 10,
             barRods: [b.bar],
           ),
         )
@@ -130,100 +138,107 @@ class PercentageAmountChart extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: BarChart(
-            BarChartData(
-              borderData: FlBorderData(show: true),
-              gridData: const FlGridData(show: true),
-              barGroups: getChartBars(),
-              maxY: getAmountEnd() * 1.2,
-              titlesData: FlTitlesData(
-                leftTitles: const AxisTitles(
-                  sideTitles: SideTitles(reservedSize: 44, showTitles: false),
+          child: LayoutBuilder(
+            builder: (context, constraints) => BarChart(
+              BarChartData(
+                borderData: FlBorderData(show: true),
+                gridData: const FlGridData(show: true),
+                barGroups: getChartBars(constraints.maxWidth),
+                maxY: getAmountEnd() * 1.2,
+                titlesData: FlTitlesData(
+                  leftTitles: const AxisTitles(
+                    sideTitles: SideTitles(
+                      reservedSize: _rightLabelWidth,
+                      showTitles: false,
+                    ),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(reservedSize: 30, showTitles: false),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 30,
+                      getTitlesWidget: (value, titleMeta) {
+                        if ((value) % 50 != 0) {
+                          return const SizedBox();
+                        }
+                        return SideTitleWidget(
+                          fitInside: SideTitleFitInsideData.fromTitleMeta(
+                            titleMeta,
+                            distanceFromEdge: 0,
+                          ),
+                          meta: titleMeta,
+                          child: Text(
+                            '${value.toInt()}%',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
-                topTitles: const AxisTitles(
-                  sideTitles: SideTitles(reservedSize: 30, showTitles: false),
-                ),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 30,
-                    getTitlesWidget: (value, titleMeta) {
-                      if ((value) % 50 != 0) {
-                        return const SizedBox();
-                      }
-                      return SideTitleWidget(
-                        fitInside: SideTitleFitInsideData.fromTitleMeta(
-                          titleMeta,
+                extraLinesData: ExtraLinesData(
+                  horizontalLines: [
+                    HorizontalLine(
+                      y: 0.2 * mintedSupply,
+                      color: Colors.green,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        labelResolver: (line) => '20% minted supply',
+                        alignment: Alignment.topLeft,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontFamily: "Quicksand",
                         ),
-                        meta: titleMeta,
-                        child: Text(
-                          '${value.toInt()}%',
-                          style: const TextStyle(fontSize: 12.8),
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 0.35 * mintedSupply,
+                      color: Colors.yellow,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        labelResolver: (line) => '35% minted supply',
+                        alignment: Alignment.topLeft,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontFamily: "Quicksand",
+                        ),
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 0.5 * mintedSupply,
+                      color: Colors.red,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        labelResolver: (line) => '50% minted supply',
+                        alignment: Alignment.topLeft,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontFamily: "Quicksand",
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                barTouchData: BarTouchData(
+                  touchTooltipData: BarTouchTooltipData(
+                    fitInsideHorizontally: true,
+                    fitInsideVertically: true,
+                    getTooltipColor: (x) =>
+                        Theme.of(context).colorScheme.surface,
+                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      return BarTooltipItem(
+                        "${group.x}%: ${numberFormatter(rod.toY, 0)} $currency",
+                        TextStyle(
+                          color: colors[rodIndex],
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12.8,
+                          fontFamily: "Quicksand",
                         ),
                       );
                     },
                   ),
-                ),
-              ),
-              extraLinesData: ExtraLinesData(
-                horizontalLines: [
-                  HorizontalLine(
-                    y: 0.2 * mintedSupply,
-                    color: Colors.green,
-                    label: HorizontalLineLabel(
-                      show: true,
-                      labelResolver: (line) => '20% minted supply',
-                      alignment: Alignment.topLeft,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontFamily: "Quicksand",
-                      ),
-                    ),
-                  ),
-                  HorizontalLine(
-                    y: 0.35 * mintedSupply,
-                    color: Colors.yellow,
-                    label: HorizontalLineLabel(
-                      show: true,
-                      labelResolver: (line) => '35% minted supply',
-                      alignment: Alignment.topLeft,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontFamily: "Quicksand",
-                      ),
-                    ),
-                  ),
-                  HorizontalLine(
-                    y: 0.5 * mintedSupply,
-                    color: Colors.red,
-                    label: HorizontalLineLabel(
-                      show: true,
-                      labelResolver: (line) => '50% minted supply',
-                      alignment: Alignment.topLeft,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontFamily: "Quicksand",
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              barTouchData: BarTouchData(
-                touchTooltipData: BarTouchTooltipData(
-                  fitInsideHorizontally: true,
-                  fitInsideVertically: true,
-                  getTooltipColor: (x) => Theme.of(context).colorScheme.surface,
-                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                    return BarTooltipItem(
-                      "${group.x}%: ${numberFormatter(rod.toY, 0)} $currency",
-                      TextStyle(
-                        color: colors[rodIndex],
-                        fontWeight: FontWeight.w500,
-                        fontSize: 11,
-                        fontFamily: "Quicksand",
-                      ),
-                    );
-                  },
                 ),
               ),
             ),
