@@ -12,13 +12,6 @@ import 'package:indigo_insights/widgets/strategy_risk.dart';
 class StrategyInsights extends HookConsumerWidget {
   const StrategyInsights({super.key});
 
-  Widget informationRowWithTooltip(String title, Widget info, String tooltip) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [info],
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
