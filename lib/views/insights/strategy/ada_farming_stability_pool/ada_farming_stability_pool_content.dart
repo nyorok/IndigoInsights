@@ -5,8 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/models/asset_interest_rate.dart';
 import 'package:indigo_insights/providers/asset_price_provider.dart';
 import 'package:indigo_insights/providers/cdp_provider.dart';
-import 'package:indigo_insights/providers/incentives_per_epoch_provider.dart'
-    hide Dex;
+import 'package:indigo_insights/providers/incentives_per_epoch_provider.dart';
 import 'package:indigo_insights/providers/indigo_asset_provider.dart';
 import 'package:indigo_insights/providers/indy_price_provider.dart';
 import 'package:indigo_insights/providers/stability_pool_provider.dart';
