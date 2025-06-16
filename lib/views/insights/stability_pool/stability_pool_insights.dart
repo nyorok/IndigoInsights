@@ -32,8 +32,14 @@ class _StabilityPoolInsightsState extends ConsumerState<StabilityPoolInsights>
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(indigoAssetsProvider).whenData((indigoAssets) => _tabController =
-        TabController(length: indigoAssets.length, vsync: this));
+    ref
+        .watch(indigoAssetsProvider)
+        .whenData(
+          (indigoAssets) => _tabController = TabController(
+            length: indigoAssets.length,
+            vsync: this,
+          ),
+        );
 
     return SingleChildScrollView(
       child: SelectionArea(
@@ -41,13 +47,19 @@ class _StabilityPoolInsightsState extends ConsumerState<StabilityPoolInsights>
           padding: const EdgeInsets.only(top: 8.0),
           child: Align(
             alignment: Alignment.topLeft,
-            child: ref.watch(indigoAssetsProvider).when(
+            child: ref
+                .watch(indigoAssetsProvider)
+                .when(
                   data: (indigoAssets) {
-                    _tabController =
-                        TabController(length: indigoAssets.length, vsync: this);
+                    _tabController = TabController(
+                      length: indigoAssets.length,
+                      vsync: this,
+                    );
 
-                    return stabilityPoolCards(context,
-                        indigoAssets: indigoAssets);
+                    return stabilityPoolCards(
+                      context,
+                      indigoAssets: indigoAssets,
+                    );
                   },
                   loading: () => stabilityPoolCards(context),
                   error: (error, stackTrace) => Text(error.toString()),
@@ -58,55 +70,51 @@ class _StabilityPoolInsightsState extends ConsumerState<StabilityPoolInsights>
     );
   }
 
-  Wrap stabilityPoolCards(BuildContext context,
-      {List<IndigoAsset>? indigoAssets}) {
+  Wrap stabilityPoolCards(
+    BuildContext context, {
+    List<IndigoAsset>? indigoAssets,
+  }) {
     final informationCards = indigoAssets
-        ?.map((e) => informationCard(
-            StabilityPoolInformation(
-              indigoAsset: e,
-            ),
-            context))
+        ?.map(
+          (e) => informationCard(
+            StabilityPoolInformation(indigoAsset: e),
+            context,
+          ),
+        )
         .toList();
 
-    final tabLabels = indigoAssets
-        ?.map((e) => Tab(
-              text: e.asset,
-            ))
-        .toList();
+    final tabLabels = indigoAssets?.map((e) => Tab(text: e.asset)).toList();
 
     final tabContents = indigoAssets
-        ?.map((e) => StabilityPoolSolvencyChart(
-              asset: e.asset,
-            ))
+        ?.map((e) => StabilityPoolSolvencyChart(indigoAsset: e))
         .toList();
 
     return Wrap(
       children: [
-        Column(
-          children: informationCards ?? [const Loader()],
-        ),
+        Column(children: informationCards ?? [const Loader()]),
         chartCard(
-            Column(
-              children: [
-                TabBar(
-                  unselectedLabelColor: Colors.white,
-                  labelColor: Colors.white,
-                  tabs: tabLabels ?? [const Loader()],
-                  controller: _tabController,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 8, bottom: 8),
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: tabContents ?? [const Loader()],
-                    ),
+          Column(
+            children: [
+              TabBar(
+                unselectedLabelColor: Colors.white,
+                labelColor: Colors.white,
+                tabs: tabLabels ?? [const Loader()],
+                controller: _tabController,
+                indicatorSize: TabBarIndicatorSize.tab,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 8, bottom: 8),
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: tabContents ?? [const Loader()],
                   ),
                 ),
-              ],
-            ),
-            context)
+              ),
+            ],
+          ),
+          context,
+        ),
       ],
     );
   }
@@ -127,8 +135,9 @@ class _StabilityPoolInsightsState extends ConsumerState<StabilityPoolInsights>
 
   chartCard(Widget widget, BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final double width =
-        screenWidth - 480 > 480 ? screenWidth - 480 : screenWidth;
+    final double width = screenWidth - 480 > 480
+        ? screenWidth - 480
+        : screenWidth;
 
     final screenHeight = MediaQuery.of(context).size.height;
     final double height = screenHeight - 68;

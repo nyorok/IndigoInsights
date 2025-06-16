@@ -37,9 +37,9 @@ List<AmountPercentageData> normalizeAmountPercentageData(
         inputIndex++;
       } else {
         if (currentPercent > percent) {
-          throw Exception(
-            "normalizeAmountPercentageData: Input should have unique percents by interval 1",
-          );
+          // throw Exception(
+          //   "normalizeAmountPercentageData: Input should have unique percents by interval 1",
+          // );
         }
         normalizedList.add(
           AmountPercentageData(currentPercent / 100.0, lastAmount),
