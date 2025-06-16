@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 const Color primaryRed = Color.fromRGBO(255, 51, 68, 1);
 const Color secondaryRed = Color.fromRGBO(255, 103, 53, 1);
+const Color onSuccess = Color.fromRGBO(85, 241, 85, 1);
 
 const Color primaryPurple = Color.fromRGBO(106, 61, 232, 1);
 

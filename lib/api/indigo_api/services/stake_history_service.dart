@@ -4,7 +4,8 @@ import 'package:indigo_insights/models/stake_history.dart';
 class StakeHistoryService extends IndigoApi {
   Future<List<StakeHistory>> fetchStakeHistories() {
     return getAll<StakeHistory>(
-        '/api/staking-manager/history?page=1&perPage=1000000000',
-        StakeHistory.fromJson);
+      '/api/staking-manager/history?page=1&perPage=1000000000',
+      StakeHistory.fromJson,
+    );
   }
 }

@@ -13,6 +13,7 @@ import 'package:indigo_insights/views/insights/minted_supply/minted_supply_insig
 import 'package:indigo_insights/views/insights/redemption/redemption_insights.dart';
 import 'package:indigo_insights/views/insights/stability_pool/stability_pool_insights.dart';
 import 'package:indigo_insights/views/insights/stability_pool_account/stability_pool_account_insights.dart';
+import 'package:indigo_insights/views/insights/strategy/strategy_insights.dart';
 
 import 'sidebar.dart';
 import 'utils/loader.dart';
@@ -26,7 +27,7 @@ class MyApp extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedMenuItem = useState(SidebarMenu.mintedSupply.index);
+    final selectedMenuItem = useState(0);
 
     return MaterialApp(
       title: 'Indigo Insights',
@@ -64,6 +65,7 @@ class MyApp extends HookConsumerWidget {
               child: Container(
                 decoration: BoxDecoration(gradient: indigoDarkGradient),
                 child: switch (SidebarMenu.values[selectedMenuItem.value]) {
+                  SidebarMenu.strategy => const StrategyInsights(),
                   SidebarMenu.liquidation => const LiquidationInsights(),
                   SidebarMenu.cdps => const CdpInsights(),
                   SidebarMenu.mintedSupply => const MintedSupplyInsights(),
