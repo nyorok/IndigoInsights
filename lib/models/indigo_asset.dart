@@ -45,10 +45,13 @@ class IndigoAsset {
       outputIndex: json['output_index'],
       slot: json['slot'],
       updatedAt: DateTime.parse(json['updated_at']),
-      rmr: json['redemption_ratio_percentage'] ~/ 1000000,
-      maintenanceRatio: json['maintenance_ratio_percentage'] ~/ 1000000,
-      liquidationRatio: json['liquidation_ratio_percentage'] ~/ 1000000,
-      debtMintingFee: json['debt_minting_fee_percentage'] / 1000000,
+      rmr: (json['redemption_ratio_percentage']).toDouble() / 1000000.0,
+      maintenanceRatio:
+          (json['maintenance_ratio_percentage']).toDouble() / 1000000.0,
+      liquidationRatio:
+          (json['liquidation_ratio_percentage']).toDouble() / 1000000.0,
+      debtMintingFee:
+          (json['debt_minting_fee_percentage']).toDouble() / 1000000.0,
     );
   }
 
