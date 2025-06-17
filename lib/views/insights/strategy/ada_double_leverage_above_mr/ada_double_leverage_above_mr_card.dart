@@ -14,6 +14,7 @@ class AdaDoubleLeverageAboveMrCard extends HookConsumerWidget {
     required this.liquidationRatio,
     required this.assetPrice,
     required this.debtMintingFee,
+    required this.collateralRatio,
   });
 
   final String asset;
@@ -23,6 +24,7 @@ class AdaDoubleLeverageAboveMrCard extends HookConsumerWidget {
   final double liquidationRatio;
   final double assetPrice;
   final double debtMintingFee;
+  final double collateralRatio;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,15 +39,15 @@ class AdaDoubleLeverageAboveMrCard extends HookConsumerWidget {
     );
 
     // Calculate double leverage
-    final mr = maintenanceRatio / 100;
-    final doubleLeverage = 1 + (1 + 1 / mr) / mr;
+    final cr = collateralRatio / 100;
+    final doubleLeverage = 1 + (1 + 1 / cr) / cr;
 
     // Calculate liquidation loss
-    final liquidationLoss = -(1 - (1 / mr) / mr) * 100;
+    final liquidationLoss = -(1 - (1 / cr) / cr) * 100;
 
     // Calculate price drop until liquidation
     final priceDropToLiquidation =
-        (1 - (liquidationRatio / maintenanceRatio)) * 100;
+        (1 - (liquidationRatio / collateralRatio)) * 100;
 
     return Card(
       child: Padding(
