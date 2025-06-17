@@ -39,10 +39,7 @@ class _CustomTabsState extends ConsumerState<CustomTabs>
     );
     final screenHeight = MediaQuery.of(context).size.height;
 
-    final double height = max(
-      0.0,
-      screenWidth - 480 > 480 ? screenHeight - 65 : screenHeight - 202,
-    );
+    final double height = max(0.0, screenHeight - 65);
 
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: width, maxHeight: height),
