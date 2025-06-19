@@ -39,7 +39,7 @@ class RedeemableOverRmrsChart extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final rmrs = List.generate(164, (index) => indigoAsset.rmr + index * 5.0);
+    final rmrs = List.generate(100, (index) => 150 + index * 5.0);
 
     getRedeemableOverRmrsData(List<Cdp> cdps, double adaPrice) {
       final redeemablePerCdp = cdps

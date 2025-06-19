@@ -7,6 +7,7 @@ import 'package:indigo_insights/utils/page_title.dart';
 
 enum SidebarMenu {
   cdpPosition,
+  strategy,
   mintedSupply,
   cdps,
   liquidation,
@@ -114,6 +115,10 @@ class Sidebar extends ConsumerWidget {
                   getListTile(
                     title: 'CDP Position',
                     menuIndex: SidebarMenu.cdpPosition.index,
+                  ),
+                  getListTile(
+                    title: 'Strategy',
+                    menuIndex: SidebarMenu.strategy.index,
                   ),
                   getListTile(
                     title: 'Minted Supply',
