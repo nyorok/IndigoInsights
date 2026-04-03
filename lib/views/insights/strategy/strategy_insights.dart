@@ -29,7 +29,7 @@ class StrategyInsights extends HookConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Left side - StrategiesOverview
-                    SizedBox(width: 480, child: const StrategiesOverview()),
+                    const SizedBox(width: 480, child: StrategiesOverview()),
                     const SizedBox(width: 16),
                     // Right side - CustomTabs
                     Expanded(
@@ -65,14 +65,14 @@ class StrategyInsights extends HookConsumerWidget {
   }
 
   Widget _buildCustomTabs() {
-    return CustomTabs([
+    return const CustomTabs([
       (
         tab: Tab(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Stability Pool Farming Using ADA"),
-              const StrategyRisk(riskLevel: RiskLevel.safe),
+              Text('Stability Pool Farming Using ADA'),
+              StrategyRisk(riskLevel: RiskLevel.safe),
             ],
           ),
         ),
@@ -83,8 +83,8 @@ class StrategyInsights extends HookConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Stable Pool Farming Using ADA"),
-              const StrategyRisk(riskLevel: RiskLevel.safeSafe),
+              Text('Stable Pool Farming Using ADA'),
+              StrategyRisk(riskLevel: RiskLevel.safeSafe),
             ],
           ),
         ),
@@ -95,8 +95,8 @@ class StrategyInsights extends HookConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("ADA Leverage Above RMR"),
-              const StrategyRisk(riskLevel: RiskLevel.warningWarning),
+              Text('ADA Leverage Above RMR'),
+              StrategyRisk(riskLevel: RiskLevel.warningWarning),
             ],
           ),
         ),
@@ -107,8 +107,8 @@ class StrategyInsights extends HookConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("ADA Leverage Above MR"),
-              const StrategyRisk(riskLevel: RiskLevel.danger),
+              Text('ADA Leverage Above MR'),
+              StrategyRisk(riskLevel: RiskLevel.danger),
             ],
           ),
         ),
@@ -119,8 +119,8 @@ class StrategyInsights extends HookConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("ADA Double Leverage Above MR"),
-              const StrategyRisk(riskLevel: RiskLevel.dangerDanger),
+              Text('ADA Double Leverage Above MR'),
+              StrategyRisk(riskLevel: RiskLevel.dangerDanger),
             ],
           ),
         ),

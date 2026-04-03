@@ -36,7 +36,7 @@ class StabilityPoolAccountUnclaimedRewardsPieChart extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     getAccountUnclaimedRewardsData(List<double> accountsUnclaimedRewards) {
       accountsUnclaimedRewards.sort();
-      double totalSum = accountsUnclaimedRewards
+      final double totalSum = accountsUnclaimedRewards
           .map((value) => value)
           .reduce((a, b) => a + b);
 
@@ -85,13 +85,13 @@ class StabilityPoolAccountUnclaimedRewardsPieChart extends HookConsumerWidget {
                       children: [
                         PageTitle(
                           title:
-                              "Stability Pool Accounts Unclaimed Rewards ($asset)",
+                              'Stability Pool Accounts Unclaimed Rewards ($asset)',
                         ),
                         Text(
-                          "Total: ${numberFormatter(accountsUnclaimedRewards.sum, 2)} ADA",
+                          'Total: ${numberFormatter(accountsUnclaimedRewards.sum, 2)} ADA',
                         ),
                         Text(
-                          "Potential Governance Rewards: ${numberFormatter(accountsUnclaimedRewards.sum * 0.02, 2)} ADA",
+                          'Potential Governance Rewards: ${numberFormatter(accountsUnclaimedRewards.sum * 0.02, 2)} ADA',
                         ),
                       ],
                     ),

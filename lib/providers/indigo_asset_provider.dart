@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/api/indigo_api/services/indigo_asset_service.dart';
 import 'package:indigo_insights/models/indigo_asset.dart';
 

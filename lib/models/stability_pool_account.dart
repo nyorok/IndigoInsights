@@ -26,13 +26,13 @@ class StabilityPoolAccount {
 
   factory StabilityPoolAccount.fromJson(Map<String, dynamic> json) {
     return StabilityPoolAccount(
-      asset: json['asset'],
-      owner: json['owner'],
-      snapshotD: BigInt.parse(json['snapshotD']),
-      snapshotP: BigInt.parse(json['snapshotP']),
-      snapshotS: BigInt.parse(json['snapshotS']),
-      snapshotEpoch: json['snapshotEpoch'],
-      snapshotScale: json['snapshotScale'],
+      asset: json['asset'] as String,
+      owner: json['owner'] as String,
+      snapshotD: BigInt.parse(json['snapshotD'] as String),
+      snapshotP: BigInt.parse(json['snapshotP'] as String),
+      snapshotS: BigInt.parse(json['snapshotS'] as String),
+      snapshotEpoch: json['snapshotEpoch'] as int,
+      snapshotScale: json['snapshotScale'] as int,
     );
   }
 }

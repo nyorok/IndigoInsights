@@ -42,7 +42,7 @@ class StabilityPoolInformation extends HookConsumerWidget {
       children: [
         Text(numberFormatter(amount, 2)),
         Text(
-          " $currency",
+          ' $currency',
           style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
         ),
       ],
@@ -61,7 +61,7 @@ class StabilityPoolInformation extends HookConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 PageTitle(
-                  title: "${indigoAsset.asset} Stability Pool",
+                  title: '${indigoAsset.asset} Stability Pool',
                 ).animate().scaleY(duration: 300.ms, curve: Curves.easeInOut),
                 const SizedBox(height: 32),
                 informationRow(
@@ -77,7 +77,7 @@ class StabilityPoolInformation extends HookConsumerWidget {
                   'Total Supply Deposited',
                   assetAmount(
                     data.stabilityPool.totalAmount / data.totalSupply * 100,
-                    "%",
+                    '%',
                     context,
                   ),
                 ),

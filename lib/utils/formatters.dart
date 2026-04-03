@@ -20,13 +20,13 @@ NumberAbbreviation? getAbbreviation(double number) {
 double numberAbbreviated(double number, NumberAbbreviation? abbreviation) {
   switch (abbreviation) {
     case NumberAbbreviation.B:
-      double result = number / 1000000000;
+      final double result = number / 1000000000;
       return double.parse(result.toStringAsFixed(2));
     case NumberAbbreviation.M:
-      double result = number / 1000000;
+      final double result = number / 1000000;
       return double.parse(result.toStringAsFixed(2));
     case NumberAbbreviation.K:
-      double result = number / 1000;
+      final double result = number / 1000;
       return double.parse(result.toStringAsFixed(2));
 
     default:
@@ -38,13 +38,13 @@ String numberAbbreviatedFormatter(
     double number, NumberAbbreviation? abbreviation) {
   switch (abbreviation) {
     case NumberAbbreviation.B:
-      double result = number / 1000000000;
+      final double result = number / 1000000000;
       return '${result.toStringAsFixed(2)}B';
     case NumberAbbreviation.M:
-      double result = number / 1000000;
+      final double result = number / 1000000;
       return '${result.toStringAsFixed(2)}M';
     case NumberAbbreviation.K:
-      double result = number / 1000;
+      final double result = number / 1000;
       return '${result.toStringAsFixed(2)}K';
 
     default:

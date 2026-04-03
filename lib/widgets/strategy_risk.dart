@@ -28,43 +28,43 @@ class StrategyRisk extends StatelessWidget {
   List<Widget> _buildIcons() {
     switch (riskLevel) {
       case RiskLevel.safe:
-        return [Icon(Icons.bolt, color: Colors.greenAccent, size: 16)];
+        return [const Icon(Icons.bolt, color: Colors.greenAccent, size: 16)];
       case RiskLevel.safeSafe:
         return [
-          Icon(Icons.bolt, color: Colors.greenAccent, size: 16),
-          Icon(Icons.bolt, color: Colors.greenAccent, size: 16),
+          const Icon(Icons.bolt, color: Colors.greenAccent, size: 16),
+          const Icon(Icons.bolt, color: Colors.greenAccent, size: 16),
         ];
       case RiskLevel.safeSafeSafe:
         return [
-          Icon(Icons.bolt, color: Colors.greenAccent, size: 16),
-          Icon(Icons.bolt, color: Colors.greenAccent, size: 16),
-          Icon(Icons.bolt, color: Colors.greenAccent, size: 16),
+          const Icon(Icons.bolt, color: Colors.greenAccent, size: 16),
+          const Icon(Icons.bolt, color: Colors.greenAccent, size: 16),
+          const Icon(Icons.bolt, color: Colors.greenAccent, size: 16),
         ];
       case RiskLevel.warning:
-        return [Icon(Icons.bolt, color: Colors.yellowAccent, size: 16)];
+        return [const Icon(Icons.bolt, color: Colors.yellowAccent, size: 16)];
       case RiskLevel.warningWarning:
         return [
-          Icon(Icons.bolt, color: Colors.yellowAccent, size: 16),
-          Icon(Icons.bolt, color: Colors.yellowAccent, size: 16),
+          const Icon(Icons.bolt, color: Colors.yellowAccent, size: 16),
+          const Icon(Icons.bolt, color: Colors.yellowAccent, size: 16),
         ];
       case RiskLevel.warningWarningWarning:
         return [
-          Icon(Icons.bolt, color: Colors.yellowAccent, size: 16),
-          Icon(Icons.bolt, color: Colors.yellowAccent, size: 16),
-          Icon(Icons.bolt, color: Colors.yellowAccent, size: 16),
+          const Icon(Icons.bolt, color: Colors.yellowAccent, size: 16),
+          const Icon(Icons.bolt, color: Colors.yellowAccent, size: 16),
+          const Icon(Icons.bolt, color: Colors.yellowAccent, size: 16),
         ];
       case RiskLevel.danger:
-        return [Icon(Icons.bolt, color: Colors.redAccent, size: 16)];
+        return [const Icon(Icons.bolt, color: Colors.redAccent, size: 16)];
       case RiskLevel.dangerDanger:
         return [
-          Icon(Icons.bolt, color: Colors.redAccent, size: 16),
-          Icon(Icons.bolt, color: Colors.redAccent, size: 16),
+          const Icon(Icons.bolt, color: Colors.redAccent, size: 16),
+          const Icon(Icons.bolt, color: Colors.redAccent, size: 16),
         ];
       case RiskLevel.dangerDangerDanger:
         return [
-          Icon(Icons.bolt, color: Colors.redAccent, size: 16),
-          Icon(Icons.bolt, color: Colors.redAccent, size: 16),
-          Icon(Icons.bolt, color: Colors.redAccent, size: 16),
+          const Icon(Icons.bolt, color: Colors.redAccent, size: 16),
+          const Icon(Icons.bolt, color: Colors.redAccent, size: 16),
+          const Icon(Icons.bolt, color: Colors.redAccent, size: 16),
         ];
     }
   }

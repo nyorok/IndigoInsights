@@ -77,7 +77,7 @@ class RedeemableOverRmrsChart extends HookConsumerWidget {
             final adaPrice = data.adaPrice;
 
             return PercentageAmountChart(
-              title: "Redeemable over RMRs (${indigoAsset.rmr}%)",
+              title: 'Redeemable over RMRs (${indigoAsset.rmr}%)',
               currency: indigoAsset.asset,
               labels: [indigoAsset.asset],
               mintedSupply: cdps.map((e) => e.mintedAmount).sum,

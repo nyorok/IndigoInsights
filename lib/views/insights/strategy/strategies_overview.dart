@@ -23,7 +23,7 @@ class StrategiesOverview extends HookConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              PageTitle(title: 'Strategy Insights Overview'),
+              const PageTitle(title: 'Strategy Insights Overview'),
               const SizedBox(height: 24),
               Text.rich(
                 TextSpan(

@@ -133,7 +133,7 @@ class _StabilityPoolInsightsState extends ConsumerState<StabilityPoolInsights>
     );
   }
 
-  chartCard(Widget widget, BuildContext context) {
+  Widget chartCard(Widget widget, BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final double width = screenWidth - 480 > 480
         ? screenWidth - 480

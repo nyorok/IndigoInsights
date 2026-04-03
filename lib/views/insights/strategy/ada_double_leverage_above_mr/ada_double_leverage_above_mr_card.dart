@@ -34,7 +34,7 @@ class AdaDoubleLeverageAboveMrCard extends HookConsumerWidget {
     );
 
     calculatedAmount(double amount) => Text(
-      "${numberFormatter(amount, 2)}%",
+      '${numberFormatter(amount, 2)}%',
       style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
     );
 
@@ -61,9 +61,9 @@ class AdaDoubleLeverageAboveMrCard extends HookConsumerWidget {
                 PageTitle(title: asset),
                 Tooltip(
                   message:
-                      "This is the maximum theoretical double\nleverage achievable based on the\nMaintenance Ratio.",
+                      'This is the maximum theoretical double\nleverage achievable based on the\nMaintenance Ratio.',
                   child: AnimatedGradientText(
-                    "${numberFormatter(doubleLeverage, 2)}x",
+                    '${numberFormatter(doubleLeverage, 2)}x',
                     gradientColors: const [
                       Colors.lightGreenAccent,
                       Colors.lightGreenAccent,
@@ -73,7 +73,7 @@ class AdaDoubleLeverageAboveMrCard extends HookConsumerWidget {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
-                      fontFamily: "Quicksand",
+                      fontFamily: 'Quicksand',
                     ),
                   ),
                 ),
@@ -83,7 +83,7 @@ class AdaDoubleLeverageAboveMrCard extends HookConsumerWidget {
             informationRow(
               'Liquidation Price',
               Text(
-                "-${numberFormatter(priceDropToLiquidation, 2)}%",
+                '-${numberFormatter(priceDropToLiquidation, 2)}%',
                 style: const TextStyle(
                   color: Colors.redAccent,
                   fontWeight: FontWeight.bold,
@@ -93,7 +93,7 @@ class AdaDoubleLeverageAboveMrCard extends HookConsumerWidget {
             informationRow(
               'Liquidation Loss',
               Text(
-                "${numberFormatter(liquidationLoss, 2)}%",
+                '${numberFormatter(liquidationLoss, 2)}%',
                 style: const TextStyle(
                   color: Colors.redAccent,
                   fontWeight: FontWeight.bold,

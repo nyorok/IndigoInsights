@@ -16,7 +16,7 @@ class StakingInformation extends HookConsumerWidget {
       children: [
         Text(numberFormatter(amount, 2)),
         Text(
-          " INDY",
+          ' INDY',
           style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
         ),
       ],
@@ -63,7 +63,7 @@ class StakingInformation extends HookConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const PageTitle(
-                  title: "Indy Staking",
+                  title: 'Indy Staking',
                 ).animate().scaleY(duration: 300.ms, curve: Curves.easeInOut),
                 const SizedBox(height: 20),
                 informationRow(

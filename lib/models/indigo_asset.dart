@@ -33,25 +33,25 @@ class IndigoAsset {
 
   factory IndigoAsset.fromJson(Map<String, dynamic> json) {
     return IndigoAsset(
-      asset: json['asset'],
-      createdAt: DateTime.parse(json['created_at']),
+      asset: json['asset'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
       delistPrice: json['delist_price'] != null
-          ? double.parse(json['delist_price'])
+          ? double.parse(json['delist_price'] as String)
           : null,
-      hash: json['hash'],
-      oracleNftCs: json['oracle_nft_cs'],
-      oracleNftTn: json['oracle_nft_tn'],
-      outputHash: json['output_hash'],
-      outputIndex: json['output_index'],
-      slot: json['slot'],
-      updatedAt: DateTime.parse(json['updated_at']),
-      rmr: (json['redemption_ratio_percentage']).toDouble() / 1000000.0,
+      hash: json['hash'] as String,
+      oracleNftCs: json['oracle_nft_cs'] as String,
+      oracleNftTn: json['oracle_nft_tn'] as String,
+      outputHash: json['output_hash'] as String,
+      outputIndex: json['output_index'] as int,
+      slot: json['slot'] as int,
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      rmr: (json['redemption_ratio_percentage'] as num).toDouble() / 1000000.0,
       maintenanceRatio:
-          (json['maintenance_ratio_percentage']).toDouble() / 1000000.0,
+          (json['maintenance_ratio_percentage'] as num).toDouble() / 1000000.0,
       liquidationRatio:
-          (json['liquidation_ratio_percentage']).toDouble() / 1000000.0,
+          (json['liquidation_ratio_percentage'] as num).toDouble() / 1000000.0,
       debtMintingFee:
-          (json['debt_minting_fee_percentage']).toDouble() / 1000000.0,
+          (json['debt_minting_fee_percentage'] as num).toDouble() / 1000000.0,
     );
   }
 

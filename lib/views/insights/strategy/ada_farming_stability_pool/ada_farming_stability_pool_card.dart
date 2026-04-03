@@ -34,7 +34,7 @@ class AdaFarmingStabilityPoolCard extends HookConsumerWidget {
     );
 
     calculatedAmount(double amount) => Text(
-      "${numberFormatter(amount, 2)}%",
+      '${numberFormatter(amount, 2)}%',
       style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
     );
 
@@ -47,19 +47,19 @@ class AdaFarmingStabilityPoolCard extends HookConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                PageTitle(title: "$title SP"),
+                PageTitle(title: '$title SP'),
                 AnimatedGradientText(
-                  "${numberFormatter(strategyYield, 2)}%",
+                  '${numberFormatter(strategyYield, 2)}%',
                   gradientColors: strategyYield > 0
-                      ? [Color(0xFFa500e1), Color(0xFF3f83f8)]
+                      ? [const Color(0xFFa500e1), const Color(0xFF3f83f8)]
                       : [
-                          Color(0xFFa500e1),
+                          const Color(0xFFa500e1),
                           Theme.of(context).colorScheme.onError,
                         ],
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
-                    fontFamily: "Quicksand",
+                    fontFamily: 'Quicksand',
                   ),
                 ),
               ],
@@ -69,7 +69,7 @@ class AdaFarmingStabilityPoolCard extends HookConsumerWidget {
             informationRow(
               'Stability Pool APR',
               Text(
-                "${numberFormatter(poolYield, 2)}%",
+                '${numberFormatter(poolYield, 2)}%',
                 style: const TextStyle(
                   color: Colors.greenAccent,
                   fontWeight: FontWeight.bold,
@@ -79,7 +79,7 @@ class AdaFarmingStabilityPoolCard extends HookConsumerWidget {
             informationRow(
               'CDP Interest Rate',
               Text(
-                "${numberFormatter(interestRate, 2)}%",
+                '${numberFormatter(interestRate, 2)}%',
                 style: const TextStyle(
                   color: Colors.yellowAccent,
                   fontWeight: FontWeight.bold,

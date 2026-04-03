@@ -14,7 +14,7 @@ enum SidebarMenu {
 }
 
 class Sidebar extends ConsumerWidget {
-  final Function(int) onMenuItemPressed;
+  final void Function(int) onMenuItemPressed;
   final int selectedMenu;
 
   const Sidebar({
@@ -33,7 +33,7 @@ class Sidebar extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Hero(
-              tag: "title_icon",
+              tag: 'title_icon',
               child: Image.asset(
                 'assets/icons/ic_48.png',
                 width: 30,
@@ -96,7 +96,7 @@ class Sidebar extends ConsumerWidget {
                     padding: const EdgeInsets.only(top: 12, bottom: 4),
                     child:
                         Text(
-                          "Insights",
+                          'Insights',
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.onTertiary,
                           ),

@@ -21,12 +21,12 @@ List<AmountDateData> normalizeAmountDateData(
   DateTime startDate,
   DateTime endDate,
 ) {
-  List<AmountDateData> normalizedList = [];
+  final List<AmountDateData> normalizedList = [];
 
   DateTime currentDate = getDate(startDate);
   double lastAmount = inputList.first.amount;
   int inputIndex = 0;
-  DateTime lastDate = getDate(endDate).add(const Duration(days: 1));
+  final DateTime lastDate = getDate(endDate).add(const Duration(days: 1));
 
   while (currentDate.isBefore(lastDate)) {
     if (inputIndex < inputList.length) {
@@ -38,9 +38,7 @@ List<AmountDateData> normalizeAmountDateData(
         inputIndex++;
       } else {
         if (currentDate.isAfter(getDate(inputDate))) {
-          print(
-            "normalizeAmountDateData: ${dateFormatter(currentDate)} is after ${getDate(inputDate)}",
-          );
+          // normalizeAmountDateData: currentDate is after inputDate — gap in data
         } else {
           normalizedList.add(AmountDateData(currentDate, lastAmount));
         }
@@ -137,7 +135,7 @@ class AmountDateChart extends StatelessWidget {
               .toList(),
           isCurved: true,
           curveSmoothness: 0.01,
-          dotData: FlDotData(show: false),
+          dotData: const FlDotData(show: false),
         ),
       )
       .toList();
@@ -149,13 +147,13 @@ class AmountDateChart extends StatelessWidget {
     double? interval;
 
     if (colors.length < data.length) {
-      throw Exception("Not enough colors for each data line");
+      throw Exception('Not enough colors for each data line');
     }
     if (gradients.length < data.length) {
-      throw Exception("Not enough gradients for each data line");
+      throw Exception('Not enough gradients for each data line');
     }
     if (labels.length < data.length) {
-      throw Exception("Not enough labels for each data line");
+      throw Exception('Not enough labels for each data line');
     }
 
     final amountStart = getAmountStart();
@@ -199,7 +197,7 @@ class AmountDateChart extends StatelessWidget {
                               color: colors[index],
                               fontWeight: FontWeight.w600,
                               fontSize: 12.8,
-                              fontFamily: "Quicksand",
+                              fontFamily: 'Quicksand',
                             ),
                           ),
                         ),
@@ -222,14 +220,14 @@ class AmountDateChart extends StatelessWidget {
                   sideTitles: SideTitles(
                     reservedSize: 15,
                     showTitles: true,
-                    getTitlesWidget: (value, titleMeta) => const Text(""),
+                    getTitlesWidget: (value, titleMeta) => const Text(''),
                   ),
                 ),
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     reservedSize: 30,
                     showTitles: true,
-                    getTitlesWidget: (value, titleMeta) => const Text(""),
+                    getTitlesWidget: (value, titleMeta) => const Text(''),
                   ),
                 ),
                 bottomTitles: AxisTitles(
@@ -329,7 +327,7 @@ class AmountDateChart extends StatelessWidget {
                           color: colors[touchedSpot.barIndex],
                           fontWeight: FontWeight.w500,
                           fontSize: 11,
-                          fontFamily: "Quicksand",
+                          fontFamily: 'Quicksand',
                         ),
                       );
                     }).toList();

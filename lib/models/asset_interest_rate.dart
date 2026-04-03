@@ -11,9 +11,9 @@ class AssetInterestRate {
 
   factory AssetInterestRate.fromJson(Map<String, dynamic> json) {
     return AssetInterestRate(
-      asset: json['asset'],
-      interestRate: (json['interest_rate'] ?? 0) / 1000000,
-      slot: json['slot'],
+      asset: json['asset'] as String,
+      interestRate: ((json['interest_rate'] as int?) ?? 0) / 1000000,
+      slot: json['slot'] as int,
     );
   }
 

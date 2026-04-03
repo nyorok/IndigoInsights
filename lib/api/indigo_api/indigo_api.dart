@@ -15,15 +15,15 @@ class IndigoApi {
       if (response.statusCode == 200) {
         dynamic jsonData = json.decode(response.body);
 
-        if (jsonData is Map && jsonData.containsKey("data")) {
-          jsonData = jsonData["data"];
+        if (jsonData is Map && jsonData.containsKey('data')) {
+          jsonData = jsonData['data'];
         }
 
         if (jsonData is List) {
-          return jsonData.map((data) => fromJson(data)).toList();
+          return jsonData.map((data) => fromJson(data as Map<String, dynamic>)).toList();
         }
 
-        throw Exception("Response was not a List");
+        throw Exception('Response was not a List');
       } else {
         throw Exception('Status Code ${response.statusCode}');
       }
@@ -42,8 +42,8 @@ class IndigoApi {
     try {
       final response = await http.get(apiUrl);
       if (response.statusCode == 200) {
-        dynamic jsonData = json.decode(response.body);
-        return fromJson(jsonData);
+        final dynamic jsonData = json.decode(response.body);
+        return fromJson(jsonData as Map<String, dynamic>);
       } else {
         throw Exception('Status Code ${response.statusCode}');
       }

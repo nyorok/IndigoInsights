@@ -6,8 +6,8 @@ Flutter analytics dashboard for Indigo Protocol (Cardano DeFi). Read-only; no wa
 
 ## Tech Stack
 
-- Flutter / Dart SDK ^3.8.1
-- State: `hooks_riverpod` + `flutter_hooks` — **all widgets are `HookConsumerWidget`**
+- Flutter >=3.41.5 / Dart SDK ^3.11.0
+- State: `hooks_riverpod` v3 + `flutter_hooks` — **all widgets are `HookConsumerWidget`**
 - Charts: `fl_chart`
 - HTTP: `package:http`
 - Font: Quicksand; theme: Material 3 (`lib/theme/`)
@@ -118,4 +118,4 @@ flutter pub get
 flutter run
 ```
 
-No generated code is in active use. `riverpod_generator` is a listed dependency but all providers are hand-written.
+All providers are hand-written `FutureProvider` / `FutureProvider.family` / `Provider.family`. No code generation.

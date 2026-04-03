@@ -25,12 +25,12 @@ class LiquidationInformation extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    assetAmount(double amount, BuildContext context, {String asset = "ADA"}) =>
+    assetAmount(double amount, BuildContext context, {String asset = 'ADA'}) =>
         Row(
           children: [
             Text(numberFormatter(amount, 2)),
             Text(
-              " $asset",
+              ' $asset',
               style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
             ),
           ],
@@ -53,7 +53,7 @@ class LiquidationInformation extends HookConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    PageTitle(title: "${indigoAsset.asset} Liquidations"),
+                    PageTitle(title: '${indigoAsset.asset} Liquidations'),
                     Text(
                       numberFormatter(liquidations.length, 0),
                       style: const TextStyle(fontSize: 18),

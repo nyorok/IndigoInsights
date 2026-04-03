@@ -30,10 +30,10 @@ class MyApp extends HookConsumerWidget {
       home: Scaffold(
         appBar: AppBar(
           backgroundColor: colorScheme.surfaceContainerLow,
-          title: Row(
+          title: const Row(
             children: [
               PageTitle(title: 'Indigo Insights', fontSize: 22),
-              const SizedBox(width: 3),
+              SizedBox(width: 3),
             ],
           ),
           leading: Builder(
@@ -51,7 +51,7 @@ class MyApp extends HookConsumerWidget {
           children: [
             Expanded(
               child: Container(
-                decoration: BoxDecoration(gradient: indigoDarkGradient),
+                decoration: const BoxDecoration(gradient: indigoDarkGradient),
                 child: switch (SidebarMenu.values[selectedMenuItem.value]) {
                   SidebarMenu.strategy => const StrategyInsights(),
                   SidebarMenu.liquidation => const LiquidationInsights(),

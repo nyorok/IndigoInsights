@@ -41,7 +41,7 @@ class PercentageAmountChart extends StatelessWidget {
       .map((e) => e.amount)
       .reduce((value, element) => value > element ? value : element);
 
-  getChartBars(double widgetWidth) {
+  List<BarChartGroupData> getChartBars(double widgetWidth) {
     final bars = data
         .mapIndexed(
           (index, groupData) =>
@@ -81,7 +81,7 @@ class PercentageAmountChart extends StatelessWidget {
           );
         })
         .toList();
-    log("${bars.length}");
+    log('${bars.length}');
     return bars
         .map(
           (b) => BarChartGroupData(
@@ -96,13 +96,13 @@ class PercentageAmountChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (colors.length < data.length) {
-      throw Exception("Not enough colors for each data line");
+      throw Exception('Not enough colors for each data line');
     }
     if (gradients.length < data.length) {
-      throw Exception("Not enough gradients for each data line");
+      throw Exception('Not enough gradients for each data line');
     }
     if (labels.length < data.length) {
-      throw Exception("Not enough labels for each data line");
+      throw Exception('Not enough labels for each data line');
     }
 
     return Column(
@@ -126,7 +126,7 @@ class PercentageAmountChart extends StatelessWidget {
                               color: colors[index],
                               fontWeight: FontWeight.w600,
                               fontSize: 12.8,
-                              fontFamily: "Quicksand",
+                              fontFamily: 'Quicksand',
                             ),
                           ),
                         ),
@@ -189,7 +189,7 @@ class PercentageAmountChart extends StatelessWidget {
                         alignment: Alignment.topLeft,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontFamily: "Quicksand",
+                          fontFamily: 'Quicksand',
                         ),
                       ),
                     ),
@@ -202,7 +202,7 @@ class PercentageAmountChart extends StatelessWidget {
                         alignment: Alignment.topLeft,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontFamily: "Quicksand",
+                          fontFamily: 'Quicksand',
                         ),
                       ),
                     ),
@@ -215,7 +215,7 @@ class PercentageAmountChart extends StatelessWidget {
                         alignment: Alignment.topLeft,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontFamily: "Quicksand",
+                          fontFamily: 'Quicksand',
                         ),
                       ),
                     ),
@@ -229,12 +229,12 @@ class PercentageAmountChart extends StatelessWidget {
                         Theme.of(context).colorScheme.surface,
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
                       return BarTooltipItem(
-                        "${group.x}%: ${numberFormatter(rod.toY, 0)} $currency",
+                        '${group.x}%: ${numberFormatter(rod.toY, 0)} $currency',
                         TextStyle(
                           color: colors[rodIndex],
                           fontWeight: FontWeight.w500,
                           fontSize: 12.8,
-                          fontFamily: "Quicksand",
+                          fontFamily: 'Quicksand',
                         ),
                       );
                     },

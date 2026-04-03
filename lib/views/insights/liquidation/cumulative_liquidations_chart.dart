@@ -53,8 +53,8 @@ class CumulativeLiquidationsChart extends HookConsumerWidget {
               liquidations.last.createdAt.add(const Duration(days: -1));
 
           return AmountDateChart(
-            title: "Cumulative Liquidations",
-            currency: "ADA",
+            title: 'Cumulative Liquidations',
+            currency: 'ADA',
             labels: [indigoAsset.asset],
             data: [
               normalizeAmountDateData(

@@ -31,7 +31,7 @@ class StabilityPoolAccountDistributionPieChart extends HookConsumerWidget {
       getAccountDistribution(List<double> accountsbalances) {
     accountsbalances.sort();
 
-    double totalSum =
+    final double totalSum =
         accountsbalances.map((value) => value).reduce((a, b) => a + b);
 
     final bigAmount = accountsbalances
@@ -73,9 +73,9 @@ class StabilityPoolAccountDistributionPieChart extends HookConsumerWidget {
                     children: [
                       PageTitle(
                           title:
-                              "Stability Pool Accounts Distribution ($asset)"),
+                              'Stability Pool Accounts Distribution ($asset)'),
                       Text(
-                          "Total: ${numberFormatter(accountsBalances.sum, 2)} $asset")
+                          'Total: ${numberFormatter(accountsBalances.sum, 2)} $asset')
                     ],
                   ),
                 ),
