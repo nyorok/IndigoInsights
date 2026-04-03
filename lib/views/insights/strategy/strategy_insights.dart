@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/views/insights/strategy/ada_double_leverage_above_mr/ada_double_leverage_above_mr_content.dart';
 import 'package:indigo_insights/views/insights/strategy/ada_farming_stability_pool/ada_farming_stability_pool_content.dart';
 import 'package:indigo_insights/views/insights/strategy/ada_farming_stable_pool/ada_farming_stable_pool_content.dart';
@@ -11,11 +10,11 @@ import 'package:indigo_insights/views/insights/strategy/strategies_overview.dart
 import 'package:indigo_insights/widgets/custom_tabs.dart';
 import 'package:indigo_insights/widgets/strategy_risk.dart';
 
-class StrategyInsights extends HookConsumerWidget {
+class StrategyInsights extends StatelessWidget {
   const StrategyInsights({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isDesktop = screenWidth > 960;
@@ -28,17 +27,12 @@ class StrategyInsights extends HookConsumerWidget {
               ? Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Left side - StrategiesOverview
                     const SizedBox(width: 480, child: StrategiesOverview()),
                     const SizedBox(width: 16),
-                    // Right side - CustomTabs
                     Expanded(
                       child: ConstrainedBox(
                         constraints: BoxConstraints(
-                          maxWidth:
-                              screenWidth -
-                              480 -
-                              32, // Account for overview width + spacing + padding
+                          maxWidth: screenWidth - 480 - 32,
                           maxHeight: max(0.0, screenHeight - 65),
                         ),
                         child: _buildCustomTabs(),

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:indigo_insights/theme/color_scheme.dart';
 
-class SliderSelector extends HookWidget {
+class SliderSelector extends StatefulWidget {
   final double initialValue;
   final double minValue;
   final double maxValue;
@@ -31,15 +30,28 @@ class SliderSelector extends HookWidget {
   });
 
   @override
+  State<SliderSelector> createState() => _SliderSelectorState();
+}
+
+class _SliderSelectorState extends State<SliderSelector> {
+  late double _currentValue;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentValue = widget.initialValue;
+  }
+
+  @override
+  void didUpdateWidget(SliderSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialValue != widget.initialValue) {
+      _currentValue = widget.initialValue;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final currentValue = useState(initialValue);
-
-    // Update current value when onChanged is called
-    useEffect(() {
-      currentValue.value = initialValue;
-      return null;
-    }, [initialValue]);
-
     return Container(
       color: Colors.transparent,
       padding: const EdgeInsets.all(8.0),
@@ -49,19 +61,20 @@ class SliderSelector extends HookWidget {
             children: [
               Expanded(
                 child: Slider(
-                  value: currentValue.value,
-                  min: minValue,
-                  max: maxValue,
-                  divisions: (maxValue - minValue).toInt(),
+                  value: _currentValue,
+                  min: widget.minValue,
+                  max: widget.maxValue,
+                  divisions: (widget.maxValue - widget.minValue).toInt(),
                   label:
-                      '${currentValue.value.toStringAsFixed(decimalPlaces ?? 0)}$unit',
+                      '${_currentValue.toStringAsFixed(widget.decimalPlaces ?? 0)}${widget.unit}',
                   onChanged: (value) {
-                    currentValue.value = value;
-                    onChanged(value);
+                    setState(() => _currentValue = value);
+                    widget.onChanged(value);
                   },
-                  activeColor: activeColor ?? primaryPurple,
-                  thumbColor: thumbColor ?? Colors.white,
-                  inactiveColor: inactiveColor ?? Colors.white.withAlpha(100),
+                  activeColor: widget.activeColor ?? primaryPurple,
+                  thumbColor: widget.thumbColor ?? Colors.white,
+                  inactiveColor:
+                      widget.inactiveColor ?? Colors.white.withAlpha(100),
                 ),
               ),
             ],
@@ -71,9 +84,9 @@ class SliderSelector extends HookWidget {
             child: Align(
               alignment: Alignment.bottomCenter,
               child: Text(
-                '$label: ${minValue.toStringAsFixed(decimalPlaces ?? 0)}$unit - ${maxValue.toStringAsFixed(decimalPlaces ?? 0)}$unit',
+                '${widget.label}: ${widget.minValue.toStringAsFixed(widget.decimalPlaces ?? 0)}${widget.unit} - ${widget.maxValue.toStringAsFixed(widget.decimalPlaces ?? 0)}${widget.unit}',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: textColor ?? Colors.white,
+                  color: widget.textColor ?? Colors.white,
                 ),
               ),
             ),

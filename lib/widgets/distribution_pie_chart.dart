@@ -1,35 +1,29 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-
-import 'package:flutter_hooks/flutter_hooks.dart';
 
 List<Color> generateColorRange(Color startColor, Color endColor, int steps) {
   final double stepSize = 1.0 / (steps - 1);
-
   final List<Color> colorRange = [];
 
   for (int i = 0; i < steps; i++) {
     final double factor = i * stepSize;
     final int red = ((startColor.r * 255.0).round() +
             (factor *
-                ((endColor.r * 255.0).round() -
-                    (startColor.r * 255.0).round())))
+                ((endColor.r * 255.0).round() - (startColor.r * 255.0).round())))
         .round()
         .clamp(0, 255);
     final int green = ((startColor.g * 255.0).round() +
             (factor *
-                ((endColor.g * 255.0).round() -
-                    (startColor.g * 255.0).round())))
+                ((endColor.g * 255.0).round() - (startColor.g * 255.0).round())))
         .round()
         .clamp(0, 255);
     final int blue = ((startColor.b * 255.0).round() +
             (factor *
-                ((endColor.b * 255.0).round() -
-                    (startColor.b * 255.0).round())))
+                ((endColor.b * 255.0).round() - (startColor.b * 255.0).round())))
         .round()
         .clamp(0, 255);
 
@@ -39,7 +33,7 @@ List<Color> generateColorRange(Color startColor, Color endColor, int steps) {
   return colorRange;
 }
 
-class DistributionPieChartWidget extends HookWidget {
+class DistributionPieChartWidget extends StatefulWidget {
   const DistributionPieChartWidget({
     super.key,
     required this.pieValues,
@@ -50,11 +44,19 @@ class DistributionPieChartWidget extends HookWidget {
   final List<Color> colorRange;
 
   @override
+  State<DistributionPieChartWidget> createState() =>
+      _DistributionPieChartWidgetState();
+}
+
+class _DistributionPieChartWidgetState
+    extends State<DistributionPieChartWidget> {
+  int _touchedIndex = -1;
+
+  @override
   Widget build(BuildContext context) {
-    if (colorRange.length < pieValues.length) {
+    if (widget.colorRange.length < widget.pieValues.length) {
       throw Exception('Not enough colors for each pie part');
     }
-    final touchedIndex = useState(-1);
 
     return Center(
       child: AspectRatio(
@@ -64,13 +66,13 @@ class DistributionPieChartWidget extends HookWidget {
             final shortestSide = constraints.biggest.shortestSide;
             return PieChart(
               PieChartData(
-                sections: pieValues.mapIndexed((index, tuple) {
-                  final isTouched = index == touchedIndex.value;
+                sections: widget.pieValues.mapIndexed((index, tuple) {
+                  final isTouched = index == _touchedIndex;
                   final logValue =
-                      -1 / log(tuple.value / pieValues.map((x) => x.value).sum);
+                      -1 / log(tuple.value / widget.pieValues.map((x) => x.value).sum);
 
                   return PieChartSectionData(
-                    color: colorRange[index],
+                    color: widget.colorRange[index],
                     value: logValue,
                     title: isTouched ? tuple.touchedInfo : tuple.title,
                     radius: shortestSide / (isTouched ? 8 : 10),
@@ -87,14 +89,16 @@ class DistributionPieChartWidget extends HookWidget {
                 }).toList(),
                 pieTouchData: PieTouchData(
                   touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                    if (!event.isInterestedForInteractions ||
-                        pieTouchResponse == null ||
-                        pieTouchResponse.touchedSection == null) {
-                      touchedIndex.value = -1;
-                    } else {
-                      touchedIndex.value =
-                          pieTouchResponse.touchedSection!.touchedSectionIndex;
-                    }
+                    setState(() {
+                      if (!event.isInterestedForInteractions ||
+                          pieTouchResponse == null ||
+                          pieTouchResponse.touchedSection == null) {
+                        _touchedIndex = -1;
+                      } else {
+                        _touchedIndex =
+                            pieTouchResponse.touchedSection!.touchedSectionIndex;
+                      }
+                    });
                   },
                 ),
                 sectionsSpace: 2,

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/theme/gradients.dart';
 import 'package:indigo_insights/utils/page_title.dart';
 
@@ -13,7 +12,7 @@ enum SidebarMenu {
   stabilityPoolAccount,
 }
 
-class Sidebar extends ConsumerWidget {
+class Sidebar extends StatelessWidget {
   final void Function(int) onMenuItemPressed;
   final int selectedMenu;
 
@@ -24,7 +23,7 @@ class Sidebar extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     getInsigoInsightsTitle() {
       return SizedBox(
         height: 60,

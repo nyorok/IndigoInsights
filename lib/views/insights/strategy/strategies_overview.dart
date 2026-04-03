@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/utils/page_title.dart';
 import 'package:indigo_insights/widgets/expandable_card.dart';
 import 'package:indigo_insights/widgets/strategy_risk.dart';
 
-class StrategiesOverview extends HookConsumerWidget {
+class StrategiesOverview extends StatelessWidget {
   const StrategiesOverview({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 960;
 

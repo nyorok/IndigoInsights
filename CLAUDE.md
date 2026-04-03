@@ -7,7 +7,7 @@ Flutter analytics dashboard for Indigo Protocol (Cardano DeFi). Read-only; no wa
 ## Tech Stack
 
 - Flutter 3.41.5 / Dart SDK ^3.11.0
-- State: `hooks_riverpod` v3 + `flutter_hooks` — **all widgets are `HookConsumerWidget`**
+- DI / State: `get_it` (service locator) + `FutureBuilder` via `AsyncBuilder`
 - Charts: `fl_chart`
 - HTTP: `package:http`
 - Font: Quicksand; theme: Material 3 (`lib/theme/`)
@@ -17,7 +17,7 @@ Flutter analytics dashboard for Indigo Protocol (Cardano DeFi). Read-only; no wa
 ## Navigation
 
 `lib/sidebar.dart` — `SidebarMenu` enum is the single source of truth for pages.  
-`lib/main.dart` — `switch(SidebarMenu.values[selectedMenuItem.value])` renders the active page.
+`lib/main.dart` — `switch(SidebarMenu.values[_selectedMenuItem])` renders the active page.
 
 **To add a page:** add an enum value to `SidebarMenu` → add a `getListTile` call in `Sidebar.build` → add an import + switch case in `main.dart`.
 
@@ -34,16 +34,49 @@ Current pages:
 
 ---
 
-## Data Layer
+## Architecture
 
-Flow: **Service → Provider → View** (views never import services directly).
+```
+Widget (StatelessWidget / StatefulWidget)
+  └─ AsyncBuilder<T>(fetcher: () => sl<XRepository>().getX(), builder: (data) => ...)
+        ↓
+Repository (lib/repositories/)  — TTL cache, plain Dart class
+  └─ XService.fetchX()  →  Future<T>
+        ↓
+Service (lib/api/indigo_api/services/)  — extends IndigoApi
+        ↓
+IndigoApi base client  →  HTTP + JSON unwrap
+```
+
+`lib/service_locator.dart` — registers all services and repositories as lazy singletons.  
+Called in `main()` before `runApp`.
+
+**Adding a new data source:**
+1. Create a service in `lib/api/indigo_api/services/`
+2. Create a repository in `lib/repositories/` (TTL cache, inject service via constructor)
+3. Register both in `lib/service_locator.dart`
+4. Consume with `AsyncBuilder(fetcher: () => sl<XRepository>().getX(), ...)`
+
+### TTL Reference
+
+| Repository | TTL |
+|---|---|
+| `IndyPriceRepository`, `AssetPriceRepository` | 2 min |
+| `AssetStatusRepository`, `CdpRepository`, `StabilityPool*Repository`, `DexYieldRepository` | 5 min |
+| `LiquidationRepository`, `RedemptionRepository`, `StakeHistoryRepository` | 10 min |
+| `IndigoAssetRepository` | 30 min |
+| `SolvencyRepository`, `StrategyRepository` (composed) | 5 min |
+
+---
+
+## Data Layer
 
 - Base client: `lib/api/indigo_api/indigo_api.dart`
   - `baseUrl = https://analytics.indigoprotocol.io`
   - `getAll<T>(endpoint, fromJson)` — unwraps the `data` key when present
   - `get<T>(endpoint, fromJson)` — raw JSON object
 - Services: `lib/api/indigo_api/services/` — each extends `IndigoApi`
-- Providers: `lib/providers/` — plain `FutureProvider` / `FutureProvider.family`
+- Repositories: `lib/repositories/` — TTL caching, constructor-injected services
 
 ---
 
@@ -72,14 +105,14 @@ Flow: **Service → Provider → View** (views never import services directly).
 ## Conventions
 
 ```dart
-// Standard widget pattern
-class MyWidget extends HookConsumerWidget {
+// Standard async widget pattern
+class MyWidget extends StatelessWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(someProvider).when(
-      data: (data) => ...,
-      loading: () => const Loader(),
-      error: (e, _) => Text('Error: $e'),
+  Widget build(BuildContext context) {
+    return AsyncBuilder(
+      fetcher: () => sl<XRepository>().getX(),
+      builder: (data) => ...,
+      errorBuilder: (error, retry) => Text('Error: $error'),
     );
   }
 }
@@ -87,6 +120,8 @@ class MyWidget extends HookConsumerWidget {
 
 | Utility | File |
 |---|---|
+| Async data loader | `lib/utils/async_builder.dart` — `AsyncBuilder(fetcher, builder, errorBuilder?)` |
+| TTL cache wrapper | `lib/utils/cached_result.dart` — `CachedResult<T>(value)` |
 | Multi-asset tab wrapper | `lib/widgets/indigo_asset_tabs.dart` — `IndigoAssetTabs(builder)` |
 | Info card row | `lib/widgets/scrollable_information_cards.dart` — `ScrollableInformationCards(builder)` |
 | Number formatting | `lib/utils/formatters.dart` — `numberFormatter(amount, decimals)` |
@@ -95,7 +130,7 @@ class MyWidget extends HookConsumerWidget {
 | Colors | `lib/theme/color_scheme.dart` |
 | Gradients | `lib/theme/gradients.dart` |
 
-iAsset list (iUSD, iBTC, iETH, iSOL) is fetched at runtime via `indigoAssetsProvider` (`GET /api/assets`). Use this provider wherever asset iteration is needed rather than hardcoding.
+iAsset list (iUSD, iBTC, iETH, iSOL) is fetched at runtime via `IndigoAssetRepository` (`GET /api/assets`). Use `sl<IndigoAssetRepository>().getAssets()` wherever asset iteration is needed rather than hardcoding.
 
 ---
 
@@ -120,4 +155,4 @@ flutter pub get
 flutter run
 ```
 
-All providers are hand-written `FutureProvider` / `FutureProvider.family` / `Provider.family`. No code generation.
+All repositories are hand-written with explicit TTL caching. No code generation.

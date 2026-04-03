@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/utils/formatters.dart';
 import 'package:indigo_insights/utils/page_title.dart';
 import 'package:indigo_insights/widgets/animated_gradient_text.dart';
 
-class AdaLeverageAboveMrCard extends HookConsumerWidget {
+class AdaLeverageAboveMrCard extends StatelessWidget {
   const AdaLeverageAboveMrCard({
     super.key,
     required this.asset,
@@ -27,7 +26,7 @@ class AdaLeverageAboveMrCard extends HookConsumerWidget {
   final double collateralRatio;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     informationRow(String title, Widget info) => Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [Text(title), info],
@@ -38,16 +37,10 @@ class AdaLeverageAboveMrCard extends HookConsumerWidget {
       style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
     );
 
-    // Calculate leverage
     final cr = collateralRatio / 100;
     final leverage = 1 + 1 / cr;
-
-    // Calculate liquidation loss
     final liquidationLoss = -(1 - 1 / cr) * 100;
-
-    // Calculate price drop until liquidation
-    final priceDropToLiquidation =
-        (1 - (liquidationRatio / collateralRatio)) * 100;
+    final priceDropToLiquidation = (1 - (liquidationRatio / collateralRatio)) * 100;
 
     return Card(
       child: Padding(
@@ -63,7 +56,7 @@ class AdaLeverageAboveMrCard extends HookConsumerWidget {
                   message:
                       'This is the maximum theoretical \nleverage achievable based on the \nMaintenance Ratio.',
                   child: AnimatedGradientText(
-                    '${numberFormatter(leverage, 2)}x', // Display leverage based on MCR
+                    '${numberFormatter(leverage, 2)}x',
                     gradientColors: [Colors.yellowAccent, Colors.greenAccent],
                     style: const TextStyle(
                       fontSize: 18,
