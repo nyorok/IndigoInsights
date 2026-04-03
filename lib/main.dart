@@ -1,22 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:indigo_insights/providers/indigo_asset_provider.dart';
 import 'package:indigo_insights/theme/color_scheme.dart';
 import 'package:indigo_insights/theme/gradients.dart';
 import 'package:indigo_insights/utils/page_title.dart';
-import 'package:indigo_insights/views/insights/cdp/cdp_insights.dart';
 import 'package:indigo_insights/views/insights/indy_staking/indy_staking_insights.dart';
 import 'package:indigo_insights/views/insights/liquidation/liquidation_insights.dart';
-import 'package:indigo_insights/views/insights/market/market_insights.dart';
-import 'package:indigo_insights/views/insights/minted_supply/minted_supply_insights.dart';
 import 'package:indigo_insights/views/insights/redemption/redemption_insights.dart';
 import 'package:indigo_insights/views/insights/stability_pool/stability_pool_insights.dart';
 import 'package:indigo_insights/views/insights/stability_pool_account/stability_pool_account_insights.dart';
 import 'package:indigo_insights/views/insights/strategy/strategy_insights.dart';
 
 import 'sidebar.dart';
-import 'utils/loader.dart';
 
 void main() async {
   runApp(const ProviderScope(child: MyApp()));
@@ -48,17 +43,10 @@ class MyApp extends HookConsumerWidget {
             ),
           ),
         ),
-        drawer: ref
-            .watch(indigoAssetsProvider)
-            .when(
-              loading: () => const Loader(),
-              error: (err, stack) => Text('Error: $err'),
-              data: (assets) => Sidebar(
-                onMenuItemPressed: (value) => selectedMenuItem.value = value,
-                selectedMenu: selectedMenuItem.value,
-                assets: assets,
-              ),
-            ),
+        drawer: Sidebar(
+          onMenuItemPressed: (value) => selectedMenuItem.value = value,
+          selectedMenu: selectedMenuItem.value,
+        ),
         body: Row(
           children: [
             Expanded(
@@ -67,14 +55,11 @@ class MyApp extends HookConsumerWidget {
                 child: switch (SidebarMenu.values[selectedMenuItem.value]) {
                   SidebarMenu.strategy => const StrategyInsights(),
                   SidebarMenu.liquidation => const LiquidationInsights(),
-                  SidebarMenu.cdps => const CdpInsights(),
-                  SidebarMenu.mintedSupply => const MintedSupplyInsights(),
-                  SidebarMenu.indyStaking => const IndyStakingInsights(),
                   SidebarMenu.redemption => const RedemptionInsights(),
+                  SidebarMenu.indyStaking => const IndyStakingInsights(),
                   SidebarMenu.stabilityPool => const StabilityPoolInsights(),
                   SidebarMenu.stabilityPoolAccount =>
                     const StabilityPoolAccountInsights(),
-                  SidebarMenu.market => const MarketInsights(),
                 },
               ),
             ),

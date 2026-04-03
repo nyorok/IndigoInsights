@@ -1,32 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:indigo_insights/models/indigo_asset.dart';
 import 'package:indigo_insights/theme/gradients.dart';
 import 'package:indigo_insights/utils/page_title.dart';
 
 enum SidebarMenu {
   strategy,
-  mintedSupply,
-  cdps,
   liquidation,
   redemption,
   indyStaking,
   stabilityPool,
   stabilityPoolAccount,
-  market,
 }
 
 class Sidebar extends ConsumerWidget {
   final Function(int) onMenuItemPressed;
   final int selectedMenu;
-  final List<IndigoAsset> assets;
 
   const Sidebar({
     super.key,
     required this.onMenuItemPressed,
     required this.selectedMenu,
-    required this.assets,
   });
 
   @override
@@ -116,11 +110,6 @@ class Sidebar extends ConsumerWidget {
                     menuIndex: SidebarMenu.strategy.index,
                   ),
                   getListTile(
-                    title: 'Minted Supply',
-                    menuIndex: SidebarMenu.mintedSupply.index,
-                  ),
-                  getListTile(title: 'CDP', menuIndex: SidebarMenu.cdps.index),
-                  getListTile(
                     title: 'Liquidation',
                     menuIndex: SidebarMenu.liquidation.index,
                   ),
@@ -139,10 +128,6 @@ class Sidebar extends ConsumerWidget {
                   getListTile(
                     title: 'Stability Pool Account',
                     menuIndex: SidebarMenu.stabilityPoolAccount.index,
-                  ),
-                  getListTile(
-                    title: 'Market',
-                    menuIndex: SidebarMenu.market.index,
                   ),
                 ],
               ),
