@@ -18,7 +18,7 @@ List<AmountPercentageData> normalizeAmountPercentageData(
   int maxPercentage,
   double initialAmount,
 ) {
-  List<AmountPercentageData> normalizedList = [];
+  final List<AmountPercentageData> normalizedList = [];
 
   int currentPercent = 0;
   double lastAmount = initialAmount;
@@ -93,9 +93,9 @@ class AmountPercentageChart extends StatelessWidget {
   double roundToNearestPowerOf10(double value) {
     if (value == 0) return 0;
 
-    int power = (log(value) / log(10)).floor();
-    double base = pow(10, power).toDouble();
-    int firstDigit = (value / base).ceil();
+    final int power = (log(value) / log(10)).floor();
+    final double base = pow(10, power).toDouble();
+    final int firstDigit = (value / base).ceil();
 
     return firstDigit * base;
   }
@@ -123,13 +123,13 @@ class AmountPercentageChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (colors.length < data.length) {
-      throw Exception("Not enough colors for each data line");
+      throw Exception('Not enough colors for each data line');
     }
     if (gradients.length < data.length) {
-      throw Exception("Not enough gradients for each data line");
+      throw Exception('Not enough gradients for each data line');
     }
     if (labels.length < data.length) {
-      throw Exception("Not enough labels for each data line");
+      throw Exception('Not enough labels for each data line');
     }
 
     final amountStart = getAmountStart();
@@ -142,7 +142,7 @@ class AmountPercentageChart extends StatelessWidget {
     double getLabelSize() {
       final painter = TextPainter(
         text: TextSpan(
-          text: "-${numberAbbreviatedFormatter(getAmountEnd(), abbreviation)}",
+          text: '-${numberAbbreviatedFormatter(getAmountEnd(), abbreviation)}',
         ),
         textDirection: TextDirection.ltr,
       );
@@ -172,7 +172,7 @@ class AmountPercentageChart extends StatelessWidget {
                                 color: colors[index],
                                 fontWeight: FontWeight.w600,
                                 fontSize: 12.8,
-                                fontFamily: "Quicksand",
+                                fontFamily: 'Quicksand',
                               ),
                             ),
                           ),
@@ -206,19 +206,19 @@ class AmountPercentageChart extends StatelessWidget {
                   sideTitles: SideTitles(
                     reservedSize: 15,
                     showTitles: true,
-                    getTitlesWidget: (value, titleMeta) => const Text(""),
+                    getTitlesWidget: (value, titleMeta) => const Text(''),
                   ),
                 ),
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     reservedSize: 30,
                     showTitles: true,
-                    getTitlesWidget: (value, titleMeta) => const Text(""),
+                    getTitlesWidget: (value, titleMeta) => const Text(''),
                   ),
                 ),
                 bottomTitles: AxisTitles(
                   axisNameWidget: const Text(
-                    "ADA Price Fluctuation",
+                    'ADA Price Fluctuation',
                     style: TextStyle(fontSize: 12),
                   ),
                   axisNameSize: 16,
@@ -264,12 +264,12 @@ class AmountPercentageChart extends StatelessWidget {
                           touchedSpot.bar.spots[touchedSpot.spotIndex];
                       final double amount = spotData.y;
                       return LineTooltipItem(
-                        "${labels[touchedSpot.barIndex]}: ${numberFormatter(amount, 0)} $currency",
+                        '${labels[touchedSpot.barIndex]}: ${numberFormatter(amount, 0)} $currency',
                         TextStyle(
                           color: colors[touchedSpot.barIndex],
                           fontWeight: FontWeight.w500,
                           fontSize: 11,
-                          fontFamily: "Quicksand",
+                          fontFamily: 'Quicksand',
                         ),
                       );
                     }).toList();

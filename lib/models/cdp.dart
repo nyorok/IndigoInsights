@@ -16,12 +16,12 @@ class Cdp {
 
   factory Cdp.fromJson(Map<String, dynamic> json) {
     return Cdp(
-        asset: json['asset'],
-        collateralAmount: json['collateralAmount'] / 1000000,
-        mintedAmount: json['mintedAmount'] / 1000000,
-        outputIndex: json['output_index'],
-        outputHash: json['output_hash'] ?? '',
-        owner: json['owner'] ?? '');
+        asset: json['asset'] as String,
+        collateralAmount: (json['collateralAmount'] as num) / 1000000,
+        mintedAmount: (json['mintedAmount'] as num) / 1000000,
+        outputIndex: json['output_index'] as int,
+        outputHash: (json['output_hash'] as String?) ?? '',
+        owner: (json['owner'] as String?) ?? '');
   }
 
   Map<String, dynamic> toJson() {

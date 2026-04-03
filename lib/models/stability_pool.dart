@@ -30,21 +30,22 @@ class StabilityPool {
       required this.epochToScaleToSum});
 
   factory StabilityPool.fromJson(Map<String, dynamic> json) {
-    Map<String, dynamic> rawEpochToScaleToSum =
-        jsonDecode(json['epoch_to_scale_to_sum']);
-    Map<String, BigInt> parsedEpochToScaleToSum = {};
+    final Map<String, dynamic> rawEpochToScaleToSum =
+        jsonDecode(json['epoch_to_scale_to_sum'] as String)
+            as Map<String, dynamic>;
+    final Map<String, BigInt> parsedEpochToScaleToSum = {};
 
     rawEpochToScaleToSum.forEach((key, value) {
-      parsedEpochToScaleToSum[key] = BigInt.parse(value);
+      parsedEpochToScaleToSum[key] = BigInt.parse(value as String);
     });
 
     return StabilityPool(
-      asset: json['asset'],
-      snapshotD: BigInt.parse(json['snapshotD']),
-      snapshotP: BigInt.parse(json['snapshotP']),
-      snapshotS: BigInt.parse(json['snapshotS']),
-      snapshotEpoch: json['snapshotEpoch'],
-      snapshotScale: json['snapshotScale'],
+      asset: json['asset'] as String,
+      snapshotD: BigInt.parse(json['snapshotD'] as String),
+      snapshotP: BigInt.parse(json['snapshotP'] as String),
+      snapshotS: BigInt.parse(json['snapshotS'] as String),
+      snapshotEpoch: json['snapshotEpoch'] as int,
+      snapshotScale: json['snapshotScale'] as int,
       epochToScaleToSum: parsedEpochToScaleToSum,
     );
   }
@@ -67,11 +68,11 @@ class StabilityPool {
 
   double getAccountUnclaimedRewards(StabilityPoolAccount account) {
     final s1 =
-        epochToScaleToSum["${account.snapshotEpoch},${account.snapshotScale}"];
+        epochToScaleToSum['${account.snapshotEpoch},${account.snapshotScale}'];
 
     if (s1 == null) throw Exception('Could not find s1');
     final s2 = epochToScaleToSum[
-            "${account.snapshotEpoch},${account.snapshotScale + 1}"] ??
+            '${account.snapshotEpoch},${account.snapshotScale + 1}'] ??
         s1;
     final a1 = s1 - account.snapshotS;
     final a2 = BigInt.from((s2 - s1) / conversionValue);

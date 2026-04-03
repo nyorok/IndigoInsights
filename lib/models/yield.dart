@@ -5,7 +5,7 @@ class Yield {
   Yield({required this.asset, required this.apr});
 
   factory Yield.fromJson(Map<String, dynamic> json) {
-    return Yield(asset: json['asset'], apr: json['apr'].toDouble());
+    return Yield(asset: json['asset'] as String, apr: (json['apr'] as num).toDouble());
   }
 
   Map<String, dynamic> toJson() {

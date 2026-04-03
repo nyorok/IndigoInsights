@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/api/indigo_api/services/dex_yield_service.dart';
 import 'package:indigo_insights/models/liquidity_pool_yield.dart';
 

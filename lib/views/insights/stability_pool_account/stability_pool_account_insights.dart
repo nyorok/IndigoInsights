@@ -23,11 +23,11 @@ class StabilityPoolAccountInsights extends HookConsumerWidget {
                   context,
                 ),
                 chartCard(
-                  const StabilityPoolAccountDistributionPieChart(asset: "iBTC"),
+                  const StabilityPoolAccountDistributionPieChart(asset: 'iBTC'),
                   context,
                 ),
                 chartCard(
-                  const StabilityPoolAccountDistributionPieChart(asset: "iETH"),
+                  const StabilityPoolAccountDistributionPieChart(asset: 'iETH'),
                   context,
                 ),
                 chartCard(
@@ -38,13 +38,13 @@ class StabilityPoolAccountInsights extends HookConsumerWidget {
                 ),
                 chartCard(
                   const StabilityPoolAccountUnclaimedRewardsPieChart(
-                    asset: "iBTC",
+                    asset: 'iBTC',
                   ),
                   context,
                 ),
                 chartCard(
                   const StabilityPoolAccountUnclaimedRewardsPieChart(
-                    asset: "iETH",
+                    asset: 'iETH',
                   ),
                   context,
                 ),
@@ -56,7 +56,7 @@ class StabilityPoolAccountInsights extends HookConsumerWidget {
     );
   }
 
-  informationCard(Widget widget, BuildContext context) {
+  Widget informationCard(Widget widget, BuildContext context) {
     return Expanded(
       child: Card(
         elevation: 2,
@@ -66,7 +66,7 @@ class StabilityPoolAccountInsights extends HookConsumerWidget {
     ).animate().scaleY(duration: 300.ms, curve: Curves.easeInOut);
   }
 
-  chartCard(Widget widget, BuildContext context) {
+  Widget chartCard(Widget widget, BuildContext context) {
     return cardContainer(
       Card(
         elevation: 2,
@@ -77,7 +77,7 @@ class StabilityPoolAccountInsights extends HookConsumerWidget {
     );
   }
 
-  cardContainer(Widget widget, BuildContext context) {
+  Widget cardContainer(Widget widget, BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final double width = screenWidth / 2 > 480 ? screenWidth / 2 : 480;
 

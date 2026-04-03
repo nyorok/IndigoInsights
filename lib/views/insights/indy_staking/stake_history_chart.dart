@@ -36,9 +36,9 @@ class StakeHistoryChart extends HookConsumerWidget {
               getStakeHistoriesData(accountsUnclaimedRewards);
 
           return AmountDateChart(
-            title: "Staking History",
-            currency: "INDY",
-            labels: const ["Staked"],
+            title: 'Staking History',
+            currency: 'INDY',
+            labels: const ['Staked'],
             data: [stakeHistoryData],
             colors: const [Colors.deepPurpleAccent],
             gradients: const [indigoGradient],

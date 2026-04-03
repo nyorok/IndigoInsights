@@ -29,18 +29,18 @@ class Redemption {
 
   factory Redemption.fromJson(Map<String, dynamic> json) {
     return Redemption(
-      id: json['id'],
-      slot: json['slot'],
-      txHash: json['tx_hash'] ?? "",
-      asset: json['asset'] ?? "",
-      redeemedAmount: json['redeemed_amount'] / 1e6,
-      lovelacesReturned: json['lovelaces_returned'] / 1e6,
-      processingFeeLovelaces: json['processing_fee_lovelaces'] / 1e6,
-      reimbursementFeeLovelaces: json['reimbursement_fee_lovelaces'] / 1e6,
-      oraclePrice: json['oracle_price'] ?? "",
-      adaPrice: json['ada_price'] ?? "",
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      id: json['id'] as int,
+      slot: json['slot'] as int,
+      txHash: (json['tx_hash'] as String?) ?? '',
+      asset: (json['asset'] as String?) ?? '',
+      redeemedAmount: (json['redeemed_amount'] as num) / 1e6,
+      lovelacesReturned: (json['lovelaces_returned'] as num) / 1e6,
+      processingFeeLovelaces: (json['processing_fee_lovelaces'] as num) / 1e6,
+      reimbursementFeeLovelaces: (json['reimbursement_fee_lovelaces'] as num) / 1e6,
+      oraclePrice: (json['oracle_price'] as String?) ?? '',
+      adaPrice: (json['ada_price'] as String?) ?? '',
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
     );
   }
 }

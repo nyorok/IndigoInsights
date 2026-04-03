@@ -12,18 +12,18 @@ class RedemptionInformation extends HookConsumerWidget {
 
   final String asset;
 
-  tokenAmount(double amount, BuildContext context, {String token = 'ADA'}) =>
+  Widget tokenAmount(double amount, BuildContext context, {String token = 'ADA'}) =>
       Row(
         children: [
           Text(numberFormatter(amount, 2)),
           Text(
-            " $token",
+            ' $token',
             style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
           ),
         ],
       );
 
-  informationRow(String title, Widget info) => Row(
+  Widget informationRow(String title, Widget info) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [Text(title), info],
   ).animate().scaleY(duration: 300.ms, curve: Curves.easeInOut);
@@ -67,7 +67,7 @@ class RedemptionInformation extends HookConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 PageTitle(
-                  title: "$asset Redemptions",
+                  title: '$asset Redemptions',
                 ).animate().scaleY(duration: 300.ms, curve: Curves.easeInOut),
                 const SizedBox(height: 20),
                 informationRow(

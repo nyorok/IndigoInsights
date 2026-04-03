@@ -72,7 +72,7 @@ class AdaDoubleLeverageAboveMrContent extends HookConsumerWidget {
         .when(
           data: (leveragesData) {
             final minCr = leveragesData.map((e) => e.maintenanceRatio).min;
-            final maxCr = 500.0;
+            const maxCr = 500.0;
             final collateralRatio = useState(minCr);
 
             return SingleChildScrollView(
@@ -96,7 +96,7 @@ class AdaDoubleLeverageAboveMrContent extends HookConsumerWidget {
                     padding: const EdgeInsets.all(8.0),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        final double spacing = 8.0;
+                        const double spacing = 8.0;
                         int crossAxisCount = 1;
                         if (constraints.maxWidth > 1200) {
                           crossAxisCount = 4;

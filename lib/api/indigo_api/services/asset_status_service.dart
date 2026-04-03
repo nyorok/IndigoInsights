@@ -3,11 +3,12 @@ import 'package:indigo_insights/models/asset_status.dart';
 
 class AssetStatusService extends IndigoApi {
   List<AssetStatus> parseAssetStatuses(Map<String, dynamic> jsonData) {
-    List<AssetStatus> assetStatusList = [];
+    final List<AssetStatus> assetStatusList = [];
 
     jsonData.forEach((asset, data) {
-      data['asset'] = asset;
-      assetStatusList.add(AssetStatus.fromJson(data));
+      final typed = Map<String, dynamic>.from(data as Map);
+      typed['asset'] = asset;
+      assetStatusList.add(AssetStatus.fromJson(typed));
     });
 
     return assetStatusList;

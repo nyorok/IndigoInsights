@@ -10,17 +10,28 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 List<Color> generateColorRange(Color startColor, Color endColor, int steps) {
   final double stepSize = 1.0 / (steps - 1);
 
-  List<Color> colorRange = [];
+  final List<Color> colorRange = [];
 
   for (int i = 0; i < steps; i++) {
     final double factor = i * stepSize;
-    int red = (startColor.red + (factor * (endColor.red - startColor.red)))
-        .round();
-    int green =
-        (startColor.green + (factor * (endColor.green - startColor.green)))
-            .round();
-    int blue = (startColor.blue + (factor * (endColor.blue - startColor.blue)))
-        .round();
+    final int red = ((startColor.r * 255.0).round() +
+            (factor *
+                ((endColor.r * 255.0).round() -
+                    (startColor.r * 255.0).round())))
+        .round()
+        .clamp(0, 255);
+    final int green = ((startColor.g * 255.0).round() +
+            (factor *
+                ((endColor.g * 255.0).round() -
+                    (startColor.g * 255.0).round())))
+        .round()
+        .clamp(0, 255);
+    final int blue = ((startColor.b * 255.0).round() +
+            (factor *
+                ((endColor.b * 255.0).round() -
+                    (startColor.b * 255.0).round())))
+        .round()
+        .clamp(0, 255);
 
     colorRange.add(Color.fromARGB(255, red, green, blue));
   }
@@ -41,7 +52,7 @@ class DistributionPieChartWidget extends HookWidget {
   @override
   Widget build(BuildContext context) {
     if (colorRange.length < pieValues.length) {
-      throw Exception("Not enough colors for each pie part");
+      throw Exception('Not enough colors for each pie part');
     }
     final touchedIndex = useState(-1);
 
@@ -67,7 +78,7 @@ class DistributionPieChartWidget extends HookWidget {
                       fontSize: isTouched ? 18.0 : 12.0,
                       fontWeight: FontWeight.w400,
                       color: Colors.white,
-                      fontFamily: "Quicksand",
+                      fontFamily: 'Quicksand',
                       shadows: const [
                         Shadow(color: Colors.black, blurRadius: 2),
                       ],
@@ -89,8 +100,8 @@ class DistributionPieChartWidget extends HookWidget {
                 sectionsSpace: 2,
                 centerSpaceRadius: shortestSide / 2.8,
               ),
-              swapAnimationDuration: const Duration(milliseconds: 200),
-              swapAnimationCurve: Curves.linear,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.linear,
             );
           },
         ),

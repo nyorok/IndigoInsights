@@ -7,7 +7,7 @@ class StakeHistory {
   factory StakeHistory.fromJson(Map<String, dynamic> json) {
     return StakeHistory(
       date: DateTime.fromMillisecondsSinceEpoch((json['t'] as int) * 1000),
-      staked: json['tS'] / 1000000,
+      staked: (json['tS'] as num) / 1000000,
     );
   }
 

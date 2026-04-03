@@ -34,7 +34,7 @@ class AdaLeverageAboveRmrCard extends HookConsumerWidget {
     );
 
     calculatedAmount(double amount) => Text(
-      "${numberFormatter(amount, 2)}%",
+      '${numberFormatter(amount, 2)}%',
       style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
     );
 
@@ -61,14 +61,14 @@ class AdaLeverageAboveRmrCard extends HookConsumerWidget {
                 PageTitle(title: asset),
                 Tooltip(
                   message:
-                      "This is the maximum theoretical \nleverage achievable based on the \nRedemption Margin Ratio.",
+                      'This is the maximum theoretical \nleverage achievable based on the \nRedemption Margin Ratio.',
                   child: AnimatedGradientText(
-                    "${numberFormatter(leverage, 2)}x", // Display leverage based on RMR
+                    '${numberFormatter(leverage, 2)}x', // Display leverage based on RMR
                     gradientColors: [Colors.yellowAccent, Colors.greenAccent],
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
-                      fontFamily: "Quicksand",
+                      fontFamily: 'Quicksand',
                     ),
                   ),
                 ),
@@ -78,7 +78,7 @@ class AdaLeverageAboveRmrCard extends HookConsumerWidget {
             informationRow(
               'Liquidation Price',
               Text(
-                "-${numberFormatter(priceDropToLiquidation, 2)}%",
+                '-${numberFormatter(priceDropToLiquidation, 2)}%',
                 style: const TextStyle(
                   color: Colors.yellowAccent,
                   fontWeight: FontWeight.bold,
@@ -88,7 +88,7 @@ class AdaLeverageAboveRmrCard extends HookConsumerWidget {
             informationRow(
               'Liquidation Loss',
               Text(
-                "${numberFormatter(liquidationLoss, 2)}%",
+                '${numberFormatter(liquidationLoss, 2)}%',
                 style: const TextStyle(
                   color: Colors.orangeAccent,
                   fontWeight: FontWeight.bold,

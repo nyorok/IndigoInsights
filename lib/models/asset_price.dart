@@ -5,7 +5,7 @@ class AssetPrice {
   AssetPrice({required this.asset, required this.price});
 
   factory AssetPrice.fromJson(Map<String, dynamic> json) {
-    return AssetPrice(asset: json['asset'], price: json['price'] / 1000000);
+    return AssetPrice(asset: json['asset'] as String, price: (json['price'] as num) / 1000000);
   }
 
   Map<String, dynamic> toJson() {

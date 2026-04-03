@@ -36,7 +36,7 @@ class AdaFarmingStablePoolCard extends HookConsumerWidget {
     );
 
     calculatedAmount(double amount) => Text(
-      "${numberFormatter(amount, 2)}%",
+      '${numberFormatter(amount, 2)}%',
       style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
     );
 
@@ -51,17 +51,17 @@ class AdaFarmingStablePoolCard extends HookConsumerWidget {
               children: [
                 PageTitle(title: title),
                 AnimatedGradientText(
-                  "${numberFormatter(strategyYield, 2)}%",
+                  '${numberFormatter(strategyYield, 2)}%',
                   gradientColors: strategyYield > 0
-                      ? [Color(0xFFa500e1), Color(0xFF3f83f8)]
+                      ? [const Color(0xFFa500e1), const Color(0xFF3f83f8)]
                       : [
-                          Color(0xFFa500e1),
+                          const Color(0xFFa500e1),
                           Theme.of(context).colorScheme.onError,
                         ],
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
-                    fontFamily: "Quicksand",
+                    fontFamily: 'Quicksand',
                   ),
                 ),
               ],
@@ -70,7 +70,7 @@ class AdaFarmingStablePoolCard extends HookConsumerWidget {
             informationRow(
               'Trading Fees APR',
               Text(
-                "${numberFormatter(tradingFeesApr, 2)}%",
+                '${numberFormatter(tradingFeesApr, 2)}%',
                 style: const TextStyle(
                   color: Colors.greenAccent,
                   fontWeight: FontWeight.bold,
@@ -80,7 +80,7 @@ class AdaFarmingStablePoolCard extends HookConsumerWidget {
             informationRow(
               'Farming APR',
               Text(
-                "${numberFormatter(farmingApr, 2)}%",
+                '${numberFormatter(farmingApr, 2)}%',
                 style: const TextStyle(
                   color: Colors.greenAccent,
                   fontWeight: FontWeight.bold,
@@ -90,7 +90,7 @@ class AdaFarmingStablePoolCard extends HookConsumerWidget {
             informationRow(
               'CDP Interest Rate',
               Text(
-                "${numberFormatter(interestRate, 2)}%",
+                '${numberFormatter(interestRate, 2)}%',
                 style: const TextStyle(
                   color: Colors.yellowAccent,
                   fontWeight: FontWeight.bold,

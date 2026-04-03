@@ -79,7 +79,7 @@ class ExpandableCard extends HookWidget {
           top: arrowPadding ?? 0,
           right: arrowPadding ?? 0,
           child: IconButton(
-            icon: Icon(Icons.keyboard_arrow_up)
+            icon: const Icon(Icons.keyboard_arrow_up)
                 .animate(controller: animationController, autoPlay: false)
                 .rotate(
                   begin: 0.5,
