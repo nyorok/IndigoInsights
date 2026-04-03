@@ -6,7 +6,7 @@ Flutter analytics dashboard for Indigo Protocol (Cardano DeFi). Read-only; no wa
 
 ## Tech Stack
 
-- Flutter >=3.41.5 / Dart SDK ^3.11.0
+- Flutter 3.41.5 / Dart SDK ^3.11.0
 - State: `hooks_riverpod` v3 + `flutter_hooks` — **all widgets are `HookConsumerWidget`**
 - Charts: `fl_chart`
 - HTTP: `package:http`
