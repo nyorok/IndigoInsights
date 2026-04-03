@@ -101,6 +101,8 @@ iAsset list (iUSD, iBTC, iETH, iSOL) is fetched at runtime via `indigoAssetsProv
 
 ## Commits & PRs
 
+**Never commit directly to `main`.** Always work on a feature branch and open a PR.
+
 Always use **Conventional Commits**: `type(scope): description`
 
 Common types: `feat`, `fix`, `chore`, `refactor`, `docs`, `style`, `test`  
