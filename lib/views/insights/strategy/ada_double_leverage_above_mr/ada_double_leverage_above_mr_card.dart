@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/utils/formatters.dart';
 import 'package:indigo_insights/utils/page_title.dart';
 import 'package:indigo_insights/widgets/animated_gradient_text.dart';
 
-class AdaDoubleLeverageAboveMrCard extends HookConsumerWidget {
+class AdaDoubleLeverageAboveMrCard extends StatelessWidget {
   const AdaDoubleLeverageAboveMrCard({
     super.key,
     required this.asset,
@@ -27,7 +26,7 @@ class AdaDoubleLeverageAboveMrCard extends HookConsumerWidget {
   final double collateralRatio;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     informationRow(String title, Widget info) => Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [Text(title), info],
@@ -38,16 +37,10 @@ class AdaDoubleLeverageAboveMrCard extends HookConsumerWidget {
       style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
     );
 
-    // Calculate double leverage
     final cr = collateralRatio / 100;
     final doubleLeverage = 1 + (1 + 1 / cr) / cr;
-
-    // Calculate liquidation loss
     final liquidationLoss = -(1 - (1 / cr) / cr) * 100;
-
-    // Calculate price drop until liquidation
-    final priceDropToLiquidation =
-        (1 - (liquidationRatio / collateralRatio)) * 100;
+    final priceDropToLiquidation = (1 - (liquidationRatio / collateralRatio)) * 100;
 
     return Card(
       child: Padding(

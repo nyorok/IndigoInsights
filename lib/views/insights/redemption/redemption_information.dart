@@ -1,18 +1,18 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:indigo_insights/providers/redemption_provider.dart';
+import 'package:indigo_insights/repositories/redemption_repository.dart';
+import 'package:indigo_insights/service_locator.dart';
+import 'package:indigo_insights/utils/async_builder.dart';
 import 'package:indigo_insights/utils/formatters.dart';
-import 'package:indigo_insights/utils/loader.dart';
 import 'package:indigo_insights/utils/page_title.dart';
 
-class RedemptionInformation extends HookConsumerWidget {
+class RedemptionInformation extends StatelessWidget {
   const RedemptionInformation(this.asset, {super.key});
 
   final String asset;
 
-  Widget tokenAmount(double amount, BuildContext context, {String token = 'ADA'}) =>
+  Widget _tokenAmount(double amount, BuildContext context, {String token = 'ADA'}) =>
       Row(
         children: [
           Text(numberFormatter(amount, 2)),
@@ -23,95 +23,93 @@ class RedemptionInformation extends HookConsumerWidget {
         ],
       );
 
-  Widget informationRow(String title, Widget info) => Row(
+  Widget _informationRow(String title, Widget info) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [Text(title), info],
   ).animate().scaleY(duration: 300.ms, curve: Curves.easeInOut);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ref
-        .watch(redemptionsProvider(asset))
-        .when(
-          data: (redemptions) {
-            redemptions.sortBy((s) => s.createdAt);
+  Widget build(BuildContext context) {
+    return AsyncBuilder(
+      fetcher: () => sl<RedemptionRepository>().getRedemptionsForAsset(asset),
+      builder: (redemptions) {
+        redemptions.sortBy((s) => s.createdAt);
 
-            final rewardsLast1 = redemptions
-                .where(
-                  (s) => s.createdAt.toUtc().isAfter(
-                    DateTime.now().toUtc().add(const Duration(days: -1)),
-                  ),
-                )
-                .toList();
-            rewardsLast1.sortBy((s) => s.createdAt);
+        final rewardsLast1 = redemptions
+            .where(
+              (s) => s.createdAt.toUtc().isAfter(
+                DateTime.now().toUtc().add(const Duration(days: -1)),
+              ),
+            )
+            .toList()
+          ..sortBy((s) => s.createdAt);
 
-            final rewardsLast7 = redemptions
-                .where(
-                  (s) => s.createdAt.toUtc().isAfter(
-                    DateTime.now().toUtc().add(const Duration(days: -7)),
-                  ),
-                )
-                .toList();
-            rewardsLast7.sortBy((s) => s.createdAt);
+        final rewardsLast7 = redemptions
+            .where(
+              (s) => s.createdAt.toUtc().isAfter(
+                DateTime.now().toUtc().add(const Duration(days: -7)),
+              ),
+            )
+            .toList()
+          ..sortBy((s) => s.createdAt);
 
-            final rewardsLast30 = redemptions
-                .where(
-                  (s) => s.createdAt.toUtc().isAfter(
-                    DateTime.now().toUtc().add(const Duration(days: -30)),
-                  ),
-                )
-                .toList();
-            rewardsLast30.sortBy((s) => s.createdAt);
+        final rewardsLast30 = redemptions
+            .where(
+              (s) => s.createdAt.toUtc().isAfter(
+                DateTime.now().toUtc().add(const Duration(days: -30)),
+              ),
+            )
+            .toList()
+          ..sortBy((s) => s.createdAt);
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                PageTitle(
-                  title: '$asset Redemptions',
-                ).animate().scaleY(duration: 300.ms, curve: Curves.easeInOut),
-                const SizedBox(height: 20),
-                informationRow(
-                  'Total Redeemed',
-                  tokenAmount(
-                    redemptions.map((r) => r.redeemedAmount).sum,
-                    context,
-                    token: asset,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                informationRow(
-                  'Total Returned',
-                  tokenAmount(
-                    redemptions.map((r) => r.lovelacesReturned).sum,
-                    context,
-                  ),
-                ),
-                informationRow(
-                  'Last 24h',
-                  tokenAmount(
-                    rewardsLast1.map((r) => r.lovelacesReturned).sum,
-                    context,
-                  ),
-                ),
-                informationRow(
-                  'Last Week',
-                  tokenAmount(
-                    rewardsLast7.map((r) => r.lovelacesReturned).sum,
-                    context,
-                  ),
-                ),
-                informationRow(
-                  'Last Month',
-                  tokenAmount(
-                    rewardsLast30.map((r) => r.lovelacesReturned).sum,
-                    context,
-                  ),
-                ),
-              ],
-            );
-          },
-          error: (error, stackTrace) => Center(child: Text('Error: $error')),
-          loading: () => const SizedBox(height: 20, child: Loader()),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            PageTitle(
+              title: '$asset Redemptions',
+            ).animate().scaleY(duration: 300.ms, curve: Curves.easeInOut),
+            const SizedBox(height: 20),
+            _informationRow(
+              'Total Redeemed',
+              _tokenAmount(
+                redemptions.map((r) => r.redeemedAmount).sum,
+                context,
+                token: asset,
+              ),
+            ),
+            const SizedBox(height: 5),
+            _informationRow(
+              'Total Returned',
+              _tokenAmount(
+                redemptions.map((r) => r.lovelacesReturned).sum,
+                context,
+              ),
+            ),
+            _informationRow(
+              'Last 24h',
+              _tokenAmount(
+                rewardsLast1.map((r) => r.lovelacesReturned).sum,
+                context,
+              ),
+            ),
+            _informationRow(
+              'Last Week',
+              _tokenAmount(
+                rewardsLast7.map((r) => r.lovelacesReturned).sum,
+                context,
+              ),
+            ),
+            _informationRow(
+              'Last Month',
+              _tokenAmount(
+                rewardsLast30.map((r) => r.lovelacesReturned).sum,
+                context,
+              ),
+            ),
+          ],
         );
+      },
+      errorBuilder: (error, retry) => Center(child: Text('Error: $error')),
+    );
   }
 }

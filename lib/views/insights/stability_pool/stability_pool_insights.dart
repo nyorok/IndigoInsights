@@ -1,28 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/models/indigo_asset.dart';
-import 'package:indigo_insights/providers/indigo_asset_provider.dart';
+import 'package:indigo_insights/repositories/indigo_asset_repository.dart';
+import 'package:indigo_insights/service_locator.dart';
+import 'package:indigo_insights/utils/async_builder.dart';
 import 'package:indigo_insights/utils/loader.dart';
 import 'package:indigo_insights/views/insights/stability_pool/stability_pool_information.dart';
 import 'package:indigo_insights/views/insights/stability_pool/stability_pool_solvency_chart.dart';
 
-class StabilityPoolInsights extends StatefulHookConsumerWidget {
+class StabilityPoolInsights extends StatefulWidget {
   const StabilityPoolInsights({super.key});
 
   @override
-  ConsumerState<StatefulHookConsumerWidget> createState() =>
-      _StabilityPoolInsightsState();
+  State<StabilityPoolInsights> createState() => _StabilityPoolInsightsState();
 }
 
-class _StabilityPoolInsightsState extends ConsumerState<StabilityPoolInsights>
+class _StabilityPoolInsightsState extends State<StabilityPoolInsights>
     with TickerProviderStateMixin {
   TabController? _tabController;
-
-  @override
-  void initState() {
-    _tabController = TabController(length: 1, vsync: this);
-    super.initState();
-  }
 
   @override
   void dispose() {
@@ -32,51 +26,36 @@ class _StabilityPoolInsightsState extends ConsumerState<StabilityPoolInsights>
 
   @override
   Widget build(BuildContext context) {
-    ref
-        .watch(indigoAssetsProvider)
-        .whenData(
-          (indigoAssets) => _tabController = TabController(
-            length: indigoAssets.length,
-            vsync: this,
-          ),
-        );
-
     return SingleChildScrollView(
       child: SelectionArea(
         child: Padding(
           padding: const EdgeInsets.only(top: 8.0),
           child: Align(
             alignment: Alignment.topLeft,
-            child: ref
-                .watch(indigoAssetsProvider)
-                .when(
-                  data: (indigoAssets) {
-                    _tabController = TabController(
-                      length: indigoAssets.length,
-                      vsync: this,
-                    );
-
-                    return stabilityPoolCards(
-                      context,
-                      indigoAssets: indigoAssets,
-                    );
-                  },
-                  loading: () => stabilityPoolCards(context),
-                  error: (error, stackTrace) => Text(error.toString()),
-                ),
+            child: AsyncBuilder(
+              fetcher: () => sl<IndigoAssetRepository>().getAssets(),
+              builder: (indigoAssets) {
+                _tabController = TabController(
+                  length: indigoAssets.length,
+                  vsync: this,
+                );
+                return _stabilityPoolCards(context, indigoAssets: indigoAssets);
+              },
+              errorBuilder: (error, retry) => Text(error.toString()),
+            ),
           ),
         ),
       ),
     );
   }
 
-  Wrap stabilityPoolCards(
+  Wrap _stabilityPoolCards(
     BuildContext context, {
     List<IndigoAsset>? indigoAssets,
   }) {
     final informationCards = indigoAssets
         ?.map(
-          (e) => informationCard(
+          (e) => _informationCard(
             StabilityPoolInformation(indigoAsset: e),
             context,
           ),
@@ -84,7 +63,6 @@ class _StabilityPoolInsightsState extends ConsumerState<StabilityPoolInsights>
         .toList();
 
     final tabLabels = indigoAssets?.map((e) => Tab(text: e.asset)).toList();
-
     final tabContents = indigoAssets
         ?.map((e) => StabilityPoolSolvencyChart(indigoAsset: e))
         .toList();
@@ -92,7 +70,7 @@ class _StabilityPoolInsightsState extends ConsumerState<StabilityPoolInsights>
     return Wrap(
       children: [
         Column(children: informationCards ?? [const Loader()]),
-        chartCard(
+        _chartCard(
           Column(
             children: [
               TabBar(
@@ -119,7 +97,7 @@ class _StabilityPoolInsightsState extends ConsumerState<StabilityPoolInsights>
     );
   }
 
-  ConstrainedBox informationCard(Widget widget, BuildContext context) {
+  ConstrainedBox _informationCard(Widget widget, BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final double width = screenWidth - 480 > 480 ? 480 : screenWidth;
 
@@ -133,14 +111,10 @@ class _StabilityPoolInsightsState extends ConsumerState<StabilityPoolInsights>
     );
   }
 
-  Widget chartCard(Widget widget, BuildContext context) {
+  Widget _chartCard(Widget widget, BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final double width = screenWidth - 480 > 480
-        ? screenWidth - 480
-        : screenWidth;
-
-    final screenHeight = MediaQuery.of(context).size.height;
-    final double height = screenHeight - 68;
+    final double width = screenWidth - 480 > 480 ? screenWidth - 480 : screenWidth;
+    final double height = MediaQuery.of(context).size.height - 68;
 
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: width, maxHeight: height),

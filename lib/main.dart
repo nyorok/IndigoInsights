@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:indigo_insights/service_locator.dart';
 import 'package:indigo_insights/theme/color_scheme.dart';
 import 'package:indigo_insights/theme/gradients.dart';
 import 'package:indigo_insights/utils/page_title.dart';
@@ -14,19 +13,25 @@ import 'package:indigo_insights/views/insights/strategy/strategy_insights.dart';
 import 'sidebar.dart';
 
 void main() async {
-  runApp(const ProviderScope(child: MyApp()));
+  setupServiceLocator();
+  runApp(const MyApp());
 }
 
-class MyApp extends HookConsumerWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final selectedMenuItem = useState(0);
+  State<MyApp> createState() => _MyAppState();
+}
 
+class _MyAppState extends State<MyApp> {
+  int _selectedMenuItem = 0;
+
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Indigo Insights',
-      theme: getTheme(context),
+      theme: _getTheme(context),
       home: Scaffold(
         appBar: AppBar(
           backgroundColor: colorScheme.surfaceContainerLow,
@@ -44,15 +49,15 @@ class MyApp extends HookConsumerWidget {
           ),
         ),
         drawer: Sidebar(
-          onMenuItemPressed: (value) => selectedMenuItem.value = value,
-          selectedMenu: selectedMenuItem.value,
+          onMenuItemPressed: (value) => setState(() => _selectedMenuItem = value),
+          selectedMenu: _selectedMenuItem,
         ),
         body: Row(
           children: [
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(gradient: indigoDarkGradient),
-                child: switch (SidebarMenu.values[selectedMenuItem.value]) {
+                child: switch (SidebarMenu.values[_selectedMenuItem]) {
                   SidebarMenu.strategy => const StrategyInsights(),
                   SidebarMenu.liquidation => const LiquidationInsights(),
                   SidebarMenu.redemption => const RedemptionInsights(),
@@ -69,7 +74,7 @@ class MyApp extends HookConsumerWidget {
     );
   }
 
-  ThemeData getTheme(BuildContext context) {
+  ThemeData _getTheme(BuildContext context) {
     return ThemeData(
       fontFamily: 'Quicksand',
       textTheme: const TextTheme(
@@ -80,14 +85,14 @@ class MyApp extends HookConsumerWidget {
       ),
       iconTheme: const IconThemeData(color: Colors.white),
       dataTableTheme: DataTableThemeData(
-        headingRowColor: WidgetStateProperty.resolveWith<Color?>((
-          Set<WidgetState> states,
-        ) {
-          if (states.contains(WidgetState.hovered)) {
-            return Theme.of(context).colorScheme.primary.withValues(alpha: .08);
-          }
-          return null;
-        }),
+        headingRowColor: WidgetStateProperty.resolveWith<Color?>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.hovered)) {
+              return Theme.of(context).colorScheme.primary.withValues(alpha: .08);
+            }
+            return null;
+          },
+        ),
       ),
       colorScheme: colorScheme,
       useMaterial3: true,

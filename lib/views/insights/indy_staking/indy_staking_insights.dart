@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/views/insights/indy_staking/stake_history_chart.dart';
 import 'package:indigo_insights/views/insights/indy_staking/staking_information.dart';
 
-class IndyStakingInsights extends HookConsumerWidget {
+class IndyStakingInsights extends StatelessWidget {
   const IndyStakingInsights({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: SelectionArea(
         child: Padding(
@@ -51,9 +50,7 @@ class IndyStakingInsights extends HookConsumerWidget {
 
   Widget chartCard(Widget widget, BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final double width = screenWidth - 480 > 480
-        ? screenWidth - 480
-        : screenWidth;
+    final double width = screenWidth - 480 > 480 ? screenWidth - 480 : screenWidth;
 
     final screenHeight = MediaQuery.of(context).size.height;
     final double height = screenHeight > screenWidth

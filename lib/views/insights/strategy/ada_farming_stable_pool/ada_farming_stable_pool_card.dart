@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/utils/formatters.dart';
 import 'package:indigo_insights/utils/page_title.dart';
 import 'package:indigo_insights/widgets/animated_gradient_text.dart';
 
-class AdaFarmingStablePoolCard extends HookConsumerWidget {
+class AdaFarmingStablePoolCard extends StatelessWidget {
   const AdaFarmingStablePoolCard({
     super.key,
     required this.title,
@@ -29,7 +28,7 @@ class AdaFarmingStablePoolCard extends HookConsumerWidget {
   final double debtMintingFee;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     informationRow(String title, Widget info) => Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [Text(title), info],

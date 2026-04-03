@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 
-class ExpandableCard extends HookWidget {
+class ExpandableCard extends StatefulWidget {
   final Widget child;
   final double collapsedHeight;
   final bool? startExpanded;
@@ -19,50 +18,71 @@ class ExpandableCard extends HookWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final animationController = useAnimationController(duration: 300.ms);
-    final isExpanded = useState(startExpanded ?? false);
-    final naturalHeight = useState<double?>(null);
-    final measureKey = useMemoized(() => GlobalKey());
+  State<ExpandableCard> createState() => _ExpandableCardState();
+}
 
-    // Measure the natural height of the content
-    useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final RenderBox? renderBox =
-            measureKey.currentContext?.findRenderObject() as RenderBox?;
-        if (renderBox != null && naturalHeight.value == null) {
-          naturalHeight.value = renderBox.size.height;
-        }
-      });
-      return null;
-    }, []);
+class _ExpandableCardState extends State<ExpandableCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late bool _isExpanded;
+  double? _naturalHeight;
+  final GlobalKey _measureKey = GlobalKey();
 
-    useEffect(() {
-      if (naturalHeight.value != null) {
-        if (isExpanded.value) {
-          animationController.forward();
-        } else {
-          animationController.reverse();
-        }
+  @override
+  void initState() {
+    super.initState();
+    _isExpanded = widget.startExpanded ?? false;
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final renderBox =
+          _measureKey.currentContext?.findRenderObject() as RenderBox?;
+      if (renderBox != null && _naturalHeight == null) {
+        setState(() => _naturalHeight = renderBox.size.height);
+        if (_isExpanded) _animationController.forward();
       }
-      return null;
-    }, [isExpanded.value, naturalHeight.value]);
+    });
+  }
 
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _toggle() {
+    setState(() => _isExpanded = !_isExpanded);
+    if (_naturalHeight != null) {
+      if (_isExpanded) {
+        _animationController.forward();
+      } else {
+        _animationController.reverse();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Invisible widget to measure natural height
-        naturalHeight.value == null
+        _naturalHeight == null
             ? Opacity(
                 opacity: 0,
-                child: Container(key: measureKey, child: child),
+                child: Container(key: _measureKey, child: widget.child),
               )
-            : child
-                  .animate(controller: animationController, autoPlay: false)
+            : widget.child
+                  .animate(
+                    controller: _animationController,
+                    autoPlay: false,
+                  )
                   .custom(
                     curve: Curves.easeInOutCirc,
-                    duration: 300.ms,
-                    begin: collapsedHeight,
-                    end: naturalHeight.value!,
+                    duration: const Duration(milliseconds: 300),
+                    begin: widget.collapsedHeight,
+                    end: _naturalHeight!,
                     builder: (context, value, animateChild) {
                       return Container(
                         height: value,
@@ -76,18 +96,21 @@ class ExpandableCard extends HookWidget {
                     },
                   ),
         Positioned(
-          top: arrowPadding ?? 0,
-          right: arrowPadding ?? 0,
+          top: widget.arrowPadding ?? 0,
+          right: widget.arrowPadding ?? 0,
           child: IconButton(
             icon: const Icon(Icons.keyboard_arrow_up)
-                .animate(controller: animationController, autoPlay: false)
+                .animate(
+                  controller: _animationController,
+                  autoPlay: false,
+                )
                 .rotate(
                   begin: 0.5,
                   end: 0,
                   curve: Curves.easeInOutCirc,
-                  duration: 300.ms,
+                  duration: const Duration(milliseconds: 300),
                 ),
-            onPressed: () => isExpanded.value = !isExpanded.value,
+            onPressed: _toggle,
           ),
         ),
       ],

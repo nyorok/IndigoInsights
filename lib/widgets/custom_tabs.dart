@@ -1,30 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:indigo_insights/theme/color_scheme.dart';
 
-class CustomTabs extends StatefulHookConsumerWidget {
+class CustomTabs extends StatefulWidget {
   final List<({Tab tab, Widget tabContent})> tabs;
 
   const CustomTabs(this.tabs, {super.key});
 
   @override
-  ConsumerState<StatefulHookConsumerWidget> createState() => _CustomTabsState();
+  State<CustomTabs> createState() => _CustomTabsState();
 }
 
-class _CustomTabsState extends ConsumerState<CustomTabs>
-    with TickerProviderStateMixin {
-  TabController? _tabController;
+class _CustomTabsState extends State<CustomTabs> with TickerProviderStateMixin {
+  late TabController _tabController;
 
   @override
   void initState() {
-    _tabController = TabController(length: widget.tabs.length, vsync: this);
     super.initState();
+    _tabController = TabController(length: widget.tabs.length, vsync: this);
   }
 
   @override
   void dispose() {
-    _tabController?.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
