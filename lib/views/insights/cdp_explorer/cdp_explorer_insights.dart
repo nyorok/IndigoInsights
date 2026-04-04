@@ -2,6 +2,7 @@ import 'package:indigo_insights/router.dart';
 import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:indigo_insights/models/asset_price.dart';
 import 'package:indigo_insights/models/cdp.dart';
@@ -566,6 +567,15 @@ class _CdpsTable extends StatefulWidget {
 class _CdpsTableState extends State<_CdpsTable> {
   static const _pageSize = 20;
   int _page = 0;
+  String? _copiedOwner;
+
+  void _copy(String owner) async {
+    await Clipboard.setData(ClipboardData(text: owner));
+    if (!mounted) return;
+    setState(() => _copiedOwner = owner);
+    await Future<void>.delayed(const Duration(seconds: 2));
+    if (mounted) setState(() => _copiedOwner = null);
+  }
 
   @override
   void didUpdateWidget(_CdpsTable oldWidget) {
@@ -660,9 +670,33 @@ class _CdpsTableState extends State<_CdpsTable> {
                       ? '${cdp.owner.substring(0, 6)}…${cdp.owner.substring(cdp.owner.length - 6)}'
                       : cdp.owner;
                   final monoStyle = styles.monoSm.copyWith(color: colors.textSecondary);
+                  final isCopied = _copiedOwner == cdp.owner;
                   return DataRow(
                     cells: [
-                      DataCell(Text(owner, style: monoStyle)),
+                      DataCell(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(owner, style: monoStyle),
+                            const SizedBox(width: 4),
+                            Tooltip(
+                              message: isCopied ? 'Copied!' : 'Copy address',
+                              child: InkWell(
+                                onTap: () => _copy(cdp.owner),
+                                borderRadius: BorderRadius.circular(4),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(2),
+                                  child: Icon(
+                                    isCopied ? Icons.check : Icons.copy_outlined,
+                                    size: 12,
+                                    color: isCopied ? colors.success : colors.textMuted,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       DataCell(Text(
                         '${numberFormatter(cdp.collateralAmount, 0)} ADA',
                         style: monoStyle.copyWith(color: const Color(0xFF0288D1)),
