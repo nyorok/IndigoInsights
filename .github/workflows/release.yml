@@ -36,12 +36,8 @@ jobs:
 
             Protocol analytics dashboard for the Indigo community.
 
-            ### Install on Android
-            Download and install `indigo-insights-${{ github.ref_name }}.apk` on your Android device.
-            You may need to allow installation from unknown sources in your device settings.
-
             ### Web App
-            🌐 [Open Web App](https://nyorok.github.io/IndigoInsights)
+            🌐 [Open Web App](https://nyorok.github.io/IndigoInsights) — install as a PWA directly from your browser for the best mobile experience.
           files: indigo-insights-${{ github.ref_name }}.apk
           draft: false
           prerelease: false
