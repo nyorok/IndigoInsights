@@ -4,6 +4,7 @@ import 'package:indigo_insights/repositories/indigo_asset_repository.dart';
 import 'package:indigo_insights/router.dart';
 import 'package:indigo_insights/service_locator.dart';
 import 'package:indigo_insights/utils/async_builder.dart';
+import 'package:indigo_insights/utils/formatters.dart';
 import 'package:indigo_insights/widgets/ii_tab_bar.dart';
 
 /// iAsset tab bar that fetches assets from the repository and renders an
@@ -55,7 +56,9 @@ class _IIAssetTabsState extends State<IIAssetTabs>
   @override
   Widget build(BuildContext context) {
     return AsyncBuilder<List<IndigoAsset>>(
-      fetcher: () => sl<IndigoAssetRepository>().getAssets(),
+      fetcher: () => sl<IndigoAssetRepository>().getAssets().then(
+            (list) => sortedByAsset(list, (a) => a.asset),
+          ),
       builder: (assets) {
         _lastAssetNames = assets.map((a) => a.asset).toList();
         if (_controller == null || _controller!.length != assets.length) {

@@ -137,7 +137,7 @@ class _TvlByAssetSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final styles = AppTextStyles.of(context);
     final colors = AppColorScheme.of(context);
-    final statuses = data.assetStatuses;
+    final statuses = sortedByAsset(data.assetStatuses, (s) => s.asset);
     final maxTvl = statuses.isEmpty
         ? 1.0
         : statuses.map((s) => s.totalValueLocked).reduce((a, b) => a > b ? a : b);
@@ -381,7 +381,7 @@ class _AssetHealthSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width >= 700;
 
-    final cards = data.assetStatuses.mapIndexed((i, status) {
+    final cards = sortedByAsset(data.assetStatuses, (s) => s.asset).mapIndexed((i, status) {
       final pool = data.stabilityPools
           .firstWhereOrNull((p) => p.asset == status.asset);
       final assetCdps =
