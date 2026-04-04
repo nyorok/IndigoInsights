@@ -51,3 +51,19 @@ String numberAbbreviatedFormatter(
       return number.toStringAsFixed(2);
   }
 }
+
+/// Canonical display order for Indigo iAssets.
+const _kAssetOrder = ['iUSD', 'iBTC', 'iETH', 'iSOL'];
+
+int assetSortIndex(String asset) {
+  final i = _kAssetOrder.indexOf(asset);
+  return i >= 0 ? i : _kAssetOrder.length;
+}
+
+/// Sort a list of objects that expose an [asset] name by canonical order.
+List<T> sortedByAsset<T>(List<T> items, String Function(T) getName) {
+  final copy = List<T>.from(items);
+  copy.sort((a, b) => assetSortIndex(getName(a))
+      .compareTo(assetSortIndex(getName(b))));
+  return copy;
+}
