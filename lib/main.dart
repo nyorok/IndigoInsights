@@ -3,6 +3,7 @@ import 'package:indigo_insights/router.dart';
 import 'package:indigo_insights/service_locator.dart';
 import 'package:indigo_insights/theme/app_theme.dart';
 import 'package:indigo_insights/theme/schemes/dark_scheme.dart';
+import 'package:indigo_insights/widgets/pwa_install_banner.dart';
 
 void main() async {
   setupServiceLocator();
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.build(darkScheme, darkStyles),
       routerConfig: appRouter,
+      builder: (context, child) => PwaInstallBanner(child: child ?? const SizedBox()),
     );
   }
 }

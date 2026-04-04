@@ -52,6 +52,7 @@ class Sidebar extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  _DonationFooter(styles: styles, colors: colors),
                   _SectionLabel(
                     label: 'OVERVIEW',
                     styles: styles,
@@ -152,8 +153,6 @@ class Sidebar extends StatelessWidget {
               ),
             ),
           ),
-          // ── Donation footer ───────────────────────────────────────────────
-          _DonationFooter(styles: styles, colors: colors),
         ],
       ),
     );
@@ -177,26 +176,26 @@ class _LogoArea extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                'assets/icons/ic_square_512.png',
-                width: 28,
-                height: 28,
-                fit: BoxFit.cover,
-                filterQuality: FilterQuality.high,
-                cacheWidth: 56,
-                cacheHeight: 56,
-              ),
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/icons/ic_square_512.png',
+              width: 28,
+              height: 28,
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.high,
+              cacheWidth: 56,
+              cacheHeight: 56,
             ),
-            const SizedBox(width: 10),
-            Text(
-              'Indigo Insights',
-              style: styles.cardTitle.copyWith(color: colors.textPrimary),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            'Indigo Insights',
+            style: styles.cardTitle.copyWith(color: colors.textPrimary),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -291,7 +290,7 @@ class _DonationFooter extends StatefulWidget {
 
 class _DonationFooterState extends State<_DonationFooter> {
   static const _addr =
-      'addr_test1qzjalxzyptawry6aglve6awl5dw9athelw66zta3kumgf07my5zpph5fyjj8y2g8e4w2y7hqhksprd7l28h5kppaspxs20wz4f';
+      'addr1qxjalxzyptawry6aglve6awl5dw9athelw66zta3kumgf07my5zpph5fyjj8y2g8e4w2y7hqhksprd7l28h5kppaspxsfenzek';
 
   bool _copied = false;
 
@@ -306,13 +305,14 @@ class _DonationFooterState extends State<_DonationFooter> {
   Widget build(BuildContext context) {
     final styles = widget.styles;
     final colors = widget.colors;
-    final shortAddr = '${_addr.substring(0, 12)}…${_addr.substring(_addr.length - 6)}';
+    final shortAddr =
+        '${_addr.substring(0, 12)}…${_addr.substring(_addr.length - 6)}';
 
     return Container(
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: colors.border, width: 1)),
+        border: Border(bottom: BorderSide(color: colors.border, width: 1)),
       ),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -326,7 +326,7 @@ class _DonationFooterState extends State<_DonationFooter> {
               Expanded(
                 child: Text(
                   shortAddr,
-                  style: styles.monoSm.copyWith(color: colors.textSecondary),
+                  style: styles.monoSm.copyWith(color: colors.primary),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -341,7 +341,7 @@ class _DonationFooterState extends State<_DonationFooter> {
                     child: Icon(
                       _copied ? Icons.check : Icons.copy_outlined,
                       size: 14,
-                      color: _copied ? colors.success : colors.textMuted,
+                      color: _copied ? colors.success : colors.primary,
                     ),
                   ),
                 ),
