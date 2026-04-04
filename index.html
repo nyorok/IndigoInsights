@@ -47,6 +47,40 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <script>
+    // PWA install prompt capture
+    window._pwaInstallEvent = null;
+
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      window._pwaInstallEvent = e;
+      // Notify Flutter if it registered a callback after page load
+      if (typeof window._flutterPwaReady === 'function') {
+        window._flutterPwaReady();
+      }
+    });
+
+    window.addEventListener('appinstalled', function() {
+      window._pwaInstallEvent = null;
+    });
+
+    window.pwaInstallAvailable = function() {
+      return window._pwaInstallEvent != null;
+    };
+
+    window.pwaIsInstalled = function() {
+      return window.matchMedia('(display-mode: standalone)').matches ||
+             window.navigator.standalone === true;
+    };
+
+    window.pwaTriggerInstall = function() {
+      if (!window._pwaInstallEvent) return;
+      window._pwaInstallEvent.prompt();
+      window._pwaInstallEvent.userChoice.then(function() {
+        window._pwaInstallEvent = null;
+      });
+    };
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
