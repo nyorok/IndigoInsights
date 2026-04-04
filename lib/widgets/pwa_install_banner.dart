@@ -27,13 +27,19 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
   @override
   void initState() {
     super.initState();
-    // Poll briefly after launch — the event usually fires within a few seconds.
-    // We stop polling once found or after 30 s.
+    // Only show banner on desktop — mobile uses the top bar Install button.
     _pollTimer = Timer.periodic(const Duration(seconds: 1), _poll);
   }
 
   void _poll(Timer t) {
     if (_dismissed || t.tick > 30) {
+      t.cancel();
+      return;
+    }
+    // Skip on mobile — handled by IITopBar.
+    final width = WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width /
+        WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
+    if (width < 700) {
       t.cancel();
       return;
     }
