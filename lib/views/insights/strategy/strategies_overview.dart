@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:indigo_insights/utils/page_title.dart';
+import 'package:indigo_insights/theme/app_color_scheme.dart';
+import 'package:indigo_insights/theme/app_text_styles.dart';
 import 'package:indigo_insights/widgets/expandable_card.dart';
+import 'package:indigo_insights/widgets/ii_card.dart';
 import 'package:indigo_insights/widgets/strategy_risk.dart';
 
 class StrategiesOverview extends StatelessWidget {
@@ -8,11 +10,12 @@ class StrategiesOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 960;
+    final colors = AppColorScheme.of(context);
+    final styles = AppTextStyles.of(context);
+    final isDesktop = MediaQuery.of(context).size.width > 960;
 
-    return Card(
-      margin: const EdgeInsets.all(8),
+    return IICard(
+      padding: EdgeInsets.zero,
       child: ExpandableCard(
         collapsedHeight: 120.0,
         arrowPadding: 6,
@@ -22,65 +25,73 @@ class StrategiesOverview extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const PageTitle(title: 'Strategy Insights Overview'),
+              Text('Strategy Insights Overview', style: styles.cardTitle),
               const SizedBox(height: 24),
               Text.rich(
                 TextSpan(
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: styles.bodyMd,
                   children: [
                     const TextSpan(
                       text:
                           'Strategy Insights offers a deep dive into various yield-generating \nopportunities within the Indigo Protocol ecosystem.\n\n',
                     ),
-                    const TextSpan(
+                    TextSpan(
                       text: 'Key Monitored Points\n',
-                      style: TextStyle(
-                        fontSize: 14,
+                      style: styles.bodyMd.copyWith(
                         fontWeight: FontWeight.bold,
+                        fontSize: 14,
                       ),
                     ),
-                    const TextSpan(
+                    TextSpan(
                       text: ' • CDP Health: ',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: styles.bodyMd.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const TextSpan(
                       text:
                           'Crucial indicators like redemption/maintenance ratios, liquidation thresholds, and minting fees.\n',
                     ),
-                    const TextSpan(
+                    TextSpan(
                       text: ' • Yields and Other Metrics: ',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: styles.bodyMd.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const TextSpan(
                       text:
                           'Real-time returns from Stability Pools and DEX Stable/Liquidity Pools, including trading fees, farming APRs and impermanent loss content.\n\n',
                     ),
-                    const TextSpan(
+                    TextSpan(
                       text: 'Inside Each Strategy\n',
-                      style: TextStyle(
+                      style: styles.bodyMd.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
                     ),
-                    const TextSpan(
+                    TextSpan(
                       text: '  • Comprehensive Guides: ',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: styles.bodyMd.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const TextSpan(
                       text:
                           'Detailed explanations of the mechanics and step-by-step application tutorials.\n',
                     ),
-                    const TextSpan(
+                    TextSpan(
                       text: '  • Monitoring Advice: ',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: styles.bodyMd.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const TextSpan(
                       text:
                           'Key aspects to watch for effective position management.\n\n',
                     ),
-                    const TextSpan(
+                    TextSpan(
                       text: 'Strategy Risk Rating',
-                      style: TextStyle(
+                      style: styles.bodyMd.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
@@ -93,35 +104,41 @@ class StrategiesOverview extends StatelessWidget {
                       alignment: PlaceholderAlignment.middle,
                       child: StrategyRisk(riskLevel: RiskLevel.safe),
                     ),
-                    const TextSpan(
+                    TextSpan(
                       text: ' Low Risk: Generally safer strategies.\n',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: styles.bodyMd.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const WidgetSpan(
                       alignment: PlaceholderAlignment.middle,
                       child: StrategyRisk(riskLevel: RiskLevel.warning),
                     ),
-                    const TextSpan(
+                    TextSpan(
                       text:
                           ' Moderate Risk: Higher leverage or market sensitivity.\n',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: styles.bodyMd.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const WidgetSpan(
                       alignment: PlaceholderAlignment.middle,
                       child: StrategyRisk(riskLevel: RiskLevel.danger),
                     ),
-                    const TextSpan(
+                    TextSpan(
                       text:
                           ' High Risk: Complex strategies with significant exposure.\n',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: styles.bodyMd.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const TextSpan(
                       text:
                           'The number of icons (up to three) indicates relative risk within each category.\n\n',
                     ),
-                    const TextSpan(
+                    TextSpan(
                       text: 'Risk Awareness',
-                      style: TextStyle(
+                      style: styles.bodyMd.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
@@ -130,10 +147,10 @@ class StrategiesOverview extends StatelessWidget {
                       text:
                           '\nWe provide a transparent discussion of inherent risks, using visual cues to highlight different risk levels:\n\n',
                     ),
-                    const TextSpan(
+                    TextSpan(
                       text: '  •  Liquidation: ',
-                      style: TextStyle(
-                        color: Colors.redAccent,
+                      style: styles.bodyMd.copyWith(
+                        color: colors.error,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -141,10 +158,10 @@ class StrategiesOverview extends StatelessWidget {
                       text:
                           'The potential for your collateral to be sold to cover your debt.\n',
                     ),
-                    const TextSpan(
+                    TextSpan(
                       text: '  •  Redemption: ',
-                      style: TextStyle(
-                        color: Colors.yellowAccent,
+                      style: styles.bodyMd.copyWith(
+                        color: colors.warning,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -152,10 +169,10 @@ class StrategiesOverview extends StatelessWidget {
                       text:
                           'Exposure to having your CDP partially paid off by other users.\n',
                     ),
-                    const TextSpan(
+                    TextSpan(
                       text: '  •  Impermanent Loss: ',
-                      style: TextStyle(
-                        color: Colors.yellowAccent,
+                      style: styles.bodyMd.copyWith(
+                        color: colors.warning,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -163,10 +180,10 @@ class StrategiesOverview extends StatelessWidget {
                       text:
                           'Potential value loss when providing liquidity in DEX pools.\n',
                     ),
-                    const TextSpan(
+                    TextSpan(
                       text: '  •  Managing your Collateral Ratio (CR): ',
-                      style: TextStyle(
-                        color: Colors.greenAccent,
+                      style: styles.bodyMd.copyWith(
+                        color: colors.success,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

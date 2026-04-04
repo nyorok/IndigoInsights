@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:indigo_insights/theme/app_color_scheme.dart';
+import 'package:indigo_insights/theme/app_text_styles.dart';
 import 'package:indigo_insights/utils/formatters.dart';
-import 'package:indigo_insights/utils/page_title.dart';
 import 'package:indigo_insights/widgets/animated_gradient_text.dart';
 
 class AdaDoubleLeverageAboveMrCard extends StatelessWidget {
@@ -27,14 +28,23 @@ class AdaDoubleLeverageAboveMrCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    informationRow(String title, Widget info) => Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [Text(title), info],
+    final colors = AppColorScheme.of(context);
+    final styles = AppTextStyles.of(context);
+
+    informationRow(String label, Widget info) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: styles.bodySm.copyWith(color: colors.textSecondary)),
+          info,
+        ],
+      ),
     );
 
     calculatedAmount(double amount) => Text(
       '${numberFormatter(amount, 2)}%',
-      style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
+      style: styles.monoSm.copyWith(color: colors.textPrimary),
     );
 
     final cr = collateralRatio / 100;
@@ -51,62 +61,38 @@ class AdaDoubleLeverageAboveMrCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                PageTitle(title: asset),
+                Text(asset, style: styles.cardTitle),
                 Tooltip(
                   message:
                       'This is the maximum theoretical double\nleverage achievable based on the\nMaintenance Ratio.',
                   child: AnimatedGradientText(
                     '${numberFormatter(doubleLeverage, 2)}x',
-                    gradientColors: const [
-                      Colors.lightGreenAccent,
-                      Colors.lightGreenAccent,
-                      Colors.lightGreenAccent,
-                      Colors.redAccent,
-                    ],
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: 'Quicksand',
-                    ),
+                    gradientColors: [colors.success, colors.error],
+                    style: styles.kpiValue.copyWith(fontSize: 18),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
             informationRow(
-              'Liquidation Price',
+              'Liquidation Price Drop',
               Text(
                 '-${numberFormatter(priceDropToLiquidation, 2)}%',
-                style: const TextStyle(
-                  color: Colors.redAccent,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: styles.monoSm.copyWith(color: colors.error, fontWeight: FontWeight.bold),
               ),
             ),
             informationRow(
               'Liquidation Loss',
               Text(
                 '${numberFormatter(liquidationLoss, 2)}%',
-                style: const TextStyle(
-                  color: Colors.redAccent,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: styles.monoSm.copyWith(color: colors.error, fontWeight: FontWeight.bold),
               ),
             ),
-            const Divider(),
+            Divider(color: colors.border, height: 16),
             informationRow('Interest Rate', calculatedAmount(interestRate)),
-            informationRow(
-              'Redemption Margin Ratio',
-              calculatedAmount(redemptionMarginRatio),
-            ),
-            informationRow(
-              'Maintenance Ratio',
-              calculatedAmount(maintenanceRatio),
-            ),
-            informationRow(
-              'Liquidation Ratio',
-              calculatedAmount(liquidationRatio),
-            ),
+            informationRow('Redemption Margin Ratio', calculatedAmount(redemptionMarginRatio)),
+            informationRow('Maintenance Ratio', calculatedAmount(maintenanceRatio)),
+            informationRow('Liquidation Ratio', calculatedAmount(liquidationRatio)),
             informationRow('Minting Fee', calculatedAmount(debtMintingFee)),
           ],
         ),

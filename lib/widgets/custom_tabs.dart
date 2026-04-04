@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:indigo_insights/theme/color_scheme.dart';
+import 'package:indigo_insights/theme/app_color_scheme.dart';
+import 'package:indigo_insights/widgets/ii_card.dart';
+import 'package:indigo_insights/widgets/ii_tab_bar.dart';
 
+/// A [Card] + [TabBar] + [TabBarView] combo using the [IITabBar] design.
+///
+/// Accepts a list of `(Tab tab, Widget tabContent)` records — same API as
+/// the old `CustomTabs` so call-sites can migrate without changes except
+/// the import path.
 class CustomTabs extends StatefulWidget {
   final List<({Tab tab, Widget tabContent})> tabs;
 
@@ -28,24 +34,20 @@ class _CustomTabsState extends State<CustomTabs> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.all(8),
-      clipBehavior: Clip.antiAlias,
-      color: Colors.transparent,
+    final colors = AppColorScheme.of(context);
+
+    return IICard(
+      padding: EdgeInsets.zero,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            color: secondaryBackground,
-            child: TabBar(
-              indicatorColor: Colors.white,
-              unselectedLabelColor: Colors.white,
-              labelColor: Colors.white,
-              tabs: widget.tabs.map((tab) => tab.tab).toList(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: IITabBar(
+              tabWidgets: widget.tabs
+                  .map((t) => t.tab.child ?? Text(t.tab.text ?? ''))
+                  .toList(),
               controller: _tabController,
-              indicatorSize: TabBarIndicatorSize.tab,
-              tabAlignment: TabAlignment.center,
-              isScrollable: true,
             ),
           ),
           Expanded(
@@ -54,8 +56,8 @@ class _CustomTabsState extends State<CustomTabs> with TickerProviderStateMixin {
               children: widget.tabs
                   .map(
                     (tab) => SelectionArea(
-                      child: Container(
-                        color: Colors.transparent,
+                      child: ColoredBox(
+                        color: colors.surface,
                         child: tab.tabContent,
                       ),
                     ),
@@ -65,6 +67,6 @@ class _CustomTabsState extends State<CustomTabs> with TickerProviderStateMixin {
           ),
         ],
       ),
-    ).animate().fade(duration: 500.ms, curve: Curves.easeInOut);
+    );
   }
 }

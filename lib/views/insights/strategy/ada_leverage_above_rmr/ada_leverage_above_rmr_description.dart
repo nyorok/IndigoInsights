@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:indigo_insights/theme/color_scheme.dart';
 import 'package:indigo_insights/widgets/expandable_card.dart';
 
 class AdaLeverageAboveRmrDescription extends StatelessWidget {
@@ -74,7 +73,7 @@ class AdaLeverageAboveRmrDescription extends StatelessWidget {
                   text: 'inherent risks ',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: primaryRed,
+                    color: Color(0xFFE53935),
                   ),
                 ),
                 const TextSpan(

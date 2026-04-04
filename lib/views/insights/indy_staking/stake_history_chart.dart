@@ -41,7 +41,7 @@ class StakeHistoryChart extends StatelessWidget {
           labels: const ['Staked'],
           data: [stakeHistoryData],
           colors: const [Colors.deepPurpleAccent],
-          gradients: const [indigoGradient],
+          gradients: [indigoGradient],
           maxY: stakeHistoryData.last.amount * 1.2,
         );
       },

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:indigo_insights/theme/app_color_scheme.dart';
+import 'package:indigo_insights/theme/app_text_styles.dart';
 import 'package:indigo_insights/utils/formatters.dart';
-import 'package:indigo_insights/utils/page_title.dart';
 import 'package:indigo_insights/widgets/animated_gradient_text.dart';
 
 class AdaFarmingStabilityPoolCard extends StatelessWidget {
@@ -27,14 +28,23 @@ class AdaFarmingStabilityPoolCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    informationRow(String title, Widget info) => Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [Text(title), info],
+    final colors = AppColorScheme.of(context);
+    final styles = AppTextStyles.of(context);
+
+    informationRow(String label, Widget info) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: styles.bodySm.copyWith(color: colors.textSecondary)),
+          info,
+        ],
+      ),
     );
 
     calculatedAmount(double amount) => Text(
       '${numberFormatter(amount, 2)}%',
-      style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
+      style: styles.monoSm.copyWith(color: colors.textPrimary),
     );
 
     return Card(
@@ -46,30 +56,26 @@ class AdaFarmingStabilityPoolCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                PageTitle(title: '$title SP'),
+                Text('$title SP', style: styles.cardTitle),
                 AnimatedGradientText(
                   '${numberFormatter(strategyYield, 2)}%',
                   gradientColors: strategyYield > 0
                       ? [const Color(0xFFa500e1), const Color(0xFF3f83f8)]
                       : [
                           const Color(0xFFa500e1),
-                          Theme.of(context).colorScheme.onError,
+                          colors.error,
                         ],
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    fontFamily: 'Quicksand',
-                  ),
+                  style: styles.kpiValue.copyWith(fontSize: 18),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
             informationRow(
               'Stability Pool APR',
               Text(
                 '${numberFormatter(poolYield, 2)}%',
-                style: const TextStyle(
-                  color: Colors.greenAccent,
+                style: styles.monoSm.copyWith(
+                  color: colors.success,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -78,25 +84,16 @@ class AdaFarmingStabilityPoolCard extends StatelessWidget {
               'CDP Interest Rate',
               Text(
                 '${numberFormatter(interestRate, 2)}%',
-                style: const TextStyle(
-                  color: Colors.yellowAccent,
+                style: styles.monoSm.copyWith(
+                  color: colors.warning,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            const Divider(),
-            informationRow(
-              'Redemption Margin Ratio',
-              calculatedAmount(redemptionMarginRatio),
-            ),
-            informationRow(
-              'Maintenance Ratio',
-              calculatedAmount(maintenanceRatio),
-            ),
-            informationRow(
-              'Liquidation Ratio',
-              calculatedAmount(liquidationRatio),
-            ),
+            Divider(color: colors.border, height: 16),
+            informationRow('Redemption Margin Ratio', calculatedAmount(redemptionMarginRatio)),
+            informationRow('Maintenance Ratio', calculatedAmount(maintenanceRatio)),
+            informationRow('Liquidation Ratio', calculatedAmount(liquidationRatio)),
             informationRow('Minting Fee', calculatedAmount(debtMintingFee)),
           ],
         ),

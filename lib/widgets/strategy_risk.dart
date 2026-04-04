@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:indigo_insights/theme/app_color_scheme.dart';
 
 enum RiskLevel {
   safe,
@@ -19,53 +20,28 @@ class StrategyRisk extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColorScheme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(left: 8.0, bottom: 3.0),
-      child: Row(mainAxisSize: MainAxisSize.min, children: _buildIcons()),
+      padding: const EdgeInsets.only(left: 4, bottom: 2),
+      child: Row(mainAxisSize: MainAxisSize.min, children: _buildIcons(colors)),
     );
   }
 
-  List<Widget> _buildIcons() {
-    switch (riskLevel) {
-      case RiskLevel.safe:
-        return [const Icon(Icons.bolt, color: Colors.greenAccent, size: 16)];
-      case RiskLevel.safeSafe:
-        return [
-          const Icon(Icons.bolt, color: Colors.greenAccent, size: 16),
-          const Icon(Icons.bolt, color: Colors.greenAccent, size: 16),
-        ];
-      case RiskLevel.safeSafeSafe:
-        return [
-          const Icon(Icons.bolt, color: Colors.greenAccent, size: 16),
-          const Icon(Icons.bolt, color: Colors.greenAccent, size: 16),
-          const Icon(Icons.bolt, color: Colors.greenAccent, size: 16),
-        ];
-      case RiskLevel.warning:
-        return [const Icon(Icons.bolt, color: Colors.yellowAccent, size: 16)];
-      case RiskLevel.warningWarning:
-        return [
-          const Icon(Icons.bolt, color: Colors.yellowAccent, size: 16),
-          const Icon(Icons.bolt, color: Colors.yellowAccent, size: 16),
-        ];
-      case RiskLevel.warningWarningWarning:
-        return [
-          const Icon(Icons.bolt, color: Colors.yellowAccent, size: 16),
-          const Icon(Icons.bolt, color: Colors.yellowAccent, size: 16),
-          const Icon(Icons.bolt, color: Colors.yellowAccent, size: 16),
-        ];
-      case RiskLevel.danger:
-        return [const Icon(Icons.bolt, color: Colors.redAccent, size: 16)];
-      case RiskLevel.dangerDanger:
-        return [
-          const Icon(Icons.bolt, color: Colors.redAccent, size: 16),
-          const Icon(Icons.bolt, color: Colors.redAccent, size: 16),
-        ];
-      case RiskLevel.dangerDangerDanger:
-        return [
-          const Icon(Icons.bolt, color: Colors.redAccent, size: 16),
-          const Icon(Icons.bolt, color: Colors.redAccent, size: 16),
-          const Icon(Icons.bolt, color: Colors.redAccent, size: 16),
-        ];
-    }
+  List<Widget> _buildIcons(AppColorScheme colors) {
+    final (count, color) = switch (riskLevel) {
+      RiskLevel.safe => (1, colors.success),
+      RiskLevel.safeSafe => (2, colors.success),
+      RiskLevel.safeSafeSafe => (3, colors.success),
+      RiskLevel.warning => (1, colors.warning),
+      RiskLevel.warningWarning => (2, colors.warning),
+      RiskLevel.warningWarningWarning => (3, colors.warning),
+      RiskLevel.danger => (1, colors.error),
+      RiskLevel.dangerDanger => (2, colors.error),
+      RiskLevel.dangerDangerDanger => (3, colors.error),
+    };
+    return List.generate(
+      count,
+      (_) => Icon(Icons.bolt, color: color, size: 16),
+    );
   }
 }

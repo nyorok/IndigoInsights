@@ -2,10 +2,10 @@ import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:indigo_insights/theme/app_color_scheme.dart';
+import 'package:indigo_insights/theme/app_text_styles.dart';
 import 'package:indigo_insights/utils/formatters.dart';
 import 'package:intl/intl.dart' as intl;
-
-import '../utils/page_title.dart';
 
 class AmountDateData {
   final DateTime date;
@@ -174,6 +174,9 @@ class AmountDateChart extends StatelessWidget {
       return painter.width + 12;
     }
 
+    final appColors = AppColorScheme.of(context);
+    final styles = AppTextStyles.of(context);
+
     return Column(
       children: [
         Container(
@@ -181,8 +184,9 @@ class AmountDateChart extends StatelessWidget {
           padding: const EdgeInsets.only(top: 8, left: 30),
           child: Row(
             children: [
-              PageTitle(
-                title: title,
+              Text(
+                title,
+                style: styles.cardTitle,
               ).animate().fade(duration: 300.ms, curve: Curves.easeInOut),
               Expanded(
                 child: Wrap(
@@ -193,11 +197,9 @@ class AmountDateChart extends StatelessWidget {
                           padding: const EdgeInsets.only(right: 6),
                           child: Text(
                             label,
-                            style: TextStyle(
+                            style: styles.bodyMd.copyWith(
                               color: colors[index],
                               fontWeight: FontWeight.w600,
-                              fontSize: 12.8,
-                              fontFamily: 'Quicksand',
                             ),
                           ),
                         ),
@@ -257,7 +259,7 @@ class AmountDateChart extends StatelessWidget {
                           getDateInterval() >= 30
                               ? '${dateTime.month}/${dateTime.year.toString().substring(2)}'
                               : intl.DateFormat('yyyy-MM-dd').format(dateTime),
-                          style: const TextStyle(fontSize: 9),
+                          style: styles.monoSm.copyWith(color: appColors.textMuted),
                         ),
                       );
                     },
@@ -302,7 +304,7 @@ class AmountDateChart extends StatelessWidget {
                   fitInsideHorizontally: true,
                   fitInsideVertically: true,
                   maxContentWidth: 240,
-                  getTooltipColor: (x) => Theme.of(context).colorScheme.surface,
+                  getTooltipColor: (x) => appColors.surface,
                   getTooltipItems: (List<LineBarSpot> touchedSpots) {
                     return touchedSpots.map((LineBarSpot touchedSpot) {
                       final spotData =
@@ -323,11 +325,9 @@ class AmountDateChart extends StatelessWidget {
 
                       return LineTooltipItem(
                         "${touchedSpot.barIndex == 0 ? '$formattedDate ${labels[touchedSpot.barIndex]}' : labels[touchedSpot.barIndex]}: ${numberFormatter(amount, 0)} $currency",
-                        TextStyle(
+                        styles.bodySm.copyWith(
                           color: colors[touchedSpot.barIndex],
                           fontWeight: FontWeight.w500,
-                          fontSize: 11,
-                          fontFamily: 'Quicksand',
                         ),
                       );
                     }).toList();
