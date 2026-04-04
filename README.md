@@ -6,7 +6,7 @@
 
 > Protocol analytics dashboard for the [Indigo Protocol](https://indigoprotocol.io) community, built with Flutter — available as a **web app**, **Android APK**, and **PWA**.
 
-**[🌐 Open Web App](https://nyorok.github.io/IndigoInsights)** &nbsp;|&nbsp; **[📦 Download APK](https://github.com/nyorok/IndigoInsights/tree/main/release)**
+**[🌐 Open Web App](https://nyorok.github.io/IndigoInsights)** &nbsp;|&nbsp; **[📦 Download APK](https://github.com/nyorok/IndigoInsights/releases/latest)**
 
 ---
 
