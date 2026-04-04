@@ -5,7 +5,7 @@ import 'package:indigo_insights/repositories/stake_history_repository.dart';
 import 'package:indigo_insights/service_locator.dart';
 import 'package:indigo_insights/utils/async_builder.dart';
 import 'package:indigo_insights/utils/formatters.dart';
-import 'package:indigo_insights/utils/page_title.dart';
+import 'package:indigo_insights/theme/app_text_styles.dart';
 
 class StakingInformation extends StatelessWidget {
   const StakingInformation({super.key});
@@ -61,9 +61,9 @@ class StakingInformation extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const PageTitle(
-              title: 'Indy Staking',
-            ).animate().scaleY(duration: 300.ms, curve: Curves.easeInOut),
+            Text('Indy Staking',
+                    style: AppTextStyles.of(context).cardTitle)
+                .animate().scaleY(duration: 300.ms, curve: Curves.easeInOut),
             const SizedBox(height: 20),
             informationRow(
               'Total Staked',

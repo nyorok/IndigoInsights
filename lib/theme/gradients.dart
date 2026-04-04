@@ -1,63 +1,54 @@
 import 'package:flutter/material.dart';
-import 'package:indigo_insights/theme/color_scheme.dart';
+import 'package:indigo_insights/theme/app_color_scheme.dart';
 
-const indigoSelectionGradient = LinearGradient(
-  begin: Alignment.topLeft,
-  end: Alignment.bottomRight,
-  colors: [onSelection, primaryPurple],
-);
-
-const indigoDarkGradient = LinearGradient(
-  begin: Alignment.topLeft,
-  end: Alignment.bottomRight,
-  colors: [Color.fromARGB(255, 30, 31, 77), Color.fromARGB(255, 75, 74, 168)],
-);
+// ── iAsset colour helpers ─────────────────────────────────────────────────────
 
 Color getColorByAsset(String asset) => switch (asset) {
-  'iUSD' => const Color(0xFF70D150),
-  'iBTC' => const Color(0xFFFF9416),
-  'iETH' => Colors.white,
-  'iSOL' => const Color(0xFF9945FF),
-  _ => Colors.greenAccent,
-};
+      'iUSD' => const Color(0xFF70D150),
+      'iBTC' => const Color(0xFFFF9416),
+      'iETH' => Colors.white,
+      'iSOL' => const Color(0xFF9945FF),
+      _ => const Color(0xFF9945FF),
+    };
 
 LinearGradient getGradientByAsset(String asset) => switch (asset) {
-  'iUSD' => usdTransparentGradient,
-  'iBTC' => btcTransparentGradient,
-  'iETH' => ethTransparentGradient,
-  'iSOL' => solTransparentGradient,
-  _ => greenTransparentGradient,
-};
+      'iUSD' => usdTransparentGradient,
+      'iBTC' => btcTransparentGradient,
+      'iETH' => ethTransparentGradient,
+      'iSOL' => solTransparentGradient,
+      _ => solTransparentGradient,
+    };
 
-const indigoGradient = LinearGradient(
-  begin: Alignment.topCenter,
-  end: Alignment.bottomCenter,
-  colors: [Color.fromRGBO(63, 1, 161, 1), Color.fromRGBO(98, 0, 174, 1)],
+// ── Sidebar / nav active state ────────────────────────────────────────────────
+
+/// Purple gradient used for the active sidebar nav item and active tab chips.
+const accentSelectionGradient = LinearGradient(
+  begin: Alignment.centerLeft,
+  end: Alignment.centerRight,
+  colors: [Color(0x229945FF), Color(0x159945FF)],
 );
 
-const orangeGradient = LinearGradient(
-  begin: Alignment.topCenter,
-  end: Alignment.bottomCenter,
-  colors: [Colors.deepOrange, Colors.orangeAccent],
-);
+// ── Accent Panel ──────────────────────────────────────────────────────────────
 
-final blueGradient = LinearGradient(
-  begin: Alignment.topCenter,
-  end: Alignment.bottomCenter,
-  colors: [Colors.blue.shade900, Colors.blueAccent],
-);
+/// Returns the purple gradient used for Accent Panel cards (e.g. 24h Activity).
+/// Call this inside build() so it can access the theme if needed.
+LinearGradient accentPanelGradient() => const LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0x229945FF), Color(0x159945FF)],
+    );
 
-final greyGradient = LinearGradient(
-  begin: Alignment.topCenter,
-  end: Alignment.bottomCenter,
-  colors: [Colors.blueGrey.shade900, Colors.blueGrey],
-);
+/// Returns a subtle tinted gradient for a given iAsset card background.
+LinearGradient assetCardGradient(String asset) {
+  final base = getColorByAsset(asset);
+  return LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [base.withValues(alpha: 0.13), base.withValues(alpha: 0.03)],
+  );
+}
 
-const whiteGradient = LinearGradient(
-  begin: Alignment.topCenter,
-  end: Alignment.bottomCenter,
-  colors: [Colors.white38, Colors.white10],
-);
+// ── Per-asset transparent gradients (used in charts) ─────────────────────────
 
 final btcTransparentGradient = LinearGradient(
   begin: Alignment.topCenter,
@@ -96,18 +87,50 @@ final solTransparentGradient = LinearGradient(
   ],
 );
 
-final greenTransparentGradient = LinearGradient(
+// ── Legacy gradient shims — kept for pre-refactor pages ─────────────────────
+// These will be removed as each page is updated to use AppColorScheme directly.
+
+const indigoGradient = LinearGradient(
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
+  colors: [Color(0xFF3F01A1), Color(0xFF6200AE)],
+);
+
+const blueGradient = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  colors: [Color(0xFF0D47A1), Color(0xFF1976D2)],
+);
+
+const greenGradient = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  colors: [Color(0xFF166534), Color(0xFF4ADE80)],
+);
+
+const greyGradient = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  colors: [Color(0xFF37474F), Color(0xFF546E7A)],
+);
+
+const greenBlueGradient = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  stops: [0, 0.5, 0.8, 1],
   colors: [
-    Colors.green.shade900.withValues(alpha: 0.9),
-    Colors.green.shade900.withValues(alpha: 0.4),
+    Color(0xFF4ADE80),
+    Color(0xFF1565C0),
+    Color(0xFFFF6735),
+    Color(0xFFFF3344),
   ],
 );
 
-final greenBlueGradient = LinearGradient(
-  begin: Alignment.topCenter,
-  end: Alignment.bottomCenter,
-  stops: const [0, 0.5, 0.8, 1],
-  colors: [Colors.green, Colors.blue.shade900, secondaryRed, primaryRed],
-);
+/// A 4-stop gradient from safe (green) → danger (red) for solvency charts.
+/// Pass stops from the [AppColorScheme] for theme consistency.
+LinearGradient solvencyGradient(AppColorScheme colors) => LinearGradient(
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+      stops: const [0, 0.4, 0.7, 1],
+      colors: [colors.success, colors.warning, colors.warning, colors.error],
+    );

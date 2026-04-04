@@ -23,14 +23,19 @@ Flutter analytics dashboard for Indigo Protocol (Cardano DeFi). Read-only; no wa
 
 Current pages:
 
-| Enum value | View file |
-|---|---|
-| `strategy` | `lib/views/insights/strategy/strategy_insights.dart` |
-| `liquidation` | `lib/views/insights/liquidation/liquidation_insights.dart` |
-| `redemption` | `lib/views/insights/redemption/redemption_insights.dart` |
-| `indyStaking` | `lib/views/insights/indy_staking/indy_staking_insights.dart` |
-| `stabilityPool` | `lib/views/insights/stability_pool/stability_pool_insights.dart` |
-| `stabilityPoolAccount` | `lib/views/insights/stability_pool_account/stability_pool_account_insights.dart` |
+| Enum value | View file | Section |
+|---|---|---|
+| `dashboard` | `lib/views/insights/dashboard/protocol_dashboard.dart` | Overview |
+| `strategy` | `lib/views/insights/strategy/strategy_insights.dart` | Strategies |
+| `yieldOptimizer` | `lib/views/insights/yield_optimizer/yield_optimizer_insights.dart` | Strategies |
+| `liquidation` | `lib/views/insights/liquidation/liquidation_insights.dart` | Analytics |
+| `liquidationScenario` | `lib/views/insights/liquidation_scenario/liquidation_scenario_insights.dart` | Analytics |
+| `redemption` | `lib/views/insights/redemption/redemption_insights.dart` | Analytics |
+| `indyStaking` | `lib/views/insights/indy_staking/indy_staking_insights.dart` | Analytics |
+| `stabilityPool` | `lib/views/insights/stability_pool/stability_pool_insights.dart` | Analytics |
+| `stabilityPoolAccount` | `lib/views/insights/stability_pool_account/stability_pool_account_insights.dart` | Analytics |
+| `cdpExplorer` | `lib/views/insights/cdp_explorer/cdp_explorer_insights.dart` | Tools |
+| `positionSimulator` | `lib/views/insights/position_simulator/position_simulator_insights.dart` | Tools |
 
 ---
 
@@ -65,7 +70,7 @@ Called in `main()` before `runApp`.
 | `AssetStatusRepository`, `CdpRepository`, `StabilityPool*Repository`, `DexYieldRepository` | 5 min |
 | `LiquidationRepository`, `RedemptionRepository`, `StakeHistoryRepository` | 10 min |
 | `IndigoAssetRepository` | 30 min |
-| `SolvencyRepository`, `StrategyRepository` (composed) | 5 min |
+| `SolvencyRepository`, `StrategyRepository`, `ProtocolDashboardRepository` (composed) | 5 min |
 
 ---
 

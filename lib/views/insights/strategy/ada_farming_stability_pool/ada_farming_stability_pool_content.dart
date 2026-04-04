@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:indigo_insights/repositories/strategy_repository.dart';
 import 'package:indigo_insights/service_locator.dart';
-import 'package:indigo_insights/theme/color_scheme.dart';
+import 'package:indigo_insights/theme/app_color_scheme.dart';
 import 'package:indigo_insights/utils/async_builder.dart';
 import 'package:indigo_insights/views/insights/strategy/ada_farming_stability_pool/ada_farming_stability_pool_card.dart';
 import 'package:indigo_insights/views/insights/strategy/ada_farming_stability_pool/ada_farming_stability_pool_description.dart';
-import 'package:indigo_insights/widgets/financial_disclaimer.dart';
+import 'package:indigo_insights/widgets/ii_disclaimer.dart';
 
 class StabilityPoolFarmingStrategyContent extends StatelessWidget {
   const StabilityPoolFarmingStrategyContent({super.key});
@@ -19,7 +19,7 @@ class StabilityPoolFarmingStrategyContent extends StatelessWidget {
         child: Column(
           children: [
             Container(
-              color: secondaryBackground.withAlpha(150),
+              color: AppColorScheme.of(context).surfaceRaised,
               child: const AdaFarmingStabilityPoolDescription(),
             ),
             Padding(
@@ -66,7 +66,7 @@ class StabilityPoolFarmingStrategyContent extends StatelessWidget {
                 },
               ),
             ),
-            const FinancialDisclaimer(),
+            const IIDisclaimer(),
           ],
         ),
       ),

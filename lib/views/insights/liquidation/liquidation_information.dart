@@ -6,7 +6,7 @@ import 'package:indigo_insights/repositories/liquidation_repository.dart';
 import 'package:indigo_insights/service_locator.dart';
 import 'package:indigo_insights/utils/async_builder.dart';
 import 'package:indigo_insights/utils/formatters.dart';
-import 'package:indigo_insights/utils/page_title.dart';
+import 'package:indigo_insights/theme/app_text_styles.dart';
 
 class LiquidationInformation extends StatelessWidget {
   const LiquidationInformation({super.key, required this.indigoAsset});
@@ -41,7 +41,10 @@ class LiquidationInformation extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                PageTitle(title: '${indigoAsset.asset} Liquidations'),
+                Text(
+                  '${indigoAsset.asset} Liquidations',
+                  style: AppTextStyles.of(context).cardTitle,
+                ),
                 Text(
                   numberFormatter(liquidations.length, 0),
                   style: const TextStyle(fontSize: 18),

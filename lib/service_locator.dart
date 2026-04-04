@@ -17,6 +17,7 @@ import 'package:indigo_insights/repositories/dex_yield_repository.dart';
 import 'package:indigo_insights/repositories/indigo_asset_repository.dart';
 import 'package:indigo_insights/repositories/indy_price_repository.dart';
 import 'package:indigo_insights/repositories/liquidation_repository.dart';
+import 'package:indigo_insights/repositories/protocol_dashboard_repository.dart';
 import 'package:indigo_insights/repositories/redemption_repository.dart';
 import 'package:indigo_insights/repositories/solvency_repository.dart';
 import 'package:indigo_insights/repositories/stability_pool_account_repository.dart';
@@ -59,5 +60,8 @@ void setupServiceLocator() {
   );
   sl.registerLazySingleton(
     () => StrategyRepository(sl(), sl(), sl(), sl(), sl(), sl()),
+  );
+  sl.registerLazySingleton(
+    () => ProtocolDashboardRepository(sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl()),
   );
 }

@@ -4,9 +4,9 @@ import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:indigo_insights/theme/app_color_scheme.dart';
+import 'package:indigo_insights/theme/app_text_styles.dart';
 import 'package:indigo_insights/utils/formatters.dart';
-
-import '../utils/page_title.dart';
 
 class PercentageAmountData {
   final double percentage;
@@ -105,14 +105,17 @@ class PercentageAmountChart extends StatelessWidget {
       throw Exception('Not enough labels for each data line');
     }
 
+    final appColors = AppColorScheme.of(context);
+    final styles = AppTextStyles.of(context);
+
     return Column(
       children: [
         Container(
           alignment: Alignment.bottomLeft,
-          padding: const EdgeInsets.only(top: 8, left: 30),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           child: Row(
             children: [
-              PageTitle(title: title),
+              Text(title, style: styles.cardTitle),
               Expanded(
                 child: Wrap(
                   alignment: WrapAlignment.end,
@@ -122,11 +125,9 @@ class PercentageAmountChart extends StatelessWidget {
                           padding: const EdgeInsets.only(right: 6),
                           child: Text(
                             label,
-                            style: TextStyle(
+                            style: styles.bodyMd.copyWith(
                               color: colors[index],
                               fontWeight: FontWeight.w600,
-                              fontSize: 12.8,
-                              fontFamily: 'Quicksand',
                             ),
                           ),
                         ),
@@ -138,7 +139,9 @@ class PercentageAmountChart extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: LayoutBuilder(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: LayoutBuilder(
             builder: (context, constraints) => BarChart(
               BarChartData(
                 borderData: FlBorderData(show: true),
@@ -182,41 +185,32 @@ class PercentageAmountChart extends StatelessWidget {
                   horizontalLines: [
                     HorizontalLine(
                       y: 0.2 * mintedSupply,
-                      color: Colors.green,
+                      color: appColors.success,
                       label: HorizontalLineLabel(
                         show: true,
                         labelResolver: (line) => '20% minted supply',
                         alignment: Alignment.topLeft,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Quicksand',
-                        ),
+                        style: styles.bodySm.copyWith(color: appColors.textPrimary),
                       ),
                     ),
                     HorizontalLine(
                       y: 0.35 * mintedSupply,
-                      color: Colors.yellow,
+                      color: appColors.warning,
                       label: HorizontalLineLabel(
                         show: true,
                         labelResolver: (line) => '35% minted supply',
                         alignment: Alignment.topLeft,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Quicksand',
-                        ),
+                        style: styles.bodySm.copyWith(color: appColors.textPrimary),
                       ),
                     ),
                     HorizontalLine(
                       y: 0.5 * mintedSupply,
-                      color: Colors.red,
+                      color: appColors.error,
                       label: HorizontalLineLabel(
                         show: true,
                         labelResolver: (line) => '50% minted supply',
                         alignment: Alignment.topLeft,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Quicksand',
-                        ),
+                        style: styles.bodySm.copyWith(color: appColors.textPrimary),
                       ),
                     ),
                   ],
@@ -225,16 +219,13 @@ class PercentageAmountChart extends StatelessWidget {
                   touchTooltipData: BarTouchTooltipData(
                     fitInsideHorizontally: true,
                     fitInsideVertically: true,
-                    getTooltipColor: (x) =>
-                        Theme.of(context).colorScheme.surface,
+                    getTooltipColor: (x) => appColors.surface,
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
                       return BarTooltipItem(
                         '${group.x}%: ${numberFormatter(rod.toY, 0)} $currency',
-                        TextStyle(
+                        styles.bodySm.copyWith(
                           color: colors[rodIndex],
                           fontWeight: FontWeight.w500,
-                          fontSize: 12.8,
-                          fontFamily: 'Quicksand',
                         ),
                       );
                     },
@@ -242,6 +233,7 @@ class PercentageAmountChart extends StatelessWidget {
                 ),
               ),
             ),
+          ),
           ),
         ),
       ],

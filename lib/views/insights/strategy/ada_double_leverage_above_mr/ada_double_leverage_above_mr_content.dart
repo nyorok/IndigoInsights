@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:indigo_insights/repositories/strategy_repository.dart';
 import 'package:indigo_insights/service_locator.dart';
-import 'package:indigo_insights/theme/color_scheme.dart';
+import 'package:indigo_insights/theme/app_color_scheme.dart';
 import 'package:indigo_insights/utils/async_builder.dart';
 import 'package:indigo_insights/views/insights/strategy/ada_double_leverage_above_mr/ada_double_leverage_above_mr_card.dart';
 import 'package:indigo_insights/views/insights/strategy/ada_double_leverage_above_mr/ada_double_leverage_above_mr_description.dart';
-import 'package:indigo_insights/widgets/financial_disclaimer.dart';
+import 'package:indigo_insights/widgets/ii_disclaimer.dart';
 import 'package:indigo_insights/widgets/slider_selector.dart';
 
 class AdaDoubleLeverageAboveMrContent extends StatefulWidget {
@@ -35,7 +35,7 @@ class _AdaDoubleLeverageAboveMrContentState
           child: Column(
             children: [
               Container(
-                color: secondaryBackground.withAlpha(150),
+                color: AppColorScheme.of(context).surfaceRaised,
                 child: const AdaDoubleLeverageAboveMrDescription(),
               ),
               SliderSelector(
@@ -92,7 +92,7 @@ class _AdaDoubleLeverageAboveMrContentState
                   },
                 ),
               ),
-              const FinancialDisclaimer(),
+              const IIDisclaimer(),
             ],
           ),
         );

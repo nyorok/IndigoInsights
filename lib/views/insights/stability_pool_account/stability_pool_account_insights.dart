@@ -1,81 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:indigo_insights/views/insights/stability_pool_account/stability_pool_account_distribution_pie_chart.dart';
 import 'package:indigo_insights/views/insights/stability_pool_account/stability_pool_account_unclaimed_rewards_pie_chart.dart';
+import 'package:indigo_insights/widgets/ii_asset_tabs.dart';
+import 'package:indigo_insights/widgets/ii_card.dart';
+import 'package:indigo_insights/widgets/ii_top_bar.dart';
 
 class StabilityPoolAccountInsights extends StatelessWidget {
   const StabilityPoolAccountInsights({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: SelectionArea(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: Align(
-            alignment: Alignment.topLeft,
-            child: Wrap(
-              alignment: WrapAlignment.end,
-              children: [
-                chartCard(
-                  const StabilityPoolAccountDistributionPieChart(asset: 'iUSD'),
-                  context,
-                ),
-                chartCard(
-                  const StabilityPoolAccountDistributionPieChart(asset: 'iBTC'),
-                  context,
-                ),
-                chartCard(
-                  const StabilityPoolAccountDistributionPieChart(asset: 'iETH'),
-                  context,
-                ),
-                chartCard(
-                  const StabilityPoolAccountUnclaimedRewardsPieChart(
-                    asset: 'iUSD',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const IITopBar(title: 'SP Account'),
+        Expanded(
+          child: SelectionArea(
+            child: IIAssetTabs(
+              tabContentBuilder: (asset) {
+                final isDesktop =
+                    MediaQuery.of(context).size.width >= 700;
+                final distChart = IICard(
+                  padding: EdgeInsets.zero,
+                  child: StabilityPoolAccountDistributionPieChart(
+                    asset: asset.asset,
                   ),
-                  context,
-                ),
-                chartCard(
-                  const StabilityPoolAccountUnclaimedRewardsPieChart(
-                    asset: 'iBTC',
+                );
+                final rewardsChart = IICard(
+                  padding: EdgeInsets.zero,
+                  child: StabilityPoolAccountUnclaimedRewardsPieChart(
+                    asset: asset.asset,
                   ),
-                  context,
-                ),
-                chartCard(
-                  const StabilityPoolAccountUnclaimedRewardsPieChart(
-                    asset: 'iETH',
+                );
+                if (isDesktop) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Expanded(child: distChart),
+                        const SizedBox(width: 16),
+                        Expanded(child: rewardsChart),
+                      ],
+                    ),
+                  );
+                }
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(height: 320, child: distChart),
+                      const SizedBox(height: 16),
+                      SizedBox(height: 320, child: rewardsChart),
+                    ],
                   ),
-                  context,
-                ),
-              ],
+                );
+              },
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget chartCard(Widget widget, BuildContext context) {
-    return cardContainer(
-      Card(
-        elevation: 2,
-        margin: const EdgeInsets.all(8),
-        child: Padding(padding: const EdgeInsets.all(4), child: widget),
-      ).animate().scaleY(duration: 300.ms, curve: Curves.easeInOut),
-      context,
-    );
-  }
-
-  Widget cardContainer(Widget widget, BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final double width = screenWidth / 2 > 480 ? screenWidth / 2 : 480;
-
-    final screenHeight = MediaQuery.of(context).size.height;
-    final double height = screenHeight > screenWidth ? width + 40 : screenHeight - 68;
-
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: width, maxHeight: height),
-      child: widget,
+      ],
     );
   }
 }

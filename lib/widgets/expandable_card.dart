@@ -36,6 +36,13 @@ class _ExpandableCardState extends State<ExpandableCard>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
+    // Rebuild when animation settles so we can remove the height clip
+    _animationController.addStatusListener((status) {
+      if (status == AnimationStatus.completed ||
+          status == AnimationStatus.dismissed) {
+        setState(() {});
+      }
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final renderBox =
@@ -73,28 +80,32 @@ class _ExpandableCardState extends State<ExpandableCard>
                 opacity: 0,
                 child: Container(key: _measureKey, child: widget.child),
               )
-            : widget.child
-                  .animate(
-                    controller: _animationController,
-                    autoPlay: false,
-                  )
-                  .custom(
-                    curve: Curves.easeInOutCirc,
-                    duration: const Duration(milliseconds: 300),
-                    begin: widget.collapsedHeight,
-                    end: _naturalHeight!,
-                    builder: (context, value, animateChild) {
-                      return Container(
-                        height: value,
-                        clipBehavior: Clip.hardEdge,
-                        decoration: const BoxDecoration(),
-                        child: SingleChildScrollView(
-                          physics: const NeverScrollableScrollPhysics(),
-                          child: animateChild,
-                        ),
-                      );
-                    },
-                  ),
+            // Fully expanded & animation done → no height constraint, no clip
+            : (_isExpanded && _animationController.isCompleted)
+                ? widget.child
+                : widget.child
+                      .animate(
+                        controller: _animationController,
+                        autoPlay: false,
+                      )
+                      .custom(
+                        curve: Curves.easeInOutCirc,
+                        duration: const Duration(milliseconds: 300),
+                        begin: widget.collapsedHeight,
+                        end: _naturalHeight!,
+                        builder: (context, value, animateChild) {
+                          return SizedBox(
+                            height: value,
+                            child: ClipRect(
+                              child: OverflowBox(
+                                maxHeight: double.infinity,
+                                alignment: Alignment.topCenter,
+                                child: animateChild,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
         Positioned(
           top: widget.arrowPadding ?? 0,
           right: widget.arrowPadding ?? 0,
