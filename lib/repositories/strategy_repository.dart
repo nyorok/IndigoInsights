@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:indigo_insights/models/asset_interest_rate.dart';
 import 'package:indigo_insights/models/asset_price.dart';
 import 'package:indigo_insights/models/indigo_asset.dart';
 import 'package:indigo_insights/models/liquidity_pool_yield.dart';
@@ -11,6 +10,7 @@ import 'package:indigo_insights/repositories/dex_yield_repository.dart';
 import 'package:indigo_insights/repositories/indigo_asset_repository.dart';
 import 'package:indigo_insights/repositories/stability_pool_repository.dart';
 import 'package:indigo_insights/utils/cached_result.dart';
+import 'package:indigo_insights/utils/formatters.dart';
 
 typedef LeverageData = ({
   String asset,
@@ -41,23 +41,6 @@ typedef StablePoolStrategyData = ({
   double interestRate,
   double debtMintingFee,
 });
-
-Map<String, AssetInterestRate> _buildInterestRateMap(
-  List<AssetInterestRate> rates,
-) {
-  final Map<String, AssetInterestRate> map = {};
-  for (final ir in rates) {
-    // Prefer the ADA-collateral (global) rate when multiple collaterals exist
-    if (!map.containsKey(ir.asset) ||
-        (ir.collateralAsset.isEmpty && map[ir.asset]!.collateralAsset.isNotEmpty) ||
-        (ir.collateralAsset == map[ir.asset]!.collateralAsset &&
-            map[ir.asset]!.slot < ir.slot)) {
-      map[ir.asset] = ir;
-    }
-  }
-  return map;
-}
-
 
 class StrategyRepository {
   static const _ttl = Duration(minutes: 5);
@@ -90,26 +73,31 @@ class StrategyRepository {
 
     final results = await Future.wait([
       _assets.getAssets(),
-      _cdps.getAssetInterestRates(),
       _prices.getPrices(),
     ]);
 
     final indigoAssets = results[0] as List<IndigoAsset>;
-    final interestRates = results[1] as List<AssetInterestRate>;
-    final assetPrices = results[2] as List<AssetPrice>;
+    final assetPrices = results[1] as List<AssetPrice>;
 
-    final irMap = _buildInterestRateMap(interestRates);
     final List<LeverageData> leverages = [];
 
     // One entry per (iAsset, collateralAsset) price combination.
     for (final price in assetPrices) {
-      final iAsset = indigoAssets.firstWhereOrNull((ia) => ia.asset == price.asset);
+      final iAsset = indigoAssets.firstWhereOrNull(
+        (ia) => ia.asset == price.asset,
+      );
       if (iAsset == null) continue;
-      final interestRate = irMap[price.asset]?.interestRate ?? 0.0;
+      final collateralAssetInterestRate =
+          iAsset.collateralAssets
+              .firstWhereOrNull(
+                (ca) => ca.collateralAsset == price.collateralAsset,
+              )
+              ?.interestRate ??
+          0.0;
       leverages.add((
         asset: price.asset,
         collateralAsset: price.collateralAsset,
-        interestRate: interestRate * 100,
+        interestRate: collateralAssetInterestRate,
         rmr: iAsset.rmr,
         mcr: iAsset.maintenanceRatio,
         liquidationRatio: iAsset.liquidationRatio,
@@ -118,9 +106,7 @@ class StrategyRepository {
       ));
     }
 
-    final result = leverages
-        .sortedBy((e) => e.asset)
-        .toList();
+    final result = leverages.sortedBy((e) => e.asset).toList();
     _leverageCache = CachedResult(result);
     return result;
   }
@@ -141,17 +127,14 @@ class StrategyRepository {
     final assetPrices = results[0] as List<AssetPrice>;
     final stabilityPools = results[1] as List<StabilityPool>;
     final indigoAssets = results[2] as List<IndigoAsset>;
-    final interestRates = results[3] as List<AssetInterestRate>;
     final aprMap = results[4] as Map<String, double>;
 
-    final irMap = _buildInterestRateMap(interestRates);
     final List<StabilityPoolStrategyData> strategies = [];
 
     for (final sp in stabilityPools) {
       final asset = sp.asset;
       final iAsset = indigoAssets.firstWhereOrNull((ia) => ia.asset == asset);
       if (iAsset == null) continue;
-      final interestRate = irMap[asset]?.interestRate ?? 0.0;
 
       // SP APR from official endpoint (already in %, same for all collaterals of this asset).
       final indyApr = aprMap['sp_${asset}_indy'] ?? 0.0;
@@ -159,21 +142,34 @@ class StrategyRepository {
       final poolYield = indyApr + adaApr;
 
       // One card per collateral price available for this asset.
-      final pricesForAsset = assetPrices.where((p) => p.asset == asset).toList();
+      final pricesForAsset = assetPrices
+          .where((p) => p.asset == asset)
+          .toList();
       for (final price in pricesForAsset) {
+        final collateralAssetInterestRate =
+            iAsset.collateralAssets
+                .firstWhereOrNull(
+                  (ca) => ca.collateralAsset == price.collateralAsset,
+                )
+                ?.interestRate ??
+            0.0;
+
         strategies.add((
           title: asset,
           collateralAsset: price.collateralAsset,
-          strategyYield: poolYield - (interestRate * 100),
+          strategyYield: poolYield - (collateralAssetInterestRate),
           poolYield: poolYield,
-          interestRate: interestRate * 100,
+          interestRate: collateralAssetInterestRate,
           assetPrice: price.price,
           debtMintingFee: iAsset.debtMintingFee,
         ));
       }
     }
 
-    final result = strategies.sortedBy((a) => a.strategyYield).reversed.toList();
+    final result = strategies
+        .sortedBy((a) => a.strategyYield)
+        .reversed
+        .toList();
     _spFarmingCache = CachedResult(result);
     return result;
   }
@@ -185,15 +181,12 @@ class StrategyRepository {
 
     final results = await Future.wait([
       _assets.getAssets(),
-      _cdps.getAssetInterestRates(),
       _dexYields.getYields(),
     ]);
 
     final indigoAssets = results[0] as List<IndigoAsset>;
-    final interestRates = results[1] as List<AssetInterestRate>;
-    final dexYields = results[2] as List<LiquidityPoolYield>;
+    final dexYields = results[1] as List<LiquidityPoolYield>;
 
-    final irMap = _buildInterestRateMap(interestRates);
     final minswapYields = dexYields
         .where((e) => e.dex == Dex.minswapStableSwap)
         .where((e) => indigoAssets.any((ia) => e.hasAsset(ia.asset)))
@@ -202,21 +195,25 @@ class StrategyRepository {
     final List<StablePoolStrategyData> strategies = [];
     for (final e in minswapYields) {
       final iAsset = indigoAssets.firstWhere((ia) => e.hasAsset(ia.asset));
-      final interestRate =
-          irMap.values.firstWhereOrNull((ir) => e.hasAsset(ir.asset))?.interestRate ??
-          0.0;
 
-      strategies.add((
-        title: e.pair,
-        strategyYield: e.tradingFeesApr + e.farmingApr - (interestRate * 100),
-        tradingFeesApr: e.tradingFeesApr,
-        farmingApr: e.farmingApr,
-        interestRate: interestRate * 100,
-        debtMintingFee: iAsset.debtMintingFee,
-      ));
+      for (final collateralAsset in iAsset.collateralAssets) {
+        strategies.add((
+          title:
+              '${e.pair} (${collateralLabel(collateralAsset.collateralAsset)} Collateral)',
+          strategyYield:
+              e.tradingFeesApr + e.farmingApr - (collateralAsset.interestRate),
+          tradingFeesApr: e.tradingFeesApr,
+          farmingApr: e.farmingApr,
+          interestRate: collateralAsset.interestRate,
+          debtMintingFee: iAsset.debtMintingFee,
+        ));
+      }
     }
 
-    final result = strategies.sortedBy((a) => a.strategyYield).reversed.toList();
+    final result = strategies
+        .sortedBy((a) => a.strategyYield)
+        .reversed
+        .toList();
     _stablePoolCache = CachedResult(result);
     return result;
   }

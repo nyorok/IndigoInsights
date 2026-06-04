@@ -6,6 +6,7 @@ import 'package:indigo_insights/service_locator.dart';
 import 'package:indigo_insights/theme/app_color_scheme.dart';
 import 'package:indigo_insights/theme/app_text_styles.dart';
 import 'package:indigo_insights/utils/async_builder.dart';
+import 'package:indigo_insights/utils/formatters.dart';
 import 'package:indigo_insights/widgets/ii_card.dart';
 import 'package:indigo_insights/widgets/ii_disclaimer.dart';
 import 'package:indigo_insights/widgets/ii_top_bar.dart';
@@ -82,40 +83,46 @@ List<_StrategyRow> _buildRows(_OptimizerData data) {
   final rows = <_StrategyRow>[];
 
   for (final sp in data.spFarming) {
-    rows.add(_StrategyRow(
-      name: sp.title,
-      type: 'SP Farming',
-      grossApr: sp.poolYield,
-      interestCost: sp.interestRate,
-      netApr: sp.strategyYield,
-      riskLabel: 'Safe',
-      riskColor: const Color(0xFF00ACC1),
-    ));
+    rows.add(
+      _StrategyRow(
+        name: '${sp.title} (${collateralLabel(sp.collateralAsset)} Collateral)',
+        type: 'SP Farming',
+        grossApr: sp.poolYield,
+        interestCost: sp.interestRate,
+        netApr: sp.strategyYield,
+        riskLabel: 'Safer',
+        riskColor: const Color(0xFF00ACC1),
+      ),
+    );
   }
 
   for (final st in data.stablePool) {
-    rows.add(_StrategyRow(
-      name: st.title,
-      type: 'Stable Pool',
-      grossApr: st.tradingFeesApr + st.farmingApr,
-      interestCost: st.interestRate,
-      netApr: st.strategyYield,
-      riskLabel: 'Very Safe',
-      riskColor: const Color(0xFF00695C),
-    ));
+    rows.add(
+      _StrategyRow(
+        name: st.title,
+        type: 'Stable Pool',
+        grossApr: st.tradingFeesApr + st.farmingApr,
+        interestCost: st.interestRate,
+        netApr: st.strategyYield,
+        riskLabel: 'Safer',
+        riskColor: const Color(0xFF00ACC1),
+      ),
+    );
   }
 
   // Leverage rows: net APR is variable (depends on how borrowed capital is deployed)
   for (final lev in data.leverage) {
-    rows.add(_StrategyRow(
-      name: '${lev.asset} Leverage',
-      type: 'Leverage',
-      grossApr: 0,
-      interestCost: lev.interestRate,
-      netApr: 0,
-      riskLabel: 'Medium Risk',
-      riskColor: const Color(0xFFFBC02D),
-    ));
+    rows.add(
+      _StrategyRow(
+        name: '${lev.asset} Leverage',
+        type: 'Leverage',
+        grossApr: 0,
+        interestCost: lev.interestRate,
+        netApr: 0,
+        riskLabel: 'Riskier',
+        riskColor: const Color(0xFFFBC02D),
+      ),
+    );
   }
 
   // Sort descending by net APR; leverage rows (0) come after positive-yield rows
@@ -288,34 +295,46 @@ class _YieldComparisonTable extends StatelessWidget {
                 return DataRow(
                   cells: [
                     DataCell(Text(row.name)),
-                    DataCell(Text(
-                      row.type,
-                      style: TextStyle(color: colors.textSecondary),
-                    )),
-                    DataCell(Text(
-                      isLeverage ? '—' : '${row.grossApr.toStringAsFixed(2)}%',
-                    )),
-                    DataCell(Text(
-                      '${row.interestCost.toStringAsFixed(2)}%',
-                      style: TextStyle(color: colors.error),
-                    )),
-                    DataCell(Text(
-                      isLeverage
-                          ? 'Variable'
-                          : '${row.netApr.toStringAsFixed(2)}%',
-                      style: TextStyle(
-                        color: isLeverage
-                            ? colors.warning
-                            : row.netApr >= 0
-                                ? colors.success
-                                : colors.error,
-                        fontWeight: FontWeight.bold,
+                    DataCell(
+                      Text(
+                        row.type,
+                        style: TextStyle(color: colors.textSecondary),
                       ),
-                    )),
+                    ),
+                    DataCell(
+                      Text(
+                        isLeverage
+                            ? '—'
+                            : '${row.grossApr.toStringAsFixed(2)}%',
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '${row.interestCost.toStringAsFixed(2)}%',
+                        style: TextStyle(color: colors.error),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        isLeverage
+                            ? 'Depends on asset appreciation'
+                            : '${row.netApr.toStringAsFixed(2)}%',
+                        style: TextStyle(
+                          color: isLeverage
+                              ? colors.warning
+                              : row.netApr >= 0
+                              ? colors.success
+                              : colors.error,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                     DataCell(
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: row.riskColor.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(4),
@@ -361,38 +380,42 @@ class _TopStrategiesCard extends StatelessWidget {
             if (top.isEmpty)
               const Text('No positive-yield strategies available.')
             else
-              ...top.mapIndexed((i, row) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 11,
-                          backgroundColor:
-                              colors.success.withValues(alpha: 0.2),
-                          child: Text(
-                            '${i + 1}',
-                            style: styles.monoSm.copyWith(color: colors.success),
-                          ),
+              ...top.mapIndexed(
+                (i, row) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 11,
+                        backgroundColor: colors.success.withValues(alpha: 0.2),
+                        child: Text(
+                          '${i + 1}',
+                          style: styles.monoSm.copyWith(color: colors.success),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(row.name, style: styles.bodySm),
-                              Text(row.type,
-                                  style: styles.bodySm.copyWith(
-                                      color: colors.textSecondary)),
-                            ],
-                          ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(row.name, style: styles.bodySm),
+                            Text(
+                              row.type,
+                              style: styles.bodySm.copyWith(
+                                color: colors.textSecondary,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          '${row.netApr.toStringAsFixed(2)}%',
-                          style: styles.kpiValue.copyWith(color: colors.success),
-                        ),
-                      ],
-                    ),
-                  )),
+                      ),
+                      Text(
+                        '${row.netApr.toStringAsFixed(2)}%',
+                        style: styles.kpiValue.copyWith(color: colors.success),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       ),
