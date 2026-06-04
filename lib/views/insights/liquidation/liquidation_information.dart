@@ -85,7 +85,7 @@ class LiquidationInformation extends StatelessWidget {
                 liquidations
                     .map(
                       (c) =>
-                          (c.collateralAbsorbed * 0.98 - c.iAssetBurned * c.oraclePrice),
+                          (c.collateralAbsorbed * 0.98 - c.iAssetBurned * (c.oraclePrice ?? 0.0)),
                     )
                     .reduce((value, element) => value + element),
                 context,

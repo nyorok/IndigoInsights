@@ -1,7 +1,7 @@
 # Indigo Insights
 
 [![Deploy Web App to GitHub Pages](https://github.com/nyorok/IndigoInsights/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/nyorok/IndigoInsights/actions/workflows/deploy.yml)
-[![Flutter](https://img.shields.io/badge/Flutter-3.41.5-blue?logo=flutter)](https://flutter.dev)
+[![Flutter](https://img.shields.io/badge/Flutter-3.41.9-blue?logo=flutter)](https://flutter.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple)](LICENSE)
 
 > Protocol analytics dashboard for the [Indigo Protocol](https://indigoprotocol.io) community, built with Flutter — available as a **web app**, **Android APK**, and **PWA**.
@@ -48,7 +48,7 @@ Stability pool account distribution and unclaimed rewards visualised as pie char
 
 | Layer | Library |
 |---|---|
-| Framework | Flutter 3.41.5 / Dart 3.x |
+| Framework | Flutter 3.41.9 / Dart 3.x |
 | Routing | `go_router` — URL-based navigation with tab-level deep links (e.g. `/#/cdp-explorer?tab=iUSD`) |
 | State / DI | `get_it` — service locator + repository pattern |
 | Charts | `fl_chart` |
@@ -131,7 +131,7 @@ Every page and tab is directly addressable:
 ## Getting Started
 
 ### Prerequisites
-- Flutter `3.41.5` (or compatible `>=3.29.0`)
+- Flutter `3.41.9` (or compatible `>=3.29.0`)
 - Dart `>=3.11.0`
 
 ### Run locally

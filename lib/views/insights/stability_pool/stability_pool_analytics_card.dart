@@ -134,8 +134,10 @@ class _AnalyticsContent extends StatelessWidget {
         ),
         Divider(color: colors.border),
         infoRow(
-          'Unclaimed ADA',
-          '${numberAbbreviatedFormatter(totalUnclaimed, unclaimedAbbr)} ADA',
+          'Unclaimed Rewards',
+          totalUnclaimed > 0
+              ? '${numberAbbreviatedFormatter(totalUnclaimed, unclaimedAbbr)} ADA'
+              : '— (V3)',
           valueColor: colors.primary,
         ),
 

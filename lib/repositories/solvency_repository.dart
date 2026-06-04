@@ -44,12 +44,10 @@ class SolvencyRepository {
     double calculatePriceChangeToLiquidate(Cdp cdp) {
       final collateralInAsset = cdp.collateralAmount / assetPrice;
       final collateralRatio = collateralInAsset / cdp.mintedAmount;
-      final lr = indigoAsset.liquidationRatio / 100;
-      if (lr > collateralRatio) {
-        throw Exception(
-          'Liquidation ratio ($lr) is greater than collateral ratio ($collateralRatio)!',
-        );
-      }
+      final lrPct = indigoAsset.liquidationRatio;
+      if (lrPct == null) return 0; // V3: ratio lives on collateral pair
+      final lr = lrPct / 100;
+      if (lr > collateralRatio) return 0;
       return 1.00 - (lr / collateralRatio);
     }
 

@@ -23,9 +23,9 @@ class AdaFarmingStablePoolCard extends StatelessWidget {
   final double tradingFeesApr;
   final double farmingApr;
   final double interestRate;
-  final double redemptionMarginRatio;
-  final double maintenanceRatio;
-  final double liquidationRatio;
+  final double? redemptionMarginRatio;
+  final double? maintenanceRatio;
+  final double? liquidationRatio;
   final double debtMintingFee;
 
   @override
@@ -44,8 +44,8 @@ class AdaFarmingStablePoolCard extends StatelessWidget {
       ),
     );
 
-    calculatedAmount(double amount) => Text(
-      '${numberFormatter(amount, 2)}%',
+    calculatedAmount(double? amount) => Text(
+      amount != null ? '${numberFormatter(amount, 2)}%' : '—',
       style: styles.monoSm.copyWith(color: colors.textPrimary),
     );
 

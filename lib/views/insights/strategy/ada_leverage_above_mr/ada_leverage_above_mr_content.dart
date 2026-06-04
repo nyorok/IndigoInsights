@@ -26,7 +26,7 @@ class _AdaLeverageAboveMrContentState extends State<AdaLeverageAboveMrContent> {
     return AsyncBuilder(
       fetcher: () => sl<StrategyRepository>().getLeverageData(),
       builder: (leveragesData) {
-        final minCr = leveragesData.map((e) => e.mcr).min;
+        final minCr = leveragesData.map((e) => e.mcr).whereType<double>().minOrNull ?? 150.0;
         const maxCr = 500.0;
         _collateralRatio ??= minCr;
 
@@ -78,9 +78,9 @@ class _AdaLeverageAboveMrContentState extends State<AdaLeverageAboveMrContent> {
                             liquidationRatio: data.liquidationRatio,
                             assetPrice: data.assetPrice,
                             debtMintingFee: data.debtMintingFee,
-                            collateralRatio: (_collateralRatio ?? minCr) > data.mcr
+                            collateralRatio: (_collateralRatio ?? minCr) > (data.mcr ?? minCr)
                                 ? (_collateralRatio ?? minCr)
-                                : data.mcr,
+                                : (data.mcr ?? minCr),
                           )
                               .animate()
                               .slideX(duration: 300.ms, curve: Curves.easeInOut)

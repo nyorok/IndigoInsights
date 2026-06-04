@@ -117,7 +117,9 @@ class _SpTabViewState extends State<_SpTabView> {
     if (simulatedPrice.isInfinite) return false;
     final collateralInAsset = c.collateralAmount / simulatedPrice;
     final cr = collateralInAsset / c.mintedAmount;
-    return cr < asset.liquidationRatio / 100;
+    final lr = asset.liquidationRatio;
+    if (lr == null) return false;
+    return cr < lr / 100;
   }).toList();
 
   @override
@@ -469,7 +471,8 @@ class _HistoricalLiqStatsStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColorScheme.of(context);
-    final prices = liquidations.map((l) => l.oraclePrice).toList()..sort();
+    final prices = liquidations.map((l) => l.oraclePrice).whereType<double>().toList()..sort();
+    if (prices.isEmpty) return const SizedBox.shrink();
     final minPrice = prices.first;
     final maxPrice = prices.last;
     final avgPrice = prices.reduce((a, b) => a + b) / prices.length;

@@ -584,17 +584,17 @@ class _CdpsTableState extends State<_CdpsTable> {
   }
 
   double _liqPrice(Cdp cdp) {
-    if (cdp.mintedAmount <= 0) return 0;
-    return cdp.collateralAmount / (cdp.mintedAmount * (widget.asset.liquidationRatio / 100));
+    if (cdp.mintedAmount <= 0 || widget.asset.liquidationRatio == null) return 0;
+    return cdp.collateralAmount / (cdp.mintedAmount * (widget.asset.liquidationRatio! / 100));
   }
 
   Color _crColor(double cr, AppColorScheme colors) {
     final liq = widget.asset.liquidationRatio;
     final mcr = widget.asset.maintenanceRatio;
     final rmr = widget.asset.rmr;
-    if (cr < liq) return colors.error;
-    if (cr < mcr) return const Color(0xFFE64A19);
-    if (cr < rmr) return colors.warning;
+    if (liq != null && cr < liq) return colors.error;
+    if (mcr != null && cr < mcr) return const Color(0xFFE64A19);
+    if (rmr != null && cr < rmr) return colors.warning;
     if (cr < 200) return const Color(0xFF0288D1);
     return colors.success;
   }

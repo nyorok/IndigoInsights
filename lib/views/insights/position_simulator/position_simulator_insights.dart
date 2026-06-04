@@ -126,18 +126,18 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
   }
 
   double get _liqPrice {
-    if (_minted <= 0) return 0;
-    return _collateral / (_minted * (_asset.liquidationRatio / 100));
+    if (_minted <= 0 || _asset.liquidationRatio == null) return 0;
+    return _collateral / (_minted * (_asset.liquidationRatio! / 100));
   }
 
   double get _maintenancePrice {
-    if (_minted <= 0) return 0;
-    return _collateral / (_minted * (_asset.maintenanceRatio / 100));
+    if (_minted <= 0 || _asset.maintenanceRatio == null) return 0;
+    return _collateral / (_minted * (_asset.maintenanceRatio! / 100));
   }
 
   double get _rmrPrice {
-    if (_minted <= 0) return 0;
-    return _collateral / (_minted * (_asset.rmr / 100));
+    if (_minted <= 0 || _asset.rmr == null) return 0;
+    return _collateral / (_minted * (_asset.rmr! / 100));
   }
 
   double get _dropToLiq {
@@ -390,9 +390,9 @@ class _SectionCard extends StatelessWidget {
 
 class _GaugeContent extends StatelessWidget {
   final double cr;
-  final double liqRatio;
-  final double mcr;
-  final double rmr;
+  final double? liqRatio;
+  final double? mcr;
+  final double? rmr;
 
   const _GaugeContent({
     required this.cr,
@@ -407,17 +407,17 @@ class _GaugeContent extends StatelessWidget {
     final styles = AppTextStyles.of(context);
 
     Color zoneColor() {
-      if (cr < liqRatio + 10) return colors.error;
-      if (cr < mcr) return colors.warning;
-      if (cr < rmr) return colors.warning;
+      if (liqRatio != null && cr < liqRatio! + 10) return colors.error;
+      if (mcr != null && cr < mcr!) return colors.warning;
+      if (rmr != null && cr < rmr!) return colors.warning;
       if (cr < 200) return colors.success;
       return colors.success;
     }
 
     String zoneLabel() {
-      if (cr < liqRatio + 10) return 'CRITICAL — Near Liquidation';
-      if (cr < mcr) return 'DANGER — Below MCR';
-      if (cr < rmr) return 'CAUTION — Below RMR';
+      if (liqRatio != null && cr < liqRatio! + 10) return 'CRITICAL — Near Liquidation';
+      if (mcr != null && cr < mcr!) return 'DANGER — Below MCR';
+      if (rmr != null && cr < rmr!) return 'CAUTION — Below RMR';
       if (cr < 200) return 'MODERATE — Safe';
       return 'HEALTHY — Well Collateralized';
     }
@@ -456,9 +456,12 @@ class _GaugeContent extends StatelessWidget {
           ),
         ),
         const Divider(height: 20),
-        _ThresholdRow('Liquidation (LR)', liqRatio, colors.error),
-        _ThresholdRow('Maintenance (MCR)', mcr, colors.warning),
-        _ThresholdRow('Redemption (RMR)', rmr, colors.warning),
+        if (liqRatio != null) _ThresholdRow('Liquidation (LR)', liqRatio!, colors.error)
+        else _ThresholdRowNA('Liquidation (LR)', colors.textMuted),
+        if (mcr != null) _ThresholdRow('Maintenance (MCR)', mcr!, colors.warning)
+        else _ThresholdRowNA('Maintenance (MCR)', colors.textMuted),
+        if (rmr != null) _ThresholdRow('Redemption (RMR)', rmr!, colors.warning)
+        else _ThresholdRowNA('Redemption (RMR)', colors.textMuted),
       ],
     );
   }
@@ -507,18 +510,20 @@ class _ScenarioTable extends StatelessWidget {
             cr = (collateral / simPrice / minted) * 100;
           }
           final liq = asset.liquidationRatio;
-          final status = cr < liq
+          final mcr = asset.maintenanceRatio;
+          final rmr = asset.rmr;
+          final status = (liq != null && cr < liq)
               ? 'LIQUIDATED'
-              : cr < asset.maintenanceRatio
+              : (mcr != null && cr < mcr)
               ? 'Below MCR'
-              : cr < asset.rmr
+              : (rmr != null && cr < rmr)
               ? 'Below RMR'
               : 'Safe';
-          final statusColor = cr < liq
+          final statusColor = (liq != null && cr < liq)
               ? colors.error
-              : cr < asset.maintenanceRatio
+              : (mcr != null && cr < mcr)
               ? colors.warning
-              : cr < asset.rmr
+              : (rmr != null && cr < rmr)
               ? colors.warning
               : colors.success;
           return DataRow(
@@ -679,6 +684,27 @@ class _MetricRow extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThresholdRowNA extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _ThresholdRowNA(this.label, this.color);
+
+  @override
+  Widget build(BuildContext context) {
+    final styles = AppTextStyles.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: styles.bodySm.copyWith(color: color)),
+          Text('—', style: styles.monoSm.copyWith(color: color)),
         ],
       ),
     );

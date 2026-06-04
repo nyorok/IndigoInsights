@@ -15,9 +15,9 @@ import 'package:indigo_insights/utils/cached_result.dart';
 typedef LeverageData = ({
   String asset,
   double interestRate,
-  double rmr,
-  double mcr,
-  double liquidationRatio,
+  double? rmr,
+  double? mcr,
+  double? liquidationRatio,
   double assetPrice,
   double debtMintingFee,
 });
@@ -27,9 +27,9 @@ typedef StabilityPoolStrategyData = ({
   double strategyYield,
   double poolYield,
   double interestRate,
-  double rmr,
-  double mcr,
-  double liquidationRatio,
+  double? rmr,
+  double? mcr,
+  double? liquidationRatio,
   double debtMintingFee,
 });
 
@@ -39,9 +39,9 @@ typedef StablePoolStrategyData = ({
   double tradingFeesApr,
   double farmingApr,
   double interestRate,
-  double rmr,
-  double mcr,
-  double liquidationRatio,
+  double? rmr,
+  double? mcr,
+  double? liquidationRatio,
   double debtMintingFee,
 });
 
@@ -61,12 +61,21 @@ Map<String, AssetInterestRate> _buildInterestRateMap(
 ) {
   final Map<String, AssetInterestRate> map = {};
   for (final ir in rates) {
-    if (!map.containsKey(ir.asset) || map[ir.asset]!.slot < ir.slot) {
+    // Prefer the ADA-collateral (global) rate when multiple collaterals exist
+    if (!map.containsKey(ir.asset) ||
+        (ir.collateralAsset.isEmpty && map[ir.asset]!.collateralAsset.isNotEmpty) ||
+        (ir.collateralAsset == map[ir.asset]!.collateralAsset &&
+            map[ir.asset]!.slot < ir.slot)) {
       map[ir.asset] = ir;
     }
   }
   return map;
 }
+
+// Returns the global price for an asset (collateral_asset == "").
+double? _globalPrice(List<AssetPrice> prices, String asset) =>
+    prices.firstWhereOrNull((p) => p.asset == asset && p.collateralAsset.isEmpty)?.price ??
+    prices.firstWhereOrNull((p) => p.asset == asset)?.price;
 
 class StrategyRepository {
   static const _ttl = Duration(minutes: 5);
@@ -92,7 +101,6 @@ class StrategyRepository {
   );
 
   /// Shared data for all 3 leverage strategies (above RMR, above MCR, double above MCR).
-  /// The UI pages differ only in their card rendering and which ratio they highlight.
   Future<List<LeverageData>> getLeverageData() async {
     if (_leverageCache != null && _leverageCache!.isValid(_ttl)) {
       return _leverageCache!.value;
@@ -113,9 +121,7 @@ class StrategyRepository {
 
     for (final iAsset in indigoAssets) {
       final interestRate = irMap[iAsset.asset]?.interestRate ?? 0.0;
-      final currentAssetPrice = assetPrices
-          .firstWhere((ap) => ap.asset == iAsset.asset)
-          .price;
+      final price = _globalPrice(assetPrices, iAsset.asset) ?? 0.0;
 
       leverages.add((
         asset: iAsset.asset,
@@ -123,7 +129,7 @@ class StrategyRepository {
         rmr: iAsset.rmr,
         mcr: iAsset.maintenanceRatio,
         liquidationRatio: iAsset.liquidationRatio,
-        assetPrice: currentAssetPrice,
+        assetPrice: price,
         debtMintingFee: iAsset.debtMintingFee,
       ));
     }
@@ -159,10 +165,11 @@ class StrategyRepository {
       final asset = sp.asset;
       final spTotal = sp.totalAmount;
       final iAsset = indigoAssets.firstWhere((ia) => ia.asset == asset);
-      final aprice = assetPrices.firstWhere((ap) => ap.asset == asset).price;
+      final aprice = _globalPrice(assetPrices, asset) ?? 1.0;
 
-      final stabilityPoolApr =
-          (_incentivesPerYear(asset) * indyPrice) / (spTotal * aprice);
+      final stabilityPoolApr = spTotal > 0
+          ? (_incentivesPerYear(asset) * indyPrice) / (spTotal * aprice)
+          : 0.0;
       final interestRate = irMap[asset]?.interestRate ?? 0.0;
 
       strategies.add((

@@ -19,9 +19,9 @@ class AdaLeverageAboveMrCard extends StatelessWidget {
 
   final String asset;
   final double interestRate;
-  final double redemptionMarginRatio;
-  final double maintenanceRatio;
-  final double liquidationRatio;
+  final double? redemptionMarginRatio;
+  final double? maintenanceRatio;
+  final double? liquidationRatio;
   final double assetPrice;
   final double debtMintingFee;
   final double collateralRatio;
@@ -42,15 +42,17 @@ class AdaLeverageAboveMrCard extends StatelessWidget {
       ),
     );
 
-    calculatedAmount(double amount) => Text(
-      '${numberFormatter(amount, 2)}%',
+    calculatedAmount(double? amount) => Text(
+      amount != null ? '${numberFormatter(amount, 2)}%' : '—',
       style: styles.monoSm.copyWith(color: colors.textPrimary),
     );
 
     final cr = collateralRatio / 100;
     final leverage = 1 + 1 / cr;
     final liquidationLoss = -(1 - 1 / cr) * 100;
-    final priceDropToLiquidation = (1 - (liquidationRatio / collateralRatio)) * 100;
+    final priceDropToLiquidation = liquidationRatio != null
+        ? (1 - (liquidationRatio! / collateralRatio)) * 100
+        : null;
 
     return Card(
       child: Padding(
@@ -77,7 +79,9 @@ class AdaLeverageAboveMrCard extends StatelessWidget {
             informationRow(
               'Liquidation Price Drop',
               Text(
-                '-${numberFormatter(priceDropToLiquidation, 2)}%',
+                priceDropToLiquidation != null
+                    ? '-${numberFormatter(priceDropToLiquidation, 2)}%'
+                    : '—',
                 style: styles.monoSm.copyWith(color: colors.error, fontWeight: FontWeight.bold),
               ),
             ),

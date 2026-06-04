@@ -71,7 +71,7 @@ class RedeemableOverRmrsChart extends StatelessWidget {
       }),
       builder: (data) {
         return PercentageAmountChart(
-          title: 'Redeemable over RMRs (${indigoAsset.rmr}%)',
+          title: 'Redeemable over RMRs${indigoAsset.rmr != null ? ' (${indigoAsset.rmr}%)' : ''}',
           currency: indigoAsset.asset,
           labels: [indigoAsset.asset],
           mintedSupply: data.cdps.map((e) => e.mintedAmount).sum,
