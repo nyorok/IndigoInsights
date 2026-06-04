@@ -4,20 +4,22 @@ import 'package:indigo_insights/theme/app_color_scheme.dart';
 // ── iAsset colour helpers ─────────────────────────────────────────────────────
 
 Color getColorByAsset(String asset) => switch (asset) {
-      'iUSD' => const Color(0xFF70D150),
-      'iBTC' => const Color(0xFFFF9416),
-      'iETH' => Colors.white,
-      'iSOL' => const Color(0xFF9945FF),
-      _ => const Color(0xFF9945FF),
-    };
+  'iUSD' => const Color(0xFF70D150),
+  'iBTC' => const Color(0xFFFF9416),
+  'iETH' => Colors.white,
+  'iSOL' => const Color(0xFF9945FF),
+  'iJPY' => const Color(0xFFf56872),
+  'iEUR' => const Color(0xFF043dd3),
+  _ => const Color(0xFF9945FF),
+};
 
 LinearGradient getGradientByAsset(String asset) => switch (asset) {
-      'iUSD' => usdTransparentGradient,
-      'iBTC' => btcTransparentGradient,
-      'iETH' => ethTransparentGradient,
-      'iSOL' => solTransparentGradient,
-      _ => solTransparentGradient,
-    };
+  'iUSD' => usdTransparentGradient,
+  'iBTC' => btcTransparentGradient,
+  'iETH' => ethTransparentGradient,
+  'iSOL' => solTransparentGradient,
+  _ => solTransparentGradient,
+};
 
 // ── Sidebar / nav active state ────────────────────────────────────────────────
 
@@ -33,10 +35,10 @@ const accentSelectionGradient = LinearGradient(
 /// Returns the purple gradient used for Accent Panel cards (e.g. 24h Activity).
 /// Call this inside build() so it can access the theme if needed.
 LinearGradient accentPanelGradient() => const LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [Color(0x229945FF), Color(0x159945FF)],
-    );
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+  colors: [Color(0x229945FF), Color(0x159945FF)],
+);
 
 /// Returns a subtle tinted gradient for a given iAsset card background.
 LinearGradient assetCardGradient(String asset) {
@@ -129,8 +131,8 @@ const greenBlueGradient = LinearGradient(
 /// A 4-stop gradient from safe (green) → danger (red) for solvency charts.
 /// Pass stops from the [AppColorScheme] for theme consistency.
 LinearGradient solvencyGradient(AppColorScheme colors) => LinearGradient(
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-      stops: const [0, 0.4, 0.7, 1],
-      colors: [colors.success, colors.warning, colors.warning, colors.error],
-    );
+  begin: Alignment.centerLeft,
+  end: Alignment.centerRight,
+  stops: const [0, 0.4, 0.7, 1],
+  colors: [colors.success, colors.warning, colors.warning, colors.error],
+);

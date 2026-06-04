@@ -1,7 +1,7 @@
 # Indigo Insights
 
 [![Deploy Web App to GitHub Pages](https://github.com/nyorok/IndigoInsights/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/nyorok/IndigoInsights/actions/workflows/deploy.yml)
-[![Flutter](https://img.shields.io/badge/Flutter-3.41.9-blue?logo=flutter)](https://flutter.dev)
+[![Flutter](https://img.shields.io/badge/Flutter-3.44.1-blue?logo=flutter)](https://flutter.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple)](LICENSE)
 
 > Protocol analytics dashboard for the [Indigo Protocol](https://indigoprotocol.io) community, built with Flutter — available as a **web app**, **Android APK**, and **PWA**.
@@ -13,49 +13,59 @@
 ## Features
 
 ### 📊 Protocol Dashboard
+
 Real-time overview of Total Value Locked, iAsset market caps, active CDPs, and INDY price with a 24-hour activity feed.
 
 ### 🔍 CDP Explorer
+
 Browse and filter all Collateralised Debt Positions by size tier (Whale › Shrimp). Visualise CR distribution across the protocol with a live data table.
 
 ### ⚡ Liquidation Analytics
+
 Cumulative liquidation chart, size distribution, frequency analysis, and historical liquidation price levels.
 
 ### 🔄 Redemption Analytics
+
 Redeemable amounts across RMR thresholds, fee breakdown, and average redemption size over time.
 
 ### 🏦 Stability Pool
+
 Solvency chart, analytics card, liquidation scenario simulator (drag ADA price to stress-test), top endangered CDPs with copy-to-clipboard, and historical liquidation price statistics.
 
 ### 💰 INDY Staking
+
 Governance rewards, staking velocity, staking history, and KPI strip with delta tracking.
 
 ### 📈 Yield Optimizer
+
 Side-by-side yield comparison table across strategies with top yield strategies highlighted.
 
 ### 🎯 Strategy Guide
+
 Five detailed strategies (ADA Leverage above RMR/MR, ADA Double Leverage, ADA Farming Stability/Stable Pool) with risk labels, expandable descriptions, and step-by-step content.
 
 ### 🧮 Position Simulator
+
 Enter collateral and minted amounts to get: current CR, liquidation/maintenance/RMR prices, drop-to-liquidation %, safety gauge, price scenario table, and interest cost projection.
 
 ### 🏛 SP Account
+
 Stability pool account distribution and unclaimed rewards visualised as pie charts.
 
 ---
 
 ## Tech Stack
 
-| Layer | Library |
-|---|---|
-| Framework | Flutter 3.41.9 / Dart 3.x |
-| Routing | `go_router` — URL-based navigation with tab-level deep links (e.g. `/#/cdp-explorer?tab=iUSD`) |
-| State / DI | `get_it` — service locator + repository pattern |
-| Charts | `fl_chart` |
-| Animations | `flutter_animate` |
-| Fonts | `google_fonts` — Outfit + JetBrains Mono |
-| HTTP | `http` |
-| Theme | Custom `ThemeExtension<T>` design token system (`AppColorScheme`, `AppTextStyles`) |
+| Layer      | Library                                                                                        |
+| ---------- | ---------------------------------------------------------------------------------------------- |
+| Framework  | Flutter 3.44.1 / Dart 3.x                                                                      |
+| Routing    | `go_router` — URL-based navigation with tab-level deep links (e.g. `/#/cdp-explorer?tab=iUSD`) |
+| State / DI | `get_it` — service locator + repository pattern                                                |
+| Charts     | `fl_chart`                                                                                     |
+| Animations | `flutter_animate`                                                                              |
+| Fonts      | `google_fonts` — Outfit + JetBrains Mono                                                       |
+| HTTP       | `http`                                                                                         |
+| Theme      | Custom `ThemeExtension<T>` design token system (`AppColorScheme`, `AppTextStyles`)             |
 
 ---
 
@@ -100,10 +110,10 @@ lib/
 
 The app uses a **700 px breakpoint** throughout:
 
-| Breakpoint | Layout |
-|---|---|
-| ≥ 700 px (desktop) | Persistent sidebar · side-by-side cards · horizontal KPI strip |
-| < 700 px (mobile) | Hamburger drawer · stacked cards · vertical KPI strip · compact tabs |
+| Breakpoint         | Layout                                                               |
+| ------------------ | -------------------------------------------------------------------- |
+| ≥ 700 px (desktop) | Persistent sidebar · side-by-side cards · horizontal KPI strip       |
+| < 700 px (mobile)  | Hamburger drawer · stacked cards · vertical KPI strip · compact tabs |
 
 PWA install is surfaced as an **"Install App"** button in the top bar on mobile, and as a slide-up banner on desktop.
 
@@ -113,25 +123,26 @@ PWA install is surfaced as an **"Install App"** button in the top bar on mobile,
 
 Every page and tab is directly addressable:
 
-| Route | Page |
-|---|---|
-| `/#/dashboard` | Protocol Dashboard |
-| `/#/cdp-explorer?tab=iUSD` | CDP Explorer — iUSD tab |
-| `/#/liquidation?tab=iBTC` | Liquidation — iBTC tab |
-| `/#/redemption?tab=iETH` | Redemption — iETH tab |
+| Route                        | Page                      |
+| ---------------------------- | ------------------------- |
+| `/#/dashboard`               | Protocol Dashboard        |
+| `/#/cdp-explorer?tab=iUSD`   | CDP Explorer — iUSD tab   |
+| `/#/liquidation?tab=iBTC`    | Liquidation — iBTC tab    |
+| `/#/redemption?tab=iETH`     | Redemption — iETH tab     |
 | `/#/stability-pool?tab=iSOL` | Stability Pool — iSOL tab |
-| `/#/indy-staking` | INDY Staking |
-| `/#/yield-optimizer` | Yield Optimizer |
-| `/#/strategy` | Strategy Guide |
-| `/#/position-simulator` | Position Simulator |
-| `/#/sp-account` | SP Account |
+| `/#/indy-staking`            | INDY Staking              |
+| `/#/yield-optimizer`         | Yield Optimizer           |
+| `/#/strategy`                | Strategy Guide            |
+| `/#/position-simulator`      | Position Simulator        |
+| `/#/sp-account`              | SP Account                |
 
 ---
 
 ## Getting Started
 
 ### Prerequisites
-- Flutter `3.41.9` (or compatible `>=3.29.0`)
+
+- Flutter `3.44.1` (or compatible `>=3.29.0`)
 - Dart `>=3.11.0`
 
 ### Run locally
@@ -180,4 +191,4 @@ This application is for **educational and informational purposes only** and does
 
 ---
 
-*Built with ❤️ for the Indigo community by PWG.*
+_Built with ❤️ for the Indigo community by PWG._
