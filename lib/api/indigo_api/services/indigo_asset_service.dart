@@ -3,6 +3,6 @@ import 'package:indigo_insights/models/indigo_asset.dart';
 
 class IndigoAssetService extends IndigoApi {
   Future<List<IndigoAsset>> fetchIndigoAssets() {
-    return getAll<IndigoAsset>('/api/assets', IndigoAsset.fromJson);
+    return getAll<IndigoAsset>('/api/v3/assets', IndigoAsset.fromJson);
   }
 }

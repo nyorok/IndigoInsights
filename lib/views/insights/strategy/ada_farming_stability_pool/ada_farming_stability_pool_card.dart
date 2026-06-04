@@ -8,28 +8,27 @@ class AdaFarmingStabilityPoolCard extends StatelessWidget {
   const AdaFarmingStabilityPoolCard({
     super.key,
     required this.title,
+    required this.collateralAsset,
     required this.strategyYield,
     required this.poolYield,
     required this.interestRate,
-    required this.redemptionMarginRatio,
-    required this.maintenanceRatio,
-    required this.liquidationRatio,
+    required this.assetPrice,
     required this.debtMintingFee,
   });
 
   final String title;
+  final String collateralAsset;
   final double strategyYield;
   final double poolYield;
   final double interestRate;
-  final double? redemptionMarginRatio;
-  final double? maintenanceRatio;
-  final double? liquidationRatio;
+  final double assetPrice;
   final double debtMintingFee;
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColorScheme.of(context);
     final styles = AppTextStyles.of(context);
+    final collateral = collateralLabel(collateralAsset);
 
     informationRow(String label, Widget info) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -42,9 +41,12 @@ class AdaFarmingStabilityPoolCard extends StatelessWidget {
       ),
     );
 
-    calculatedAmount(double? amount) => Text(
-      amount != null ? '${numberFormatter(amount, 2)}%' : '—',
-      style: styles.monoSm.copyWith(color: colors.textPrimary),
+    valueText(String v, {Color? color, FontWeight? weight}) => Text(
+      v,
+      style: styles.monoSm.copyWith(
+        color: color ?? colors.textPrimary,
+        fontWeight: weight ?? FontWeight.w600,
+      ),
     );
 
     return Card(
@@ -56,15 +58,12 @@ class AdaFarmingStabilityPoolCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('$title SP', style: styles.cardTitle),
+                Text('$title SP ($collateral Collateral)', style: styles.cardTitle),
                 AnimatedGradientText(
                   '${numberFormatter(strategyYield, 2)}%',
                   gradientColors: strategyYield > 0
                       ? [const Color(0xFFa500e1), const Color(0xFF3f83f8)]
-                      : [
-                          const Color(0xFFa500e1),
-                          colors.error,
-                        ],
+                      : [const Color(0xFFa500e1), colors.error],
                   style: styles.kpiValue.copyWith(fontSize: 18),
                 ),
               ],
@@ -72,29 +71,22 @@ class AdaFarmingStabilityPoolCard extends StatelessWidget {
             const SizedBox(height: 12),
             informationRow(
               'Stability Pool APR',
-              Text(
-                '${numberFormatter(poolYield, 2)}%',
-                style: styles.monoSm.copyWith(
-                  color: colors.success,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              valueText('${numberFormatter(poolYield, 2)}%', color: colors.success),
             ),
             informationRow(
               'CDP Interest Rate',
-              Text(
-                '${numberFormatter(interestRate, 2)}%',
-                style: styles.monoSm.copyWith(
-                  color: colors.warning,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              valueText('${numberFormatter(interestRate, 2)}%', color: colors.warning),
             ),
             Divider(color: colors.border, height: 16),
-            informationRow('Redemption Margin Ratio', calculatedAmount(redemptionMarginRatio)),
-            informationRow('Maintenance Ratio', calculatedAmount(maintenanceRatio)),
-            informationRow('Liquidation Ratio', calculatedAmount(liquidationRatio)),
-            informationRow('Minting Fee', calculatedAmount(debtMintingFee)),
+            informationRow('Collateral', valueText(collateral)),
+            informationRow(
+              'Price',
+              valueText('${numberFormatter(assetPrice, 4)} $collateral'),
+            ),
+            informationRow(
+              'Minting Fee',
+              valueText('${numberFormatter(debtMintingFee, 2)}%'),
+            ),
           ],
         ),
       ),

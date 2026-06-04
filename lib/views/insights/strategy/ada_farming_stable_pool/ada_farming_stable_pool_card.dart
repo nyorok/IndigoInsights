@@ -12,9 +12,6 @@ class AdaFarmingStablePoolCard extends StatelessWidget {
     required this.tradingFeesApr,
     required this.farmingApr,
     required this.interestRate,
-    required this.redemptionMarginRatio,
-    required this.maintenanceRatio,
-    required this.liquidationRatio,
     required this.debtMintingFee,
   });
 
@@ -23,9 +20,6 @@ class AdaFarmingStablePoolCard extends StatelessWidget {
   final double tradingFeesApr;
   final double farmingApr;
   final double interestRate;
-  final double? redemptionMarginRatio;
-  final double? maintenanceRatio;
-  final double? liquidationRatio;
   final double debtMintingFee;
 
   @override
@@ -42,11 +36,6 @@ class AdaFarmingStablePoolCard extends StatelessWidget {
           info,
         ],
       ),
-    );
-
-    calculatedAmount(double? amount) => Text(
-      amount != null ? '${numberFormatter(amount, 2)}%' : '—',
-      style: styles.monoSm.copyWith(color: colors.textPrimary),
     );
 
     return Card(
@@ -91,10 +80,13 @@ class AdaFarmingStablePoolCard extends StatelessWidget {
               ),
             ),
             Divider(color: colors.border, height: 16),
-            informationRow('Redemption Margin Ratio', calculatedAmount(redemptionMarginRatio)),
-            informationRow('Maintenance Ratio', calculatedAmount(maintenanceRatio)),
-            informationRow('Liquidation Ratio', calculatedAmount(liquidationRatio)),
-            informationRow('Minting Fee', calculatedAmount(debtMintingFee)),
+            informationRow(
+              'Minting Fee',
+              Text(
+                '${numberFormatter(debtMintingFee, 2)}%',
+                style: styles.monoSm.copyWith(color: colors.textPrimary, fontWeight: FontWeight.w600),
+              ),
+            ),
           ],
         ),
       ),

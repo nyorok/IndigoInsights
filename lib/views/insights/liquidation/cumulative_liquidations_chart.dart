@@ -17,6 +17,8 @@ class CumulativeLiquidationsChart extends StatelessWidget {
     final liquidations = data.where((l) => l.asset == indigoAsset.asset).toList()
       ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
+    if (liquidations.isEmpty) return [];
+
     double cumulativeSum = 0.0;
     final liqData = liquidations
         .groupFoldBy<DateTime, double>(
@@ -46,6 +48,12 @@ class CumulativeLiquidationsChart extends StatelessWidget {
       fetcher: () => sl<LiquidationRepository>().getLiquidations(),
       builder: (liquidations) {
         liquidations.sortBy((l) => l.createdAt);
+
+        final assetData = _getCumulativeLiquidationsData(liquidations);
+        if (assetData.isEmpty || liquidations.isEmpty) {
+          return const Center(child: Text('No liquidations recorded for this asset.'));
+        }
+
         final startDate = liquidations.first.createdAt.add(const Duration(days: -1));
         final endDate = liquidations.last.createdAt.add(const Duration(days: -1));
 
@@ -53,13 +61,7 @@ class CumulativeLiquidationsChart extends StatelessWidget {
           title: 'Cumulative Liquidations',
           currency: 'ADA',
           labels: [indigoAsset.asset],
-          data: [
-            normalizeAmountDateData(
-              _getCumulativeLiquidationsData(liquidations),
-              startDate,
-              endDate,
-            ),
-          ],
+          data: [normalizeAmountDateData(assetData, startDate, endDate)],
           colors: [getColorByAsset(indigoAsset.asset)],
           gradients: [getGradientByAsset(indigoAsset.asset)],
         );

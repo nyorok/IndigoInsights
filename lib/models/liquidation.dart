@@ -32,7 +32,7 @@ class Liquidation {
   double get adaPrice => collateralUsdPrice;
 
   factory Liquidation.fromJson(Map<String, dynamic> json) {
-    double _parseUsdPrice() {
+    double parseUsdPrice() {
       final v3 = json['collateral_asset_usd_price'];
       if (v3 != null) return (v3 as num).toDouble();
       // V2 fallback
@@ -41,21 +41,21 @@ class Liquidation {
       return 0.0;
     }
 
-    double? _parseOraclePrice() {
+    double? parseOraclePrice() {
       final v = json['oracle_price'];
       if (v == null) return null;
       return double.parse(v as String);
     }
 
     return Liquidation(
-      collateralUsdPrice: _parseUsdPrice(),
+      collateralUsdPrice: parseUsdPrice(),
       asset: json['asset'] as String,
       collateralAsset: (json['collateral_asset'] as String?) ?? '',
       collateralAbsorbed: (json['collateral_absorbed'] as num) / 1000000,
       createdAt: DateTime.parse(json['created_at'] as String),
       iAssetBurned: (json['iasset_burned'] as num) / 1000000,
       id: json['id'] as int,
-      oraclePrice: _parseOraclePrice(),
+      oraclePrice: parseOraclePrice(),
       outputHash: (json['output_hash'] as String?) ?? '',
       outputIndex: (json['output_index'] as int?) ?? 0,
       slot: json['slot'] as int,

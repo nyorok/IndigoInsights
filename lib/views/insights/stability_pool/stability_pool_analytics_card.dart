@@ -79,15 +79,7 @@ class _AnalyticsContent extends StatelessWidget {
     final top10Sum = balances.take(10).fold(0.0, (s, b) => s + b);
     final top10Pct = totalSp > 0 ? (top10Sum / totalSp) * 100 : 0.0;
 
-    double totalUnclaimed = 0;
-    for (final a in accounts) {
-      try {
-        totalUnclaimed += pool.getAccountUnclaimedRewards(a);
-      } catch (_) {}
-    }
-
     final abbr = getAbbreviation(totalSp);
-    final unclaimedAbbr = getAbbreviation(totalUnclaimed);
 
     infoRow(String title, String value, {Color? valueColor}) =>
         Padding(
@@ -132,15 +124,6 @@ class _AnalyticsContent extends StatelessWidget {
           '${top10Pct.toStringAsFixed(1)}%',
           valueColor: top10Pct > 50 ? colors.warning : colors.success,
         ),
-        Divider(color: colors.border),
-        infoRow(
-          'Unclaimed Rewards',
-          totalUnclaimed > 0
-              ? '${numberAbbreviatedFormatter(totalUnclaimed, unclaimedAbbr)} ADA'
-              : '— (V3)',
-          valueColor: colors.primary,
-        ),
-
         if (balances.isNotEmpty) ...[
           const SizedBox(height: 14),
           Text(

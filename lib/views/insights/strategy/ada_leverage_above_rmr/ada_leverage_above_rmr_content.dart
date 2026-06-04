@@ -73,15 +73,11 @@ class _AdaLeverageAboveRmrContentState
                           width: itemWidth,
                           child: AdaLeverageAboveRmrCard(
                             asset: data.asset,
+                            collateralAsset: data.collateralAsset,
                             interestRate: data.interestRate,
-                            redemptionMarginRatio: data.rmr,
-                            maintenanceRatio: data.mcr,
-                            liquidationRatio: data.liquidationRatio,
                             assetPrice: data.assetPrice,
                             debtMintingFee: data.debtMintingFee,
-                            collateralRatio: (_collateralRatio ?? minCr) > (data.rmr ?? minCr)
-                                ? (_collateralRatio ?? minCr)
-                                : (data.rmr ?? minCr),
+                            collateralRatio: _collateralRatio ?? minCr,
                           )
                               .animate()
                               .slideX(duration: 300.ms, curve: Curves.easeInOut)

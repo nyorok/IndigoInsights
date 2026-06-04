@@ -53,9 +53,6 @@ class StablePoolFarmingStrategyContent extends StatelessWidget {
                           tradingFeesApr: strategyData.tradingFeesApr,
                           farmingApr: strategyData.farmingApr,
                           interestRate: strategyData.interestRate,
-                          redemptionMarginRatio: strategyData.rmr,
-                          maintenanceRatio: strategyData.mcr,
-                          liquidationRatio: strategyData.liquidationRatio,
                           debtMintingFee: strategyData.debtMintingFee,
                         )
                             .animate()

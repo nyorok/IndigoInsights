@@ -31,12 +31,20 @@ typedef _CdpExplorerData = ({
 enum _CdpTier { whale, shark, dolphin, fish, shrimp }
 
 extension _CdpTierX on _CdpTier {
-  String get label => switch (this) {
-        _CdpTier.whale => 'Whale\n>1M ADA',
-        _CdpTier.shark => 'Shark\n100k–1M',
-        _CdpTier.dolphin => 'Dolphin\n10k–100k',
-        _CdpTier.fish => 'Fish\n100–10k',
-        _CdpTier.shrimp => 'Shrimp\n<100 ADA',
+  String get tierName => switch (this) {
+        _CdpTier.whale => 'Whale',
+        _CdpTier.shark => 'Shark',
+        _CdpTier.dolphin => 'Dolphin',
+        _CdpTier.fish => 'Fish',
+        _CdpTier.shrimp => 'Shrimp',
+      };
+
+  String get range => switch (this) {
+        _CdpTier.whale => '>1M',
+        _CdpTier.shark => '100k–1M',
+        _CdpTier.dolphin => '10k–100k',
+        _CdpTier.fish => '100–10k',
+        _CdpTier.shrimp => '<100',
       };
 
   bool matches(Cdp cdp) => switch (this) {
@@ -78,7 +86,8 @@ class CdpExplorerInsights extends StatelessWidget {
                 assets: results[2] as List<IndigoAsset>,
               );
             },
-            builder: (data) => _CdpExplorerContent(data: data, initialTab: initialTab),
+            builder: (data) =>
+                _CdpExplorerContent(data: data, initialTab: initialTab),
             errorBuilder: (error, retry) =>
                 Center(child: Text(error.toString())),
           ),
@@ -109,20 +118,18 @@ class _CdpExplorerContentState extends State<_CdpExplorerContent>
     super.initState();
     _sortedAssets = [...widget.data.assets];
     _sortedAssets.sort((a, b) {
+      final aPrice =
+          widget.data.prices.firstWhereOrNull((p) => p.asset == a.asset)?.price ?? 0.0;
+      final bPrice =
+          widget.data.prices.firstWhereOrNull((p) => p.asset == b.asset)?.price ?? 0.0;
       final aTotal = widget.data.cdps
               .where((c) => c.asset == a.asset)
               .fold(0.0, (s, c) => s + c.mintedAmount) *
-          (widget.data.prices
-                  .firstWhereOrNull((p) => p.asset == a.asset)
-                  ?.price ??
-              0.0);
+          aPrice;
       final bTotal = widget.data.cdps
               .where((c) => c.asset == b.asset)
               .fold(0.0, (s, c) => s + c.mintedAmount) *
-          (widget.data.prices
-                  .firstWhereOrNull((p) => p.asset == b.asset)
-                  ?.price ??
-              0.0);
+          bPrice;
       return bTotal.compareTo(aTotal);
     });
     int initialIndex = 0;
@@ -161,17 +168,17 @@ class _CdpExplorerContentState extends State<_CdpExplorerContent>
               child: TabBarView(
                 controller: _tabController,
                 children: _sortedAssets.map((asset) {
-                  final price = widget.data.prices
-                          .firstWhereOrNull((p) => p.asset == asset.asset)
-                          ?.price ??
-                      1.0;
+                  final priceByCollateral = <String, double>{
+                    for (final p in widget.data.prices.where((p) => p.asset == asset.asset))
+                      p.collateralAsset: p.price,
+                  };
                   final assetCdps = widget.data.cdps
                       .where((c) => c.asset == asset.asset)
                       .toList();
                   return _AssetCdpTab(
                     asset: asset,
                     cdps: assetCdps,
-                    assetPriceAda: price,
+                    priceByCollateral: priceByCollateral,
                   );
                 }).toList(),
               ),
@@ -188,12 +195,12 @@ class _CdpExplorerContentState extends State<_CdpExplorerContent>
 class _AssetCdpTab extends StatefulWidget {
   final IndigoAsset asset;
   final List<Cdp> cdps;
-  final double assetPriceAda;
+  final Map<String, double> priceByCollateral;
 
   const _AssetCdpTab({
     required this.asset,
     required this.cdps,
-    required this.assetPriceAda,
+    required this.priceByCollateral,
   });
 
   @override
@@ -202,11 +209,12 @@ class _AssetCdpTab extends StatefulWidget {
 
 class _AssetCdpTabState extends State<_AssetCdpTab> {
   _CdpTier _selectedTier = _CdpTier.dolphin;
+  String? _collateralFilter; // null = all
 
   double _collateralRatio(Cdp cdp) {
     if (cdp.mintedAmount <= 0) return double.infinity;
-    final collateralInAsset = cdp.collateralAmount / widget.assetPriceAda;
-    return (collateralInAsset / cdp.mintedAmount) * 100;
+    final price = widget.priceByCollateral[cdp.collateralAsset] ?? 1.0;
+    return ((cdp.collateralAmount / price) / cdp.mintedAmount) * 100;
   }
 
   @override
@@ -217,11 +225,13 @@ class _AssetCdpTabState extends State<_AssetCdpTab> {
       return const Center(child: Text('No CDPs for this asset.'));
     }
 
-    final sizeTiersCard = _CdpSizeTiersCard(
+    final filtersBar = _FiltersBar(
       asset: widget.asset,
       cdps: widget.cdps,
       selectedTier: _selectedTier,
-      onTierSelected: (t) => setState(() => _selectedTier = t),
+      onTierChanged: (t) => setState(() => _selectedTier = t),
+      collateralFilter: _collateralFilter,
+      onCollateralChanged: (c) => setState(() => _collateralFilter = c),
     );
 
     final crChart = _CrDistributionCard(
@@ -233,9 +243,10 @@ class _AssetCdpTabState extends State<_AssetCdpTab> {
     final table = _CdpsTable(
       asset: widget.asset,
       cdps: widget.cdps,
-      assetPriceAda: widget.assetPriceAda,
+      priceByCollateral: widget.priceByCollateral,
       crOf: _collateralRatio,
       tierFilter: _selectedTier,
+      collateralFilter: _collateralFilter,
     );
 
     if (isDesktop) {
@@ -246,7 +257,7 @@ class _AssetCdpTabState extends State<_AssetCdpTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                sizeTiersCard,
+                filtersBar,
                 const SizedBox(height: 16),
                 Expanded(child: table),
               ],
@@ -263,7 +274,7 @@ class _AssetCdpTabState extends State<_AssetCdpTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          sizeTiersCard,
+          filtersBar,
           const SizedBox(height: 16),
           SizedBox(height: 400, child: table),
           const SizedBox(height: 16),
@@ -340,10 +351,7 @@ class _CrDistributionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'CR Distribution (${asset.asset})',
-            style: styles.cardTitle,
-          ),
+          Text('CR Distribution (${asset.asset})', style: styles.cardTitle),
           const SizedBox(height: 4),
           Text(
             'Minted ${asset.asset} by Collateral Ratio bucket',
@@ -431,38 +439,70 @@ class _CrDistributionCard extends StatelessWidget {
   }
 }
 
-// ─── CDP Size Tiers (tappable chips) ──────────────────────────────────────────
+// ─── Filters Bar (dropdowns) ───────────────────────────────────────────────────
 
-class _CdpSizeTiersCard extends StatelessWidget {
+class _FiltersBar extends StatelessWidget {
   final IndigoAsset asset;
   final List<Cdp> cdps;
   final _CdpTier selectedTier;
-  final ValueChanged<_CdpTier> onTierSelected;
+  final ValueChanged<_CdpTier> onTierChanged;
+  final String? collateralFilter;
+  final ValueChanged<String?> onCollateralChanged;
 
-  const _CdpSizeTiersCard({
+  const _FiltersBar({
     required this.asset,
     required this.cdps,
     required this.selectedTier,
-    required this.onTierSelected,
+    required this.onTierChanged,
+    required this.collateralFilter,
+    required this.onCollateralChanged,
   });
+
+  String _collateralSummary(List<Cdp> list) {
+    final byType = <String, double>{};
+    for (final c in list) {
+      byType[c.collateralAsset] = (byType[c.collateralAsset] ?? 0) + c.collateralAmount;
+    }
+    if (byType.isEmpty) return '—';
+    return byType.entries.map((e) {
+      final abbr = getAbbreviation(e.value);
+      return '${numberAbbreviatedFormatter(e.value, abbr)} ${collateralLabel(e.key)}';
+    }).join(' + ');
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColorScheme.of(context);
     final styles = AppTextStyles.of(context);
 
-    final tiers = [
-      _CdpTier.whale,
-      _CdpTier.shark,
-      _CdpTier.dolphin,
-      _CdpTier.fish,
-      _CdpTier.shrimp,
-    ];
+    // Distinct collateral types present in CDPs for this asset.
+    final collateralTypes = cdps
+        .map((c) => c.collateralAsset)
+        .toSet()
+        .toList()
+      ..sort((a, b) => collateralLabel(a).compareTo(collateralLabel(b)));
 
-    double totalCollateral(List<Cdp> list) =>
-        list.fold(0.0, (s, c) => s + c.collateralAmount);
-    double totalMinted(List<Cdp> list) =>
-        list.fold(0.0, (s, c) => s + c.mintedAmount);
+    // Build tier dropdown items with full stats.
+    final tierItems = _CdpTier.values.map((tier) {
+      final list = cdps.where(tier.matches).toList();
+      final mint = list.fold(0.0, (s, c) => s + c.mintedAmount);
+      final mintAbbr = getAbbreviation(mint);
+      return _DropdownItem<_CdpTier>(
+        value: tier,
+        label: '${tier.tierName}  ·  ${tier.range}',
+        subtitle:
+            '${list.length} positions  ·  ${_collateralSummary(list)}  ·  '
+            '${numberAbbreviatedFormatter(mint, mintAbbr)} ${asset.asset}',
+      );
+    }).toList();
+
+    // Build collateral dropdown items.
+    final collateralItems = [
+      const _DropdownItem<String?>(value: null, label: 'All'),
+      ...collateralTypes.map(
+        (c) => _DropdownItem<String?>(value: c, label: collateralLabel(c)),
+      ),
+    ];
 
     return IICard(
       padding: const EdgeInsets.all(16),
@@ -471,71 +511,32 @@ class _CdpSizeTiersCard extends StatelessWidget {
         children: [
           Text('CDP Size Distribution', style: styles.cardTitle),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: tiers.map((tier) {
-              final list = cdps.where(tier.matches).toList();
-              final col = totalCollateral(list);
-              final mint = totalMinted(list);
-              final collAbbr = getAbbreviation(col);
-              final mintAbbr = getAbbreviation(mint);
-              final isSelected = selectedTier == tier;
-
-              return Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () => onTierSelected(tier),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: isSelected ? accentSelectionGradient : null,
-                      color: isSelected ? null : colors.surfaceRaised,
-                      border: isSelected
-                          ? Border.all(color: colors.primaryBorder)
-                          : null,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          tier.label,
-                          style: styles.bodySm.copyWith(
-                            color: isSelected
-                                ? colors.primary
-                                : colors.textSecondary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${list.length} positions',
-                          style: styles.monoSm.copyWith(
-                            color: colors.textPrimary,
-                          ),
-                        ),
-                        Text(
-                          '${numberAbbreviatedFormatter(col, collAbbr)} ADA',
-                          style: styles.bodySm.copyWith(
-                            color: colors.textSecondary,
-                          ),
-                        ),
-                        Text(
-                          '${numberAbbreviatedFormatter(mint, mintAbbr)} ${asset.asset}',
-                          style: styles.bodySm.copyWith(
-                            color: colors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
+          Row(
+            children: [
+              Expanded(
+                child: _StyledDropdown<_CdpTier>(
+                  prefixLabel: 'Size',
+                  value: selectedTier,
+                  items: tierItems,
+                  onChanged: (v) { if (v != null) onTierChanged(v); },
+                  colors: colors,
+                  styles: styles,
+                ),
+              ),
+              if (collateralTypes.length > 1) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _StyledDropdown<String?>(
+                    prefixLabel: 'Collateral',
+                    value: collateralFilter,
+                    items: collateralItems,
+                    onChanged: onCollateralChanged,
+                    colors: colors,
+                    styles: styles,
                   ),
                 ),
-              );
-            }).toList(),
+              ],
+            ],
           ),
         ],
       ),
@@ -543,21 +544,131 @@ class _CdpSizeTiersCard extends StatelessWidget {
   }
 }
 
-// ─── CDPs Table (tier-filtered) ───────────────────────────────────────────────
+// ─── Generic styled dropdown ───────────────────────────────────────────────────
+
+class _DropdownItem<T> {
+  final T value;
+  final String label;
+  final String? subtitle;
+
+  const _DropdownItem({required this.value, required this.label, this.subtitle});
+}
+
+class _StyledDropdown<T> extends StatelessWidget {
+  final String prefixLabel;
+  final T value;
+  final List<_DropdownItem<T>> items;
+  final ValueChanged<T?> onChanged;
+  final AppColorScheme colors;
+  final AppTextStyles styles;
+
+  const _StyledDropdown({
+    required this.prefixLabel,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+    required this.colors,
+    required this.styles,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = items.firstWhereOrNull((i) => i.value == value) ?? items.first;
+
+    return PopupMenuButton<dynamic>(
+      position: PopupMenuPosition.under,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: colors.border),
+      ),
+      color: colors.surface,
+      elevation: 8,
+      // onTap per-item handles null values correctly (onSelected skips nulls).
+      itemBuilder: (context) => items.map((item) {
+        final isSelected = item.value == value;
+        return PopupMenuItem<dynamic>(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          onTap: () => onChanged(item.value),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.label,
+                      style: styles.bodySm.copyWith(
+                        color: isSelected ? colors.primary : colors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (item.subtitle != null) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        item.subtitle!,
+                        style: styles.bodySm.copyWith(
+                          color: colors.textMuted,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (isSelected)
+                Icon(Icons.check, size: 14, color: colors.primary),
+            ],
+          ),
+        );
+      }).toList(),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: colors.surfaceRaised,
+          border: Border.all(color: colors.border),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Text(
+              '$prefixLabel: ',
+              style: styles.bodySm.copyWith(color: colors.textMuted),
+            ),
+            Text(
+              selected.label,
+              style: styles.bodySm.copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Spacer(),
+            Icon(Icons.expand_more, size: 16, color: colors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── CDPs Table (tier + collateral filtered) ───────────────────────────────────
 
 class _CdpsTable extends StatefulWidget {
   final IndigoAsset asset;
   final List<Cdp> cdps;
-  final double assetPriceAda;
+  final Map<String, double> priceByCollateral;
   final double Function(Cdp) crOf;
   final _CdpTier tierFilter;
+  final String? collateralFilter;
 
   const _CdpsTable({
     required this.asset,
     required this.cdps,
-    required this.assetPriceAda,
+    required this.priceByCollateral,
     required this.crOf,
     required this.tierFilter,
+    required this.collateralFilter,
   });
 
   @override
@@ -580,20 +691,30 @@ class _CdpsTableState extends State<_CdpsTable> {
   @override
   void didUpdateWidget(_CdpsTable oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.tierFilter != widget.tierFilter) _page = 0;
+    if (oldWidget.tierFilter != widget.tierFilter ||
+        oldWidget.collateralFilter != widget.collateralFilter) {
+      _page = 0;
+    }
   }
 
   double _liqPrice(Cdp cdp) {
-    if (cdp.mintedAmount <= 0 || widget.asset.liquidationRatio == null) return 0;
-    return cdp.collateralAmount / (cdp.mintedAmount * (widget.asset.liquidationRatio! / 100));
+    if (cdp.mintedAmount <= 0) return 0;
+    final lr = widget.asset.getLiquidationRatio(cdp.collateralAsset);
+    return cdp.collateralAmount / (cdp.mintedAmount * (lr / 100));
   }
 
-  Color _crColor(double cr, AppColorScheme colors) {
-    final liq = widget.asset.liquidationRatio;
-    final mcr = widget.asset.maintenanceRatio;
+  double _dropToLiq(Cdp cdp) {
+    final currentPrice = widget.priceByCollateral[cdp.collateralAsset] ?? 0.0;
+    if (currentPrice <= 0) return 0.0;
+    return (1 - _liqPrice(cdp) / currentPrice) * 100;
+  }
+
+  Color _crColor(Cdp cdp, double cr, AppColorScheme colors) {
+    final liq = widget.asset.getLiquidationRatio(cdp.collateralAsset);
+    final mcr = widget.asset.getMaintenanceRatio(cdp.collateralAsset);
     final rmr = widget.asset.rmr;
-    if (liq != null && cr < liq) return colors.error;
-    if (mcr != null && cr < mcr) return const Color(0xFFE64A19);
+    if (cr < liq) return colors.error;
+    if (cr < mcr) return const Color(0xFFE64A19);
     if (rmr != null && cr < rmr) return colors.warning;
     if (cr < 200) return const Color(0xFF0288D1);
     return colors.success;
@@ -607,14 +728,16 @@ class _CdpsTableState extends State<_CdpsTable> {
     final filtered = widget.cdps
         .where((c) => widget.crOf(c).isFinite)
         .where(widget.tierFilter.matches)
+        .where((c) =>
+            widget.collateralFilter == null ||
+            c.collateralAsset == widget.collateralFilter)
         .sortedByCompare<double>(
           (c) => widget.crOf(c),
           (a, b) => a.compareTo(b),
         );
 
     final totalPages = (filtered.length / _pageSize).ceil();
-    final pageItems =
-        filtered.skip(_page * _pageSize).take(_pageSize).toList();
+    final pageItems = filtered.skip(_page * _pageSize).take(_pageSize).toList();
 
     return IICard(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -624,10 +747,7 @@ class _CdpsTableState extends State<_CdpsTable> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'CDPs (${widget.asset.asset})',
-                style: styles.cardTitle,
-              ),
+              Text('CDPs (${widget.asset.asset})', style: styles.cardTitle),
               Text(
                 '${filtered.length} positions',
                 style: styles.bodySm.copyWith(color: colors.textMuted),
@@ -638,8 +758,10 @@ class _CdpsTableState extends State<_CdpsTable> {
           if (filtered.isEmpty)
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Text('No CDPs in this tier.',
-                  style: styles.bodyMd.copyWith(color: colors.textMuted)),
+              child: Text(
+                'No CDPs in this tier.',
+                style: styles.bodyMd.copyWith(color: colors.textMuted),
+              ),
             )
           else ...[
             Expanded(
@@ -648,83 +770,93 @@ class _CdpsTableState extends State<_CdpsTable> {
                 child: SizedBox(
                   width: double.infinity,
                   child: DataTable(
-                columnSpacing: 12,
-                headingRowHeight: 32,
-                dataRowMinHeight: 28,
-                dataRowMaxHeight: 36,
-                columns: [
-                  _col('Owner', styles, colors),
-                  _col('Collateral', styles, colors),
-                  _col('Minted', styles, colors),
-                  _col('CR%', styles, colors),
-                  _col('Liq. Price', styles, colors),
-                  _col('Drop %', styles, colors),
-                ],
-                rows: pageItems.map((cdp) {
-                  final cr = widget.crOf(cdp);
-                  final liq = _liqPrice(cdp);
-                  final drop = widget.assetPriceAda > 0
-                      ? (1 - liq / widget.assetPriceAda) * 100
-                      : 0.0;
-                  final owner = cdp.owner.length > 12
-                      ? '${cdp.owner.substring(0, 6)}…${cdp.owner.substring(cdp.owner.length - 6)}'
-                      : cdp.owner;
-                  final monoStyle = styles.monoSm.copyWith(color: colors.textSecondary);
-                  final isCopied = _copiedOwner == cdp.owner;
-                  return DataRow(
-                    cells: [
-                      DataCell(
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(owner, style: monoStyle),
-                            const SizedBox(width: 4),
-                            Tooltip(
-                              message: isCopied ? 'Copied!' : 'Copy address',
-                              child: InkWell(
-                                onTap: () => _copy(cdp.owner),
-                                borderRadius: BorderRadius.circular(4),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(2),
-                                  child: Icon(
-                                    isCopied ? Icons.check : Icons.copy_outlined,
-                                    size: 12,
-                                    color: isCopied ? colors.success : colors.textMuted,
+                    columnSpacing: 12,
+                    headingRowHeight: 32,
+                    dataRowMinHeight: 28,
+                    dataRowMaxHeight: 36,
+                    columns: [
+                      _col('Owner', styles, colors),
+                      _col('Collateral', styles, colors),
+                      _col('Minted', styles, colors),
+                      _col('CR%', styles, colors),
+                      _col('Liq. Price', styles, colors),
+                      _col('Drop %', styles, colors),
+                    ],
+                    rows: pageItems.map((cdp) {
+                      final cr = widget.crOf(cdp);
+                      final liq = _liqPrice(cdp);
+                      final drop = _dropToLiq(cdp);
+                      final collLabel = collateralLabel(cdp.collateralAsset);
+                      final owner = cdp.owner.length > 12
+                          ? '${cdp.owner.substring(0, 6)}…${cdp.owner.substring(cdp.owner.length - 6)}'
+                          : cdp.owner;
+                      final monoStyle =
+                          styles.monoSm.copyWith(color: colors.textSecondary);
+                      final isCopied = _copiedOwner == cdp.owner;
+                      return DataRow(
+                        cells: [
+                          DataCell(
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(owner, style: monoStyle),
+                                const SizedBox(width: 4),
+                                Tooltip(
+                                  message: isCopied ? 'Copied!' : 'Copy address',
+                                  child: InkWell(
+                                    onTap: () => _copy(cdp.owner),
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(2),
+                                      child: Icon(
+                                        isCopied
+                                            ? Icons.check
+                                            : Icons.copy_outlined,
+                                        size: 12,
+                                        color: isCopied
+                                            ? colors.success
+                                            : colors.textMuted,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                      DataCell(Text(
-                        '${numberFormatter(cdp.collateralAmount, 0)} ADA',
-                        style: monoStyle.copyWith(color: const Color(0xFF0288D1)),
-                      )),
-                      DataCell(Text(
-                        '${numberFormatter(cdp.mintedAmount, 2)} ${widget.asset.asset}',
-                        style: monoStyle.copyWith(color: colors.primary),
-                      )),
-                      DataCell(Text(
-                        '${cr.toStringAsFixed(1)}%',
-                        style: styles.monoSm.copyWith(
-                          color: _crColor(cr, colors),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      )),
-                      DataCell(Text(numberFormatter(liq, 4), style: monoStyle)),
-                      DataCell(Text(
-                        '${drop.toStringAsFixed(1)}%',
-                        style: styles.monoSm.copyWith(
-                          color: drop > 15 ? colors.error : colors.textSecondary,
-                        ),
-                      )),
-                    ],
-                  );
-                }                ).toList(),
+                          ),
+                          DataCell(Text(
+                            '${numberFormatter(cdp.collateralAmount, 0)} $collLabel',
+                            style: monoStyle.copyWith(
+                                color: const Color(0xFF0288D1)),
+                          )),
+                          DataCell(Text(
+                            '${numberFormatter(cdp.mintedAmount, 2)} ${widget.asset.asset}',
+                            style: monoStyle.copyWith(color: colors.primary),
+                          )),
+                          DataCell(Text(
+                            '${cr.toStringAsFixed(1)}%',
+                            style: styles.monoSm.copyWith(
+                              color: _crColor(cdp, cr, colors),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          )),
+                          DataCell(Text(
+                            '${numberFormatter(liq, 4)} $collLabel',
+                            style: monoStyle,
+                          )),
+                          DataCell(Text(
+                            '${drop.toStringAsFixed(1)}%',
+                            style: styles.monoSm.copyWith(
+                              color: drop > 15
+                                  ? colors.error
+                                  : colors.textSecondary,
+                            ),
+                          )),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
-            ),
-            ),
             ),
             if (totalPages > 1)
               Row(

@@ -21,9 +21,10 @@ class SpAssetState {
     final Map<String, BigInt> etsMap = {};
     if (rawEts is List) {
       for (final entry in rawEts) {
-        final epoch = entry['epoch'] as String;
-        final scale = entry['scale'] as String;
-        final val = entry['sumVal'] as String;
+        final row = entry as Map<String, dynamic>;
+        final epoch = row['epoch'] as String;
+        final scale = row['scale'] as String;
+        final val = row['sumVal'] as String;
         etsMap['$epoch,$scale'] = BigInt.parse(val);
       }
     }
@@ -65,7 +66,7 @@ class StabilityPool {
   });
 
   factory StabilityPool.fromJson(Map<String, dynamic> json) {
-    Map<String, BigInt> parsedEts = {};
+    final Map<String, BigInt> parsedEts = {};
     final rawEts = json['epoch_to_scale_to_sum'];
     if (rawEts is String) {
       final decoded = jsonDecode(rawEts) as Map<String, dynamic>;

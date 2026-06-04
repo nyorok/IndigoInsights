@@ -72,15 +72,11 @@ class _AdaLeverageAboveMrContentState extends State<AdaLeverageAboveMrContent> {
                           width: itemWidth,
                           child: AdaLeverageAboveMrCard(
                             asset: data.asset,
+                            collateralAsset: data.collateralAsset,
                             interestRate: data.interestRate,
-                            redemptionMarginRatio: data.rmr,
-                            maintenanceRatio: data.mcr,
-                            liquidationRatio: data.liquidationRatio,
                             assetPrice: data.assetPrice,
                             debtMintingFee: data.debtMintingFee,
-                            collateralRatio: (_collateralRatio ?? minCr) > (data.mcr ?? minCr)
-                                ? (_collateralRatio ?? minCr)
-                                : (data.mcr ?? minCr),
+                            collateralRatio: _collateralRatio ?? minCr,
                           )
                               .animate()
                               .slideX(duration: 300.ms, curve: Curves.easeInOut)

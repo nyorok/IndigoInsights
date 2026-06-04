@@ -20,8 +20,8 @@ class IndigoAssetRepository {
     result.sort((a, b) {
       final ai = _preferredOrder.indexOf(a.asset);
       final bi = _preferredOrder.indexOf(b.asset);
-      // Known assets in preferred order, then unknown assets by createdAt
-      if (ai == -1 && bi == -1) return a.createdAt.compareTo(b.createdAt);
+      // Known assets in preferred order, then unknown assets alphabetically
+      if (ai == -1 && bi == -1) return a.asset.compareTo(b.asset);
       if (ai == -1) return 1;
       if (bi == -1) return -1;
       return ai.compareTo(bi);

@@ -24,7 +24,6 @@ class SolvencyRepository {
     final cached = _cache[indigoAsset.asset];
     if (cached != null && cached.isValid(_ttl)) return cached.value;
 
-    // All three fire in parallel — upstream TTL caches absorb duplicate calls
     final results = await Future.wait([
       _prices.getPrices(),
       _pools.getPools(),
@@ -35,51 +34,57 @@ class SolvencyRepository {
     final pools = results[1] as List<StabilityPool>;
     final cdpsAll = results[2] as List<Cdp>;
 
-    final assetPrice = assetPrices
-        .firstWhere((ap) => ap.asset == indigoAsset.asset)
-        .price;
-    final stabilityPool = pools.firstWhere((sp) => sp.asset == indigoAsset.asset);
+    final stabilityPool =
+        pools.firstWhereOrNull((sp) => sp.asset == indigoAsset.asset);
+    if (stabilityPool == null) {
+      _cache[indigoAsset.asset] = CachedResult([]);
+      return [];
+    }
     final spTotal = stabilityPool.totalAmount;
 
-    double calculatePriceChangeToLiquidate(Cdp cdp) {
-      final collateralInAsset = cdp.collateralAmount / assetPrice;
-      final collateralRatio = collateralInAsset / cdp.mintedAmount;
-      final lrPct = indigoAsset.liquidationRatio;
-      if (lrPct == null) return 0; // V3: ratio lives on collateral pair
+    // Pre-build O(1) maps so the inner loop over CDPs stays fast.
+    final priceByCollateral = <String, double>{
+      for (final p in assetPrices.where((p) => p.asset == indigoAsset.asset))
+        p.collateralAsset: p.price,
+    };
+    final lrByCollateral = <String, double>{
+      for (final p in indigoAsset.collateralAssets)
+        p.collateralAsset: p.liquidationRatioPercent,
+    };
+
+    double percentToLiquidate(Cdp cdp) {
+      if (cdp.mintedAmount <= 0) return 0;
+      final price = priceByCollateral[cdp.collateralAsset] ?? 1.0;
+      final lrPct = lrByCollateral[cdp.collateralAsset] ?? 110.0;
       final lr = lrPct / 100;
-      if (lr > collateralRatio) return 0;
-      return 1.00 - (lr / collateralRatio);
+      final cr = (cdp.collateralAmount / price) / cdp.mintedAmount;
+      if (lr >= cr) return 0; // already undercollateralised at current price
+      return 1.0 - (lr / cr);
     }
 
     final cdps = cdpsAll.where((cdp) => cdp.asset == indigoAsset.asset);
 
-    final percentToLiqAndCollateralData = cdps
-        .map(
-          (cdp) => (
-            minted: cdp.mintedAmount,
-            percentToLiquidate:
-                (calculatePriceChangeToLiquidate(cdp) * 100).round(),
-          ),
-        )
+    final grouped = cdps
+        .map((cdp) => (
+              minted: cdp.mintedAmount,
+              bucket: (percentToLiquidate(cdp) * 100).round(),
+            ))
         .groupFoldBy<int, double>(
-          (item) => item.percentToLiquidate,
+          (item) => item.bucket,
           (a, b) => (a ?? 0) + b.minted,
         )
         .entries
-        .map(
-          (entry) =>
-              (percentToLiq: entry.key.toDouble() / 100, minted: entry.value),
-        )
+        .map((e) => (pct: e.key.toDouble() / 100, minted: e.value))
         .toList()
-      ..sort((a, b) => a.percentToLiq.compareTo(b.percentToLiq));
+      ..sort((a, b) => a.pct.compareTo(b.pct));
 
     double spAmount = spTotal;
-    final amountPercentageData = percentToLiqAndCollateralData.map((item) {
+    final curve = grouped.map((item) {
       spAmount -= item.minted;
-      return AmountPercentageData(item.percentToLiq, spAmount);
+      return AmountPercentageData(item.pct, spAmount);
     }).toList();
 
-    final value = normalizeAmountPercentageData(amountPercentageData, 60, spTotal);
+    final value = normalizeAmountPercentageData(curve, 60, spTotal);
     _cache[indigoAsset.asset] = CachedResult(value);
     return value;
   }
