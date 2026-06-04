@@ -4,32 +4,32 @@ import 'package:indigo_insights/models/asset_price.dart';
 import 'package:indigo_insights/models/indigo_asset.dart';
 import 'package:indigo_insights/models/liquidity_pool_yield.dart';
 import 'package:indigo_insights/models/stability_pool.dart';
+import 'package:indigo_insights/repositories/apr_repository.dart';
 import 'package:indigo_insights/repositories/asset_price_repository.dart';
 import 'package:indigo_insights/repositories/cdp_repository.dart';
 import 'package:indigo_insights/repositories/dex_yield_repository.dart';
 import 'package:indigo_insights/repositories/indigo_asset_repository.dart';
-import 'package:indigo_insights/repositories/indy_price_repository.dart';
 import 'package:indigo_insights/repositories/stability_pool_repository.dart';
 import 'package:indigo_insights/utils/cached_result.dart';
 
 typedef LeverageData = ({
   String asset,
+  String collateralAsset,
   double interestRate,
-  double rmr,
-  double mcr,
-  double liquidationRatio,
+  double? rmr,
+  double? mcr,
+  double? liquidationRatio,
   double assetPrice,
   double debtMintingFee,
 });
 
 typedef StabilityPoolStrategyData = ({
   String title,
+  String collateralAsset,
   double strategyYield,
   double poolYield,
   double interestRate,
-  double rmr,
-  double mcr,
-  double liquidationRatio,
+  double assetPrice,
   double debtMintingFee,
 });
 
@@ -39,34 +39,25 @@ typedef StablePoolStrategyData = ({
   double tradingFeesApr,
   double farmingApr,
   double interestRate,
-  double rmr,
-  double mcr,
-  double liquidationRatio,
   double debtMintingFee,
 });
-
-double _incentivesPerYear(String asset) =>
-    switch (asset) {
-      'iUSD' => 8000,
-      'iBTC' => 2000,
-      'iETH' => 500,
-      'iSOL' => 120,
-      _ => 0,
-    } *
-    365 /
-    5;
 
 Map<String, AssetInterestRate> _buildInterestRateMap(
   List<AssetInterestRate> rates,
 ) {
   final Map<String, AssetInterestRate> map = {};
   for (final ir in rates) {
-    if (!map.containsKey(ir.asset) || map[ir.asset]!.slot < ir.slot) {
+    // Prefer the ADA-collateral (global) rate when multiple collaterals exist
+    if (!map.containsKey(ir.asset) ||
+        (ir.collateralAsset.isEmpty && map[ir.asset]!.collateralAsset.isNotEmpty) ||
+        (ir.collateralAsset == map[ir.asset]!.collateralAsset &&
+            map[ir.asset]!.slot < ir.slot)) {
       map[ir.asset] = ir;
     }
   }
   return map;
 }
+
 
 class StrategyRepository {
   static const _ttl = Duration(minutes: 5);
@@ -75,8 +66,8 @@ class StrategyRepository {
   final AssetPriceRepository _prices;
   final CdpRepository _cdps;
   final StabilityPoolRepository _pools;
-  final IndyPriceRepository _indyPrice;
   final DexYieldRepository _dexYields;
+  final AprRepository _aprs;
 
   CachedResult<List<LeverageData>>? _leverageCache;
   CachedResult<List<StabilityPoolStrategyData>>? _spFarmingCache;
@@ -87,12 +78,11 @@ class StrategyRepository {
     this._prices,
     this._cdps,
     this._pools,
-    this._indyPrice,
     this._dexYields,
+    this._aprs,
   );
 
   /// Shared data for all 3 leverage strategies (above RMR, above MCR, double above MCR).
-  /// The UI pages differ only in their card rendering and which ratio they highlight.
   Future<List<LeverageData>> getLeverageData() async {
     if (_leverageCache != null && _leverageCache!.isValid(_ttl)) {
       return _leverageCache!.value;
@@ -111,24 +101,26 @@ class StrategyRepository {
     final irMap = _buildInterestRateMap(interestRates);
     final List<LeverageData> leverages = [];
 
-    for (final iAsset in indigoAssets) {
-      final interestRate = irMap[iAsset.asset]?.interestRate ?? 0.0;
-      final currentAssetPrice = assetPrices
-          .firstWhere((ap) => ap.asset == iAsset.asset)
-          .price;
-
+    // One entry per (iAsset, collateralAsset) price combination.
+    for (final price in assetPrices) {
+      final iAsset = indigoAssets.firstWhereOrNull((ia) => ia.asset == price.asset);
+      if (iAsset == null) continue;
+      final interestRate = irMap[price.asset]?.interestRate ?? 0.0;
       leverages.add((
-        asset: iAsset.asset,
+        asset: price.asset,
+        collateralAsset: price.collateralAsset,
         interestRate: interestRate * 100,
         rmr: iAsset.rmr,
         mcr: iAsset.maintenanceRatio,
         liquidationRatio: iAsset.liquidationRatio,
-        assetPrice: currentAssetPrice,
+        assetPrice: price.price,
         debtMintingFee: iAsset.debtMintingFee,
       ));
     }
 
-    final result = leverages.sortedBy((e) => e.asset).toList();
+    final result = leverages
+        .sortedBy((e) => e.asset)
+        .toList();
     _leverageCache = CachedResult(result);
     return result;
   }
@@ -141,40 +133,44 @@ class StrategyRepository {
     final results = await Future.wait([
       _prices.getPrices(),
       _pools.getPools(),
-      _indyPrice.getPrice(),
       _assets.getAssets(),
       _cdps.getAssetInterestRates(),
+      _aprs.getAprs(),
     ]);
 
     final assetPrices = results[0] as List<AssetPrice>;
     final stabilityPools = results[1] as List<StabilityPool>;
-    final indyPrice = results[2] as double;
-    final indigoAssets = results[3] as List<IndigoAsset>;
-    final interestRates = results[4] as List<AssetInterestRate>;
+    final indigoAssets = results[2] as List<IndigoAsset>;
+    final interestRates = results[3] as List<AssetInterestRate>;
+    final aprMap = results[4] as Map<String, double>;
 
     final irMap = _buildInterestRateMap(interestRates);
     final List<StabilityPoolStrategyData> strategies = [];
 
     for (final sp in stabilityPools) {
       final asset = sp.asset;
-      final spTotal = sp.totalAmount;
-      final iAsset = indigoAssets.firstWhere((ia) => ia.asset == asset);
-      final aprice = assetPrices.firstWhere((ap) => ap.asset == asset).price;
-
-      final stabilityPoolApr =
-          (_incentivesPerYear(asset) * indyPrice) / (spTotal * aprice);
+      final iAsset = indigoAssets.firstWhereOrNull((ia) => ia.asset == asset);
+      if (iAsset == null) continue;
       final interestRate = irMap[asset]?.interestRate ?? 0.0;
 
-      strategies.add((
-        title: asset,
-        strategyYield: (stabilityPoolApr - interestRate) * 100,
-        poolYield: stabilityPoolApr * 100,
-        interestRate: interestRate * 100,
-        rmr: iAsset.rmr,
-        mcr: iAsset.maintenanceRatio,
-        liquidationRatio: iAsset.liquidationRatio,
-        debtMintingFee: iAsset.debtMintingFee,
-      ));
+      // SP APR from official endpoint (already in %, same for all collaterals of this asset).
+      final indyApr = aprMap['sp_${asset}_indy'] ?? 0.0;
+      final adaApr = aprMap['sp_${asset}_ada'] ?? 0.0;
+      final poolYield = indyApr + adaApr;
+
+      // One card per collateral price available for this asset.
+      final pricesForAsset = assetPrices.where((p) => p.asset == asset).toList();
+      for (final price in pricesForAsset) {
+        strategies.add((
+          title: asset,
+          collateralAsset: price.collateralAsset,
+          strategyYield: poolYield - (interestRate * 100),
+          poolYield: poolYield,
+          interestRate: interestRate * 100,
+          assetPrice: price.price,
+          debtMintingFee: iAsset.debtMintingFee,
+        ));
+      }
     }
 
     final result = strategies.sortedBy((a) => a.strategyYield).reversed.toList();
@@ -216,9 +212,6 @@ class StrategyRepository {
         tradingFeesApr: e.tradingFeesApr,
         farmingApr: e.farmingApr,
         interestRate: interestRate * 100,
-        rmr: iAsset.rmr,
-        mcr: iAsset.maintenanceRatio,
-        liquidationRatio: iAsset.liquidationRatio,
         debtMintingFee: iAsset.debtMintingFee,
       ));
     }

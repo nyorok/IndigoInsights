@@ -1,37 +1,43 @@
 class Cdp {
   final String asset;
+  final String collateralAsset; // V3: which collateral backs this position
   final double collateralAmount;
   final double mintedAmount;
   final int outputIndex;
   final String outputHash;
   final String owner;
 
-  Cdp(
-      {required this.asset,
-      required this.collateralAmount,
-      required this.mintedAmount,
-      required this.outputIndex,
-      required this.outputHash,
-      required this.owner});
+  Cdp({
+    required this.asset,
+    this.collateralAsset = '',
+    required this.collateralAmount,
+    required this.mintedAmount,
+    required this.outputIndex,
+    required this.outputHash,
+    required this.owner,
+  });
 
   factory Cdp.fromJson(Map<String, dynamic> json) {
     return Cdp(
-        asset: json['asset'] as String,
-        collateralAmount: (json['collateralAmount'] as num) / 1000000,
-        mintedAmount: (json['mintedAmount'] as num) / 1000000,
-        outputIndex: json['output_index'] as int,
-        outputHash: (json['output_hash'] as String?) ?? '',
-        owner: (json['owner'] as String?) ?? '');
+      asset: json['asset'] as String,
+      collateralAsset: (json['collateral_asset'] as String?) ?? '',
+      collateralAmount: (json['collateralAmount'] as num) / 1000000,
+      mintedAmount: (json['mintedAmount'] as num) / 1000000,
+      outputIndex: json['output_index'] as int,
+      outputHash: (json['output_hash'] as String?) ?? '',
+      owner: (json['owner'] as String?) ?? '',
+    );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'asset': asset,
+      'collateral_asset': collateralAsset,
       'collateralAmount': collateralAmount,
       'mintedAmount': mintedAmount,
       'output_index': outputIndex,
       'output_hash': outputHash,
-      'owner': owner
+      'owner': owner,
     };
   }
 }

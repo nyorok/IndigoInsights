@@ -16,6 +16,9 @@ class StabilityPoolSolvencyChart extends StatelessWidget {
     return AsyncBuilder(
       fetcher: () => sl<SolvencyRepository>().getForAsset(indigoAsset),
       builder: (stabilityPoolSolvencyData) {
+        if (stabilityPoolSolvencyData.isEmpty) {
+          return const Center(child: Text('No stability pool data available.'));
+        }
         return AmountPercentageChart(
           currency: indigoAsset.asset,
           labels: const ['Balance'],

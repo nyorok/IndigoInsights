@@ -1,72 +1,73 @@
+import 'package:collection/collection.dart';
+import 'package:indigo_insights/models/collateral_pair.dart';
+
 class IndigoAsset {
   final String asset;
-  final DateTime createdAt;
-  final double? delistPrice;
-  final String hash;
-  final String oracleNftCs;
-  final String oracleNftTn;
   final String outputHash;
   final int outputIndex;
-  final int slot;
-  final DateTime updatedAt;
-  final double rmr;
-  final double maintenanceRatio;
-  final double liquidationRatio;
+  final List<CollateralPair> collateralAssets;
+
   final double debtMintingFee;
+  final double? liquidationProcessingFee;
+  final double? stabilityPoolWithdrawalFee;
+  final double? redemptionProcessingFee;
+  final double? redemptionReimbursementFee;
 
   IndigoAsset({
     required this.asset,
-    required this.createdAt,
-    this.delistPrice,
-    required this.hash,
-    required this.oracleNftCs,
-    required this.oracleNftTn,
     required this.outputHash,
     required this.outputIndex,
-    required this.slot,
-    required this.updatedAt,
-    required this.rmr,
-    required this.maintenanceRatio,
-    required this.liquidationRatio,
+    required this.collateralAssets,
     required this.debtMintingFee,
+    this.liquidationProcessingFee,
+    this.stabilityPoolWithdrawalFee,
+    this.redemptionProcessingFee,
+    this.redemptionReimbursementFee,
   });
 
-  factory IndigoAsset.fromJson(Map<String, dynamic> json) {
-    return IndigoAsset(
-      asset: json['asset'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      delistPrice: json['delist_price'] != null
-          ? double.parse(json['delist_price'] as String)
-          : null,
-      hash: json['hash'] as String,
-      oracleNftCs: json['oracle_nft_cs'] as String,
-      oracleNftTn: json['oracle_nft_tn'] as String,
-      outputHash: json['output_hash'] as String,
-      outputIndex: json['output_index'] as int,
-      slot: json['slot'] as int,
-      updatedAt: DateTime.parse(json['updated_at'] as String),
-      rmr: (json['redemption_ratio_percentage'] as num).toDouble() / 1000000.0,
-      maintenanceRatio:
-          (json['maintenance_ratio_percentage'] as num).toDouble() / 1000000.0,
-      liquidationRatio:
-          (json['liquidation_ratio_percentage'] as num).toDouble() / 1000000.0,
-      debtMintingFee:
-          (json['debt_minting_fee_percentage'] as num).toDouble() / 1000000.0,
-    );
-  }
+  // ADA-collateral pair preferred (empty collateralAsset), fallback to first.
+  CollateralPair? get _adaPair =>
+      collateralAssets.firstWhereOrNull((p) => p.collateralAsset.isEmpty) ??
+      collateralAssets.firstOrNull;
 
-  Map<String, dynamic> toJson() {
-    return {
-      'asset': asset,
-      'createdAt': createdAt,
-      'delist_price': delistPrice,
-      'hash': hash,
-      'oracle_nft_cs': oracleNftCs,
-      'oracle_nft_tn': oracleNftCs,
-      'output_hash': outputHash,
-      'output_index': outputIndex,
-      'slot': slot,
-      'updated_at': updatedAt,
-    };
+  // Backwards-compatible single-value getters (ADA pair).
+  double? get liquidationRatio => _adaPair?.liquidationRatioPercent;
+  double? get maintenanceRatio => _adaPair?.maintenanceRatioPercent;
+  double? get rmr => _adaPair?.redemptionRatioPercent;
+
+  // Per-collateral lookups — O(n_pairs ≤ 3), safe everywhere.
+  double getLiquidationRatio(String collateralAsset) =>
+      collateralAssets
+          .firstWhereOrNull((p) => p.collateralAsset == collateralAsset)
+          ?.liquidationRatioPercent ??
+      110.0;
+
+  double getMaintenanceRatio(String collateralAsset) =>
+      collateralAssets
+          .firstWhereOrNull((p) => p.collateralAsset == collateralAsset)
+          ?.maintenanceRatioPercent ??
+      115.0;
+
+  factory IndigoAsset.fromJson(Map<String, dynamic> json) {
+    final pairs = (json['collateralAssets'] as List<dynamic>? ?? [])
+        .map((e) => CollateralPair.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    return IndigoAsset(
+      asset: json['name'] as String,
+      outputHash: (json['outputHash'] as String?) ?? '',
+      outputIndex: (json['outputIndex'] as int?) ?? 0,
+      collateralAssets: pairs,
+      debtMintingFee:
+          (json['debtMintingFeePercent'] as num?)?.toDouble() ?? 0.0,
+      liquidationProcessingFee:
+          (json['liquidationProcessingFeePercent'] as num?)?.toDouble(),
+      stabilityPoolWithdrawalFee:
+          (json['stabilityPoolWithdrawalFeePercent'] as num?)?.toDouble(),
+      redemptionProcessingFee:
+          (json['redemptionProcessingFeePercent'] as num?)?.toDouble(),
+      redemptionReimbursementFee:
+          (json['redemptionReimbursementPercent'] as num?)?.toDouble(),
+    );
   }
 }

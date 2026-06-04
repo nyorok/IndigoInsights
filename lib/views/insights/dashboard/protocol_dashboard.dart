@@ -450,10 +450,12 @@ class _AssetHealthCard extends StatelessWidget {
     Color crColor(double cr) {
       final asset = indigoAsset;
       if (asset != null) {
-        if (cr >= asset.maintenanceRatio + 20) return colors.success;
-        if (cr >= asset.maintenanceRatio) return colors.warning;
-        if (cr >= asset.liquidationRatio) return colors.warning;
-        return colors.error;
+        final mcr = asset.maintenanceRatio;
+        final lr = asset.liquidationRatio;
+        if (mcr != null && cr >= mcr + 20) return colors.success;
+        if (mcr != null && cr >= mcr) return colors.warning;
+        if (lr != null && cr >= lr) return colors.warning;
+        if (mcr != null || lr != null) return colors.error;
       }
       // Fallback if IndigoAsset not available
       if (cr >= 200) return colors.success;

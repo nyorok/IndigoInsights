@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:indigo_insights/api/indigo_api/services/apr_service.dart';
 import 'package:indigo_insights/api/indigo_api/services/asset_price_service.dart';
 import 'package:indigo_insights/api/indigo_api/services/asset_status_service.dart';
 import 'package:indigo_insights/api/indigo_api/services/cdp_service.dart';
@@ -10,6 +11,7 @@ import 'package:indigo_insights/api/indigo_api/services/redemption_service.dart'
 import 'package:indigo_insights/api/indigo_api/services/stability_pool_account_service.dart';
 import 'package:indigo_insights/api/indigo_api/services/stability_pool_service.dart';
 import 'package:indigo_insights/api/indigo_api/services/stake_history_service.dart';
+import 'package:indigo_insights/repositories/apr_repository.dart';
 import 'package:indigo_insights/repositories/asset_price_repository.dart';
 import 'package:indigo_insights/repositories/asset_status_repository.dart';
 import 'package:indigo_insights/repositories/cdp_repository.dart';
@@ -29,6 +31,7 @@ final GetIt sl = GetIt.instance;
 
 void setupServiceLocator() {
   // Services
+  sl.registerLazySingleton(() => AprService());
   sl.registerLazySingleton(() => AssetPriceService());
   sl.registerLazySingleton(() => AssetStatusService());
   sl.registerLazySingleton(() => CdpService());
@@ -42,6 +45,7 @@ void setupServiceLocator() {
   sl.registerLazySingleton(() => StakeHistoryService());
 
   // Base repositories — lazy singletons (created on first access, live for app lifetime)
+  sl.registerLazySingleton(() => AprRepository(sl()));
   sl.registerLazySingleton(() => AssetPriceRepository(sl()));
   sl.registerLazySingleton(() => AssetStatusRepository(sl()));
   sl.registerLazySingleton(() => CdpRepository(sl()));

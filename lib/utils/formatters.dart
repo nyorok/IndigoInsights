@@ -67,3 +67,24 @@ List<T> sortedByAsset<T>(List<T> items, String Function(T) getName) {
       .compareTo(assetSortIndex(getName(b))));
   return copy;
 }
+
+/// Decode a Cardano collateral asset identifier to a human-readable label.
+/// Empty string → "ADA"; policy.hexTokenName → decoded token name (e.g. "NIGHT").
+String collateralLabel(String collateralAsset) {
+  if (collateralAsset.isEmpty) return 'ADA';
+  final parts = collateralAsset.split('.');
+  if (parts.length == 2) {
+    try {
+      final hex = parts[1];
+      final bytes = <int>[
+        for (var i = 0; i + 1 < hex.length; i += 2)
+          int.parse(hex.substring(i, i + 2), radix: 16),
+      ];
+      final name = String.fromCharCodes(bytes);
+      if (name.isNotEmpty) return name;
+    } catch (_) {}
+  }
+  return collateralAsset.length > 8
+      ? '${collateralAsset.substring(0, 8)}…'
+      : collateralAsset;
+}

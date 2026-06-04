@@ -35,6 +35,20 @@ class LiquidationInformation extends StatelessWidget {
       builder: (liquidations) {
         liquidations.sortBy((liq) => liq.createdAt);
 
+        if (liquidations.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${indigoAsset.asset} Liquidations',
+                style: AppTextStyles.of(context).cardTitle,
+              ),
+              const SizedBox(height: 32),
+              const Text('No liquidations recorded for this asset.'),
+            ],
+          );
+        }
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -83,11 +97,8 @@ class LiquidationInformation extends StatelessWidget {
               'SP ADA Rewards (Total)',
               assetAmount(
                 liquidations
-                    .map(
-                      (c) =>
-                          (c.collateralAbsorbed * 0.98 - c.iAssetBurned * c.oraclePrice),
-                    )
-                    .reduce((value, element) => value + element),
+                    .map((c) => c.collateralAbsorbed * 0.98 - c.iAssetBurned * (c.oraclePrice ?? 0.0))
+                    .fold(0.0, (a, b) => a + b),
                 context,
               ),
             ),
@@ -95,7 +106,7 @@ class LiquidationInformation extends StatelessWidget {
             informationRow(
               'Governance ADA Rewards (Total)',
               assetAmount(
-                liquidations.map((c) => c.collateralAbsorbed * 0.02).reduce((a, b) => a + b),
+                liquidations.map((c) => c.collateralAbsorbed * 0.02).fold(0.0, (a, b) => a + b),
                 context,
               ),
             ),

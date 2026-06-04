@@ -25,7 +25,7 @@ import 'package:indigo_insights/widgets/ii_top_bar.dart';
 
 typedef _SpTabData = ({
   List<Cdp> cdps,
-  AssetPrice price,
+  List<AssetPrice> prices, // all (asset, collateral) price rows for this iAsset
   StabilityPool? pool,
   List<Liquidation> liquidations,
 });
@@ -71,21 +71,15 @@ class _SpTabContent extends StatelessWidget {
         final cdps = (results[0] as List<Cdp>)
             .where((c) => c.asset == asset.asset)
             .toList();
-        final prices = results[1] as List<AssetPrice>;
-        final price =
-            prices.firstWhereOrNull((p) => p.asset == asset.asset) ??
-            AssetPrice(asset: asset.asset, price: 1.0);
+        final prices = (results[1] as List<AssetPrice>)
+            .where((p) => p.asset == asset.asset)
+            .toList();
         final pools = results[2] as List<StabilityPool>;
         final pool = pools.firstWhereOrNull((p) => p.asset == asset.asset);
         final liquidations = (results[3] as List<Liquidation>)
             .where((l) => l.asset == asset.asset)
             .toList();
-        return (
-          cdps: cdps,
-          price: price,
-          pool: pool,
-          liquidations: liquidations,
-        );
+        return (cdps: cdps, prices: prices, pool: pool, liquidations: liquidations);
       },
       builder: (data) => _SpTabView(asset: asset, data: data),
       errorBuilder: (error, retry) => Center(child: Text(error.toString())),
@@ -108,40 +102,57 @@ class _SpTabViewState extends State<_SpTabView> {
   IndigoAsset get asset => widget.asset;
   _SpTabData get data => widget.data;
 
-  double get simulatedPrice => _dropPercent >= 100
-      ? double.infinity
-      : data.price.price / (1 - _dropPercent / 100);
+  /// Simulated price per collateral: same % drop applied to every collateral type.
+  Map<String, double> get _simPrices {
+    if (_dropPercent >= 100) return {};
+    final factor = 1 - _dropPercent / 100;
+    return {for (final p in data.prices) p.collateralAsset: p.price / factor};
+  }
 
-  List<Cdp> get liquidatableCdps => data.cdps.where((c) {
-    if (c.mintedAmount <= 0) return false;
-    if (simulatedPrice.isInfinite) return false;
-    final collateralInAsset = c.collateralAmount / simulatedPrice;
-    final cr = collateralInAsset / c.mintedAmount;
-    return cr < asset.liquidationRatio / 100;
-  }).toList();
+  List<Cdp> _liquidatable(Map<String, double> simPrices) =>
+      data.cdps.where((c) {
+        if (c.mintedAmount <= 0) return false;
+        final sp = simPrices[c.collateralAsset];
+        if (sp == null || sp.isInfinite || sp <= 0) return false;
+        final cr = (c.collateralAmount / sp) / c.mintedAmount;
+        return cr < asset.getLiquidationRatio(c.collateralAsset) / 100;
+      }).toList();
+
+  /// Collateral at risk grouped by collateral type (98% absorbed by SP per protocol).
+  Map<String, double> _collateralByType(List<Cdp> liqs) {
+    final map = <String, double>{};
+    for (final c in liqs) {
+      map[c.collateralAsset] =
+          (map[c.collateralAsset] ?? 0) + c.collateralAmount * 0.98;
+    }
+    return map;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final liqs = liquidatableCdps;
+    final simPrices = _simPrices;
+    final liqs = _liquidatable(simPrices);
     final totalMintedAtRisk = liqs.fold(0.0, (s, c) => s + c.mintedAmount);
-    final totalCollateralAtRisk = liqs.fold(
-      0.0,
-      (s, c) => s + c.collateralAmount * 0.98,
-    );
+    final collateralByType = _collateralByType(liqs);
     final spBalance = data.pool?.totalAmount ?? 0.0;
-    final spCanAbsorb = spBalance >= totalMintedAtRisk;
+    // Fraction of liquidatable debt the SP can absorb (0.0–1.0).
+    final absorptionFraction = totalMintedAtRisk > 0
+        ? (spBalance / totalMintedAtRisk).clamp(0.0, 1.0)
+        : 0.0;
+    final spCanAbsorb = absorptionFraction >= 1.0;
     final remainingSp = spBalance - totalMintedAtRisk;
-    final remainingCollateral =
-        (totalCollateralAtRisk -
-                (spCanAbsorb
-                    ? totalCollateralAtRisk
-                    : spBalance / totalMintedAtRisk * totalCollateralAtRisk))
-            .clamp(0.0, double.infinity);
+    // Split collateral absorbed/remaining proportionally across all collateral types.
+    final collateralAbsorbed = {
+      for (final e in collateralByType.entries)
+        e.key: e.value * absorptionFraction,
+    };
+    final collateralRemaining = {
+      for (final e in collateralByType.entries)
+        e.key: e.value * (1 - absorptionFraction),
+    };
 
     final mintAbbr = getAbbreviation(totalMintedAtRisk);
-    final collAbbr = getAbbreviation(totalCollateralAtRisk);
     final premiumPct = (9.1).toStringAsFixed(1);
-
     final isDesktop = MediaQuery.of(context).size.width >= 700;
 
     return SingleChildScrollView(
@@ -149,13 +160,11 @@ class _SpTabViewState extends State<_SpTabView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── Historical liquidation price stats ───────────────────────────
           if (data.liquidations.isNotEmpty) ...[
             _HistoricalLiqStatsStrip(liquidations: data.liquidations),
             const SizedBox(height: 16),
           ],
 
-          // ── Existing analytics row ────────────────────────────────────────
           if (isDesktop)
             SizedBox(
               height: 380,
@@ -194,36 +203,32 @@ class _SpTabViewState extends State<_SpTabView> {
 
           const SizedBox(height: 24),
 
-          // ── Liquidation Scenario Simulator ────────────────────────────────
           _ScenarioSimulatorSection(
             asset: asset,
             dropPercent: _dropPercent,
             onDropChanged: (v) => setState(() => _dropPercent = v),
+            simPrices: simPrices,
             liqs: liqs,
             totalMintedAtRisk: totalMintedAtRisk,
-            totalCollateralAtRisk: totalCollateralAtRisk,
+            collateralAbsorbed: collateralAbsorbed,
+            collateralRemaining: collateralRemaining,
             remainingSp: remainingSp,
             spCanAbsorb: spCanAbsorb,
             mintAbbr: mintAbbr,
-            collAbbr: collAbbr,
             premiumPct: premiumPct,
-            remainingCollateral: remainingCollateral,
-            simulatedPrice: simulatedPrice,
             isDesktop: isDesktop,
           ),
 
-          // ── Top Endangered CDPs ───────────────────────────────────────────
           if (liqs.isNotEmpty) ...[
             const SizedBox(height: 16),
             _TopEndangeredList(
-              cdps:
-                  (liqs..sort(
-                        (a, b) => b.mintedAmount.compareTo(a.mintedAmount),
-                      ))
-                      .take(5)
-                      .toList(),
+              cdps: (liqs..sort(
+                    (a, b) => b.mintedAmount.compareTo(a.mintedAmount),
+                  ))
+                  .take(5)
+                  .toList(),
               asset: asset,
-              simulatedPrice: simulatedPrice,
+              simPrices: simPrices,
             ),
           ],
         ],
@@ -232,45 +237,105 @@ class _SpTabViewState extends State<_SpTabView> {
   }
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/// Renders a multi-collateral amount map as "2.40K ADA\n1.80K NIGHT".
+/// Returns "0.00" when empty.
+String _collateralMapLabel(Map<String, double> amounts) {
+  final parts = amounts.entries
+      .where((e) => e.value > 0.0005)
+      .map((e) {
+        final abbr = getAbbreviation(e.value);
+        return '${numberAbbreviatedFormatter(e.value, abbr)} ${collateralLabel(e.key)}';
+      })
+      .toList();
+  return parts.isEmpty ? '0.00' : parts.join('\n');
+}
+
 // ─── Scenario Simulator Section ───────────────────────────────────────────────
 
 class _ScenarioSimulatorSection extends StatelessWidget {
   final IndigoAsset asset;
   final double dropPercent;
   final ValueChanged<double> onDropChanged;
+  final Map<String, double> simPrices;
   final List<Cdp> liqs;
   final double totalMintedAtRisk;
-  final double totalCollateralAtRisk;
+  final Map<String, double> collateralAbsorbed;
+  final Map<String, double> collateralRemaining;
   final double remainingSp;
   final bool spCanAbsorb;
   final NumberAbbreviation? mintAbbr;
-  final NumberAbbreviation? collAbbr;
   final String premiumPct;
-  final double remainingCollateral;
-  final double simulatedPrice;
   final bool isDesktop;
 
   const _ScenarioSimulatorSection({
     required this.asset,
     required this.dropPercent,
     required this.onDropChanged,
+    required this.simPrices,
     required this.liqs,
     required this.totalMintedAtRisk,
-    required this.totalCollateralAtRisk,
+    required this.collateralAbsorbed,
+    required this.collateralRemaining,
     required this.remainingSp,
     required this.spCanAbsorb,
     required this.mintAbbr,
-    required this.collAbbr,
     required this.premiumPct,
-    required this.remainingCollateral,
-    required this.simulatedPrice,
     required this.isDesktop,
   });
+
+  /// "33.1760 ADA · 26.4009 NIGHT" style label for the slider.
+  String get _priceLabel {
+    final parts = simPrices.entries
+        .map((e) => '${numberFormatter(e.value, 4)} ${collateralLabel(e.key)}')
+        .toList();
+    return parts.isEmpty ? '' : '(${parts.join(' · ')})';
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColorScheme.of(context);
     final styles = AppTextStyles.of(context);
+    final hasRemaining = collateralRemaining.values.any((v) => v > 0.0005);
+
+    final panels = [
+      _CascadePanel(
+        label: 'Liquidatable CDPs',
+        value: '${liqs.length}',
+        sub: '${numberAbbreviatedFormatter(totalMintedAtRisk, mintAbbr)} ${asset.asset} at risk',
+        color: liqs.isEmpty ? colors.success : colors.error,
+        icon: Icons.warning_amber_outlined,
+      ),
+      _CascadePanel(
+        label: 'Collateral Absorbed',
+        value: _collateralMapLabel(collateralAbsorbed),
+        sub: 'by Stability Pool',
+        color: colors.warning,
+        icon: Icons.account_balance,
+      ),
+      _CascadePanel(
+        label: 'Remaining SP After',
+        value: remainingSp >= 0
+            ? '${numberAbbreviatedFormatter(remainingSp, getAbbreviation(remainingSp))} ${asset.asset}'
+            : 'SP EMPTY',
+        sub: remainingSp >= 0
+            ? 'buffer remaining'
+            : 'Add funds to earn $premiumPct% premium per liquidation',
+        color: remainingSp >= 0 ? colors.success : colors.warning,
+        icon: remainingSp >= 0
+            ? Icons.check_circle_outline
+            : Icons.savings_outlined,
+      ),
+      _CascadePanel(
+        label: 'Remaining Collateral to Absorb',
+        value:
+            hasRemaining ? _collateralMapLabel(collateralRemaining) : 'Fully Covered',
+        sub: hasRemaining ? 'not yet absorbed by SP' : 'SP covers all collateral',
+        color: hasRemaining ? colors.error : colors.success,
+        icon: Icons.layers_outlined,
+      ),
+    ];
 
     return IICard(
       padding: const EdgeInsets.all(16),
@@ -279,17 +344,15 @@ class _ScenarioSimulatorSection extends StatelessWidget {
         children: [
           Text('Liquidation Scenario Simulator', style: styles.cardTitle),
           const SizedBox(height: 12),
-          // Slider
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'ADA Price Drop',
+                'Collateral Price Drop',
                 style: styles.bodySm.copyWith(color: colors.textSecondary),
               ),
               Text(
-                '-${dropPercent.toStringAsFixed(0)}%  '
-                '(${numberFormatter(simulatedPrice.isInfinite ? 0 : simulatedPrice, 4)} ADA)',
+                '-${dropPercent.toStringAsFixed(0)}%  $_priceLabel',
                 style: styles.bodySm.copyWith(
                   color: dropPercent > 30 ? colors.error : colors.warning,
                   fontWeight: FontWeight.bold,
@@ -306,92 +369,21 @@ class _ScenarioSimulatorSection extends StatelessWidget {
             onChanged: onDropChanged,
           ),
           const SizedBox(height: 12),
-          // Cascade panels — Row on desktop, full-width Column on mobile
           if (isDesktop)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: _CascadePanel(
-                  label: 'Liquidatable CDPs',
-                  value: '${liqs.length}',
-                  sub: '${numberAbbreviatedFormatter(totalMintedAtRisk, mintAbbr)} ${asset.asset} at risk',
-                  color: liqs.isEmpty ? colors.success : colors.error,
-                  icon: Icons.warning_amber_outlined,
-                )),
-                const SizedBox(width: 10),
-                Expanded(child: _CascadePanel(
-                  label: 'Collateral Absorbed',
-                  value: '${numberAbbreviatedFormatter(totalCollateralAtRisk, collAbbr)} ADA',
-                  sub: 'by Stability Pool',
-                  color: colors.warning,
-                  icon: Icons.account_balance,
-                )),
-                const SizedBox(width: 10),
-                Expanded(child: _CascadePanel(
-                  label: 'Remaining SP After',
-                  value: remainingSp >= 0
-                      ? '${numberAbbreviatedFormatter(remainingSp, getAbbreviation(remainingSp))} ${asset.asset}'
-                      : 'SP EMPTY',
-                  sub: remainingSp >= 0
-                      ? 'buffer remaining'
-                      : 'Add funds to earn $premiumPct% ADA premium per liquidation',
-                  color: remainingSp >= 0 ? colors.success : colors.warning,
-                  icon: remainingSp >= 0 ? Icons.check_circle_outline : Icons.savings_outlined,
-                )),
-                const SizedBox(width: 10),
-                Expanded(child: _CascadePanel(
-                  label: 'Remaining Collateral to Absorb',
-                  value: remainingCollateral > 0
-                      ? '${numberAbbreviatedFormatter(remainingCollateral, getAbbreviation(remainingCollateral))} ADA'
-                      : 'Fully Covered',
-                  sub: remainingCollateral > 0 ? 'not yet absorbed by SP' : 'SP covers all collateral',
-                  color: remainingCollateral > 0 ? colors.error : colors.success,
-                  icon: Icons.layers_outlined,
-                )),
-              ],
+              children: panels
+                  .expand((p) => [Expanded(child: p), const SizedBox(width: 10)])
+                  .toList()
+                ..removeLast(),
             )
           else
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _CascadePanel(
-                  label: 'Liquidatable CDPs',
-                  value: '${liqs.length}',
-                  sub: '${numberAbbreviatedFormatter(totalMintedAtRisk, mintAbbr)} ${asset.asset} at risk',
-                  color: liqs.isEmpty ? colors.success : colors.error,
-                  icon: Icons.warning_amber_outlined,
-                ),
-                const SizedBox(height: 10),
-                _CascadePanel(
-                  label: 'Collateral Absorbed',
-                  value: '${numberAbbreviatedFormatter(totalCollateralAtRisk, collAbbr)} ADA',
-                  sub: 'by Stability Pool',
-                  color: colors.warning,
-                  icon: Icons.account_balance,
-                ),
-                const SizedBox(height: 10),
-                _CascadePanel(
-                  label: 'Remaining SP After',
-                  value: remainingSp >= 0
-                      ? '${numberAbbreviatedFormatter(remainingSp, getAbbreviation(remainingSp))} ${asset.asset}'
-                      : 'SP EMPTY',
-                  sub: remainingSp >= 0
-                      ? 'buffer remaining'
-                      : 'Add funds to earn $premiumPct% ADA premium per liquidation',
-                  color: remainingSp >= 0 ? colors.success : colors.warning,
-                  icon: remainingSp >= 0 ? Icons.check_circle_outline : Icons.savings_outlined,
-                ),
-                const SizedBox(height: 10),
-                _CascadePanel(
-                  label: 'Remaining Collateral to Absorb',
-                  value: remainingCollateral > 0
-                      ? '${numberAbbreviatedFormatter(remainingCollateral, getAbbreviation(remainingCollateral))} ADA'
-                      : 'Fully Covered',
-                  sub: remainingCollateral > 0 ? 'not yet absorbed by SP' : 'SP covers all collateral',
-                  color: remainingCollateral > 0 ? colors.error : colors.success,
-                  icon: Icons.layers_outlined,
-                ),
-              ],
+              children: panels
+                  .expand((p) => [p, const SizedBox(height: 10)])
+                  .toList()
+                ..removeLast(),
             ),
         ],
       ),
@@ -435,9 +427,7 @@ class _CascadePanel extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: styles.sectionLabel.copyWith(
-                    color: colors.textSecondary,
-                  ),
+                  style: styles.sectionLabel.copyWith(color: colors.textSecondary),
                 ),
               ),
             ],
@@ -469,7 +459,10 @@ class _HistoricalLiqStatsStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColorScheme.of(context);
-    final prices = liquidations.map((l) => l.oraclePrice).toList()..sort();
+    final prices =
+        liquidations.map((l) => l.oraclePrice).whereType<double>().toList()
+          ..sort();
+    if (prices.isEmpty) return const SizedBox.shrink();
     final minPrice = prices.first;
     final maxPrice = prices.last;
     final avgPrice = prices.reduce((a, b) => a + b) / prices.length;
@@ -518,12 +511,12 @@ class _HistoricalLiqStatsStrip extends StatelessWidget {
 class _TopEndangeredList extends StatefulWidget {
   final List<Cdp> cdps;
   final IndigoAsset asset;
-  final double simulatedPrice;
+  final Map<String, double> simPrices;
 
   const _TopEndangeredList({
     required this.cdps,
     required this.asset,
-    required this.simulatedPrice,
+    required this.simPrices,
   });
 
   @override
@@ -553,14 +546,15 @@ class _TopEndangeredListState extends State<_TopEndangeredList> {
           Text('Top Endangered CDPs', style: styles.cardTitle),
           const SizedBox(height: 8),
           ...widget.cdps.mapIndexed((i, cdp) {
+            final simPrice = widget.simPrices[cdp.collateralAsset] ?? 0.0;
             final collateralInAsset =
-                widget.simulatedPrice > 0 && widget.simulatedPrice.isFinite
-                ? cdp.collateralAmount / widget.simulatedPrice
-                : 0.0;
+                simPrice > 0 ? cdp.collateralAmount / simPrice : 0.0;
             final cr = cdp.mintedAmount > 0
                 ? (collateralInAsset / cdp.mintedAmount) * 100
                 : 0.0;
             final isCopied = _copiedOwner == cdp.owner;
+            final collLabel = collateralLabel(cdp.collateralAsset);
+
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
               child: Row(
@@ -584,7 +578,7 @@ class _TopEndangeredListState extends State<_TopEndangeredList> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          '${numberFormatter(cdp.collateralAmount, 0)} ADA / '
+                          '${numberFormatter(cdp.collateralAmount, 0)} $collLabel / '
                           '${numberFormatter(cdp.mintedAmount, 2)} ${widget.asset.asset}',
                           style: styles.sectionLabel.copyWith(
                             color: colors.textSecondary,

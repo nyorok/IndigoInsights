@@ -12,9 +12,10 @@ class StakeHistoryChart extends StatelessWidget {
 
   List<AmountDateData> _getStakeHistoriesData(List<StakeHistory> stakeHistories) {
     final data = stakeHistories
+        .sortedBy((item) => item.date)
         .groupFoldBy<DateTime, double>(
           (item) => DateTime(item.date.year, item.date.month, item.date.day),
-          (a, b) => (a ?? 0) + b.staked,
+          (_, b) => b.staked, // tS is a total snapshot, keep the last (most recent) per day
         )
         .entries
         .map((entry) => AmountDateData(entry.key, entry.value))

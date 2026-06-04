@@ -2,11 +2,10 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:indigo_insights/models/asset_interest_rate.dart';
 import 'package:indigo_insights/models/asset_price.dart';
+import 'package:indigo_insights/models/collateral_pair.dart';
 import 'package:indigo_insights/models/indigo_asset.dart';
 import 'package:indigo_insights/repositories/asset_price_repository.dart';
-import 'package:indigo_insights/repositories/cdp_repository.dart';
 import 'package:indigo_insights/repositories/indigo_asset_repository.dart';
 import 'package:indigo_insights/service_locator.dart';
 import 'package:indigo_insights/theme/app_color_scheme.dart';
@@ -21,7 +20,6 @@ import 'package:indigo_insights/widgets/ii_top_bar.dart';
 typedef _SimulatorData = ({
   List<IndigoAsset> assets,
   List<AssetPrice> prices,
-  List<AssetInterestRate> rates,
 });
 
 class PositionSimulatorInsights extends StatelessWidget {
@@ -43,12 +41,10 @@ class PositionSimulatorInsights extends StatelessWidget {
                     final results = await Future.wait([
                       sl<IndigoAssetRepository>().getAssets(),
                       sl<AssetPriceRepository>().getPrices(),
-                      sl<CdpRepository>().getAssetInterestRates(),
                     ]);
                     return (
                       assets: results[0] as List<IndigoAsset>,
                       prices: results[1] as List<AssetPrice>,
-                      rates: results[2] as List<AssetInterestRate>,
                     );
                   },
                   builder: (data) => _SimulatorLayout(data: data),
@@ -64,7 +60,7 @@ class PositionSimulatorInsights extends StatelessWidget {
   }
 }
 
-// ─── Single stateful layout — no prop-drilling ───────────────────────────────
+// ─── Stateful layout ──────────────────────────────────────────────────────────
 
 class _SimulatorLayout extends StatefulWidget {
   final _SimulatorData data;
@@ -78,6 +74,7 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
     with SingleTickerProviderStateMixin {
   late TabController _assetTabController;
   int _selectedAssetIndex = 0;
+  String _selectedCollateral = ''; // '' = ADA
   final _collateralCtrl = TextEditingController(text: '10000');
   final _mintedCtrl = TextEditingController(text: '1000');
 
@@ -90,7 +87,15 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
     );
     _assetTabController.addListener(() {
       if (!_assetTabController.indexIsChanging) {
-        setState(() => _selectedAssetIndex = _assetTabController.index);
+        final newAsset = widget.data.assets[_assetTabController.index];
+        setState(() {
+          _selectedAssetIndex = _assetTabController.index;
+          // Default to ADA pair when switching assets.
+          _selectedCollateral =
+              newAsset.collateralAssets.any((p) => p.collateralAsset.isEmpty)
+                  ? ''
+                  : newAsset.collateralAssets.firstOrNull?.collateralAsset ?? '';
+        });
       }
     });
   }
@@ -105,17 +110,26 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
 
   IndigoAsset get _asset => widget.data.assets[_selectedAssetIndex];
 
-  double get _price =>
-      widget.data.prices
-          .firstWhereOrNull((p) => p.asset == _asset.asset)
-          ?.price ??
-      1.0;
+  CollateralPair? get _pair =>
+      _asset.collateralAssets
+          .firstWhereOrNull((p) => p.collateralAsset == _selectedCollateral) ??
+      _asset.collateralAssets.firstOrNull;
 
-  double get _interestRate =>
-      widget.data.rates
-          .firstWhereOrNull((r) => r.asset == _asset.asset)
-          ?.interestRate ??
-      0.0;
+  String get _collLabel => collateralLabel(_selectedCollateral);
+
+  double get _price {
+    final match = widget.data.prices.firstWhereOrNull(
+      (p) => p.asset == _asset.asset && p.collateralAsset == _selectedCollateral,
+    );
+    return match?.price ??
+        widget.data.prices
+            .firstWhereOrNull((p) => p.asset == _asset.asset)
+            ?.price ??
+        1.0;
+  }
+
+  // interestRate from CollateralPair is a decimal fraction (e.g. 0.035 = 3.5%).
+  double get _interestRate => _pair?.interestRate ?? 0.0;
 
   double get _collateral => double.tryParse(_collateralCtrl.text) ?? 0.0;
   double get _minted => double.tryParse(_mintedCtrl.text) ?? 0.0;
@@ -126,18 +140,21 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
   }
 
   double get _liqPrice {
-    if (_minted <= 0) return 0;
-    return _collateral / (_minted * (_asset.liquidationRatio / 100));
+    final pair = _pair;
+    if (_minted <= 0 || pair == null) return 0;
+    return _collateral / (_minted * (pair.liquidationRatioPercent / 100));
   }
 
   double get _maintenancePrice {
-    if (_minted <= 0) return 0;
-    return _collateral / (_minted * (_asset.maintenanceRatio / 100));
+    final pair = _pair;
+    if (_minted <= 0 || pair == null) return 0;
+    return _collateral / (_minted * (pair.maintenanceRatioPercent / 100));
   }
 
   double get _rmrPrice {
-    if (_minted <= 0) return 0;
-    return _collateral / (_minted * (_asset.rmr / 100));
+    final pair = _pair;
+    if (_minted <= 0 || pair == null) return 0;
+    return _collateral / (_minted * (pair.redemptionRatioPercent / 100));
   }
 
   double get _dropToLiq {
@@ -145,7 +162,7 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
     return ((_price - _liqPrice) / _price) * 100;
   }
 
-  double _adaToReachCr(double targetCr) {
+  double _collateralToReachCr(double targetCr) {
     if (_minted <= 0) return 0;
     final needed = _minted * _price * (targetCr / 100);
     return (needed - _collateral).clamp(0, double.infinity);
@@ -161,10 +178,33 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
   Widget build(BuildContext context) {
     final colors = AppColorScheme.of(context);
     final styles = AppTextStyles.of(context);
+    final pair = _pair;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth > 700;
+
+        // Collateral selector chips — only shown when > 1 collateral type.
+        Widget? collateralSelector;
+        if (_asset.collateralAssets.length > 1) {
+          collateralSelector = Wrap(
+            spacing: 8,
+            children: _asset.collateralAssets.map((p) {
+              final isSelected = p.collateralAsset == _selectedCollateral;
+              return ChoiceChip(
+                label: Text(collateralLabel(p.collateralAsset)),
+                selected: isSelected,
+                onSelected: (_) =>
+                    setState(() => _selectedCollateral = p.collateralAsset),
+                selectedColor: colors.primary.withValues(alpha: 0.2),
+                labelStyle: styles.bodySm.copyWith(
+                  color: isSelected ? colors.primary : colors.textSecondary,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              );
+            }).toList(),
+          );
+        }
 
         final header = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,9 +218,13 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
               controller: _assetTabController,
               tabs: widget.data.assets.map((a) => a.asset).toList(),
             ),
+            if (collateralSelector != null) ...[
+              const SizedBox(height: 8),
+              collateralSelector,
+            ],
             const SizedBox(height: 8),
             Text(
-              'Current ${_asset.asset} price: ${numberFormatter(_price, 4)} ADA',
+              'Current ${_asset.asset} price: ${numberFormatter(_price, 4)} $_collLabel',
               style: styles.bodySm.copyWith(color: colors.textSecondary),
             ),
             const SizedBox(height: 14),
@@ -195,7 +239,7 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
               child: Column(
                 children: [
                   _NumField(
-                    label: 'Collateral (ADA)',
+                    label: 'Collateral ($_collLabel)',
                     controller: _collateralCtrl,
                     onChanged: (_) => setState(() {}),
                   ),
@@ -219,17 +263,17 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
                   ),
                   _MetricRow(
                     'Liquidation Price',
-                    '${numberFormatter(_liqPrice, 4)} ADA',
+                    '${numberFormatter(_liqPrice, 4)} $_collLabel',
                     color: colors.error,
                   ),
                   _MetricRow(
                     'Maintenance Price',
-                    '${numberFormatter(_maintenancePrice, 4)} ADA',
+                    '${numberFormatter(_maintenancePrice, 4)} $_collLabel',
                     color: colors.warning,
                   ),
                   _MetricRow(
                     'RMR Price',
-                    '${numberFormatter(_rmrPrice, 4)} ADA',
+                    '${numberFormatter(_rmrPrice, 4)} $_collLabel',
                     color: colors.warning,
                   ),
                   _MetricRow(
@@ -247,7 +291,7 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
                   const SizedBox(height: 4),
                   _MetricRow(
                     'Add Collateral',
-                    '${numberFormatter(_adaToReachCr(200), 0)} ADA',
+                    '${numberFormatter(_collateralToReachCr(200), 0)} $_collLabel',
                   ),
                   _MetricRow(
                     'Or Repay Debt',
@@ -266,9 +310,9 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
               title: 'Safety Gauge',
               child: _GaugeContent(
                 cr: _cr.isInfinite ? 999 : _cr,
-                liqRatio: _asset.liquidationRatio,
-                mcr: _asset.maintenanceRatio,
-                rmr: _asset.rmr,
+                liqRatio: pair?.liquidationRatioPercent,
+                mcr: pair?.maintenanceRatioPercent,
+                rmr: pair?.redemptionRatioPercent,
               ),
             ),
             const SizedBox(height: 12),
@@ -280,10 +324,12 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
                     child: _SectionCard(
                       title: 'Price Scenario Table',
                       child: _ScenarioTable(
-                        asset: _asset,
+                        pair: pair,
                         collateral: _collateral,
                         minted: _minted,
                         currentPrice: _price,
+                        iAsset: _asset.asset,
+                        collLabel: _collLabel,
                       ),
                     ),
                   ),
@@ -293,10 +339,11 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
                       child: _SectionCard(
                         title: 'Interest Cost Projection',
                         child: _InterestProjection(
-                          asset: _asset,
+                          iAsset: _asset.asset,
                           minted: _minted,
                           interestRate: _interestRate,
                           currentPrice: _price,
+                          collLabel: _collLabel,
                         ),
                       ),
                     ),
@@ -307,10 +354,12 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
               _SectionCard(
                 title: 'Price Scenario Table',
                 child: _ScenarioTable(
-                  asset: _asset,
+                  pair: pair,
                   collateral: _collateral,
                   minted: _minted,
                   currentPrice: _price,
+                  iAsset: _asset.asset,
+                  collLabel: _collLabel,
                 ),
               ),
               if (_interestRate > 0) ...[
@@ -318,10 +367,11 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
                 _SectionCard(
                   title: 'Interest Cost Projection',
                   child: _InterestProjection(
-                    asset: _asset,
+                    iAsset: _asset.asset,
                     minted: _minted,
                     interestRate: _interestRate,
                     currentPrice: _price,
+                    collLabel: _collLabel,
                   ),
                 ),
               ],
@@ -390,9 +440,9 @@ class _SectionCard extends StatelessWidget {
 
 class _GaugeContent extends StatelessWidget {
   final double cr;
-  final double liqRatio;
-  final double mcr;
-  final double rmr;
+  final double? liqRatio;
+  final double? mcr;
+  final double? rmr;
 
   const _GaugeContent({
     required this.cr,
@@ -407,23 +457,21 @@ class _GaugeContent extends StatelessWidget {
     final styles = AppTextStyles.of(context);
 
     Color zoneColor() {
-      if (cr < liqRatio + 10) return colors.error;
-      if (cr < mcr) return colors.warning;
-      if (cr < rmr) return colors.warning;
-      if (cr < 200) return colors.success;
+      if (liqRatio != null && cr < liqRatio! + 10) return colors.error;
+      if (mcr != null && cr < mcr!) return colors.warning;
+      if (rmr != null && cr < rmr!) return colors.warning;
       return colors.success;
     }
 
     String zoneLabel() {
-      if (cr < liqRatio + 10) return 'CRITICAL — Near Liquidation';
-      if (cr < mcr) return 'DANGER — Below MCR';
-      if (cr < rmr) return 'CAUTION — Below RMR';
+      if (liqRatio != null && cr < liqRatio! + 10) return 'CRITICAL — Near Liquidation';
+      if (mcr != null && cr < mcr!) return 'DANGER — Below MCR';
+      if (rmr != null && cr < rmr!) return 'CAUTION — Below RMR';
       if (cr < 200) return 'MODERATE — Safe';
       return 'HEALTHY — Well Collateralized';
     }
 
     final cappedCr = cr.clamp(0, 400).toDouble();
-    final fraction = cappedCr / 400;
     final color = zoneColor();
 
     return Column(
@@ -439,7 +487,7 @@ class _GaugeContent extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: LinearProgressIndicator(
-            value: fraction,
+            value: cappedCr / 400,
             backgroundColor: colors.canvas,
             valueColor: AlwaysStoppedAnimation(color),
             minHeight: 20,
@@ -456,9 +504,18 @@ class _GaugeContent extends StatelessWidget {
           ),
         ),
         const Divider(height: 20),
-        _ThresholdRow('Liquidation (LR)', liqRatio, colors.error),
-        _ThresholdRow('Maintenance (MCR)', mcr, colors.warning),
-        _ThresholdRow('Redemption (RMR)', rmr, colors.warning),
+        if (liqRatio != null)
+          _ThresholdRow('Liquidation (LR)', liqRatio!, colors.error)
+        else
+          _ThresholdRowNA('Liquidation (LR)', colors.textMuted),
+        if (mcr != null)
+          _ThresholdRow('Maintenance (MCR)', mcr!, colors.warning)
+        else
+          _ThresholdRowNA('Maintenance (MCR)', colors.textMuted),
+        if (rmr != null)
+          _ThresholdRow('Redemption (RMR)', rmr!, colors.warning)
+        else
+          _ThresholdRowNA('Redemption (RMR)', colors.textMuted),
       ],
     );
   }
@@ -467,23 +524,31 @@ class _GaugeContent extends StatelessWidget {
 // ─── Scenario Table ───────────────────────────────────────────────────────────
 
 class _ScenarioTable extends StatelessWidget {
-  final IndigoAsset asset;
+  final CollateralPair? pair;
   final double collateral;
   final double minted;
   final double currentPrice;
+  final String iAsset;
+  final String collLabel;
 
   const _ScenarioTable({
-    required this.asset,
+    required this.pair,
     required this.collateral,
     required this.minted,
     required this.currentPrice,
+    required this.iAsset,
+    required this.collLabel,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColorScheme.of(context);
     final styles = AppTextStyles.of(context);
-    final drops = [0, 10, 20, 30, 40, 50];
+    const drops = [0, 10, 20, 30, 40, 50];
+
+    final liq = pair?.liquidationRatioPercent;
+    final mcr = pair?.maintenanceRatioPercent;
+    final rmr = pair?.redemptionRatioPercent;
 
     return SizedBox(
       width: double.infinity,
@@ -494,38 +559,40 @@ class _ScenarioTable extends StatelessWidget {
         dataRowMaxHeight: 32,
         columns: [
           DataColumn(label: Text('Drop', style: styles.monoSm)),
-          DataColumn(label: Text('Asset Price', style: styles.monoSm)),
+          DataColumn(label: Text('$collLabel Price', style: styles.monoSm)),
           DataColumn(label: Text('CR%', style: styles.monoSm)),
           DataColumn(label: Text('Status', style: styles.monoSm)),
         ],
         rows: drops.map((drop) {
           final simPrice = drop >= 100
               ? double.infinity
-              : currentPrice / (1 - drop / 100);
+              : currentPrice * (1 - drop / 100);
           double cr = double.infinity;
           if (minted > 0 && simPrice.isFinite && simPrice > 0) {
             cr = (collateral / simPrice / minted) * 100;
           }
-          final liq = asset.liquidationRatio;
-          final status = cr < liq
+          final status = (liq != null && cr < liq)
               ? 'LIQUIDATED'
-              : cr < asset.maintenanceRatio
+              : (mcr != null && cr < mcr)
               ? 'Below MCR'
-              : cr < asset.rmr
+              : (rmr != null && cr < rmr)
               ? 'Below RMR'
               : 'Safe';
-          final statusColor = cr < liq
+          final statusColor = (liq != null && cr < liq)
               ? colors.error
-              : cr < asset.maintenanceRatio
+              : (mcr != null && cr < mcr)
               ? colors.warning
-              : cr < asset.rmr
+              : (rmr != null && cr < rmr)
               ? colors.warning
               : colors.success;
           return DataRow(
             cells: [
               DataCell(Text('-$drop%', style: styles.monoSm)),
               DataCell(
-                Text(numberFormatter(simPrice, 4), style: styles.monoSm),
+                Text(
+                  simPrice.isFinite ? numberFormatter(simPrice, 4) : '—',
+                  style: styles.monoSm,
+                ),
               ),
               DataCell(
                 Text(
@@ -547,16 +614,19 @@ class _ScenarioTable extends StatelessWidget {
 // ─── Interest Projection ──────────────────────────────────────────────────────
 
 class _InterestProjection extends StatelessWidget {
-  final IndigoAsset asset;
+  final String iAsset;
   final double minted;
+  // Decimal fraction (e.g. 0.035 = 3.5% APR).
   final double interestRate;
   final double currentPrice;
+  final String collLabel;
 
   const _InterestProjection({
-    required this.asset,
+    required this.iAsset,
     required this.minted,
     required this.interestRate,
     required this.currentPrice,
+    required this.collLabel,
   });
 
   @override
@@ -564,16 +634,16 @@ class _InterestProjection extends StatelessWidget {
     final colors = AppColorScheme.of(context);
     final styles = AppTextStyles.of(context);
 
-    ({double iAsset, double ada}) forDays(int days) {
-      final i = minted * (interestRate / 100) * (days / 365);
-      return (iAsset: i, ada: i * currentPrice);
+    ({double iAssetAmt, double collateral}) forDays(int days) {
+      final i = minted * interestRate * (days / 365);
+      return (iAssetAmt: i, collateral: i * currentPrice);
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Rate: ${interestRate.toStringAsFixed(2)}% APR',
+          'Rate: ${(interestRate * 100).toStringAsFixed(2)}% APR',
           style: styles.sectionLabel.copyWith(color: colors.textSecondary),
         ),
         const SizedBox(height: 8),
@@ -597,11 +667,11 @@ class _InterestProjection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '${numberFormatter(entry.data.iAsset, 4)} ${asset.asset}',
+                      '${numberFormatter(entry.data.iAssetAmt, 4)} $iAsset',
                       style: styles.monoSm,
                     ),
                     Text(
-                      '≈ ${numberFormatter(entry.data.ada, 2)} ADA',
+                      '≈ ${numberFormatter(entry.data.collateral, 2)} $collLabel',
                       style: styles.monoSm.copyWith(
                         color: colors.textSecondary,
                       ),
@@ -668,10 +738,7 @@ class _MetricRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: styles.bodySm.copyWith(color: colors.textSecondary),
-          ),
+          Text(label, style: styles.bodySm.copyWith(color: colors.textSecondary)),
           Text(
             value,
             style: styles.monoSm.copyWith(
@@ -679,6 +746,27 @@ class _MetricRow extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThresholdRowNA extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _ThresholdRowNA(this.label, this.color);
+
+  @override
+  Widget build(BuildContext context) {
+    final styles = AppTextStyles.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: styles.bodySm.copyWith(color: color)),
+          Text('—', style: styles.monoSm.copyWith(color: color)),
         ],
       ),
     );
@@ -700,10 +788,7 @@ class _ThresholdRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: styles.bodySm.copyWith(color: colors.textSecondary),
-          ),
+          Text(label, style: styles.bodySm.copyWith(color: colors.textSecondary)),
           Text(
             '${value.toStringAsFixed(1)}%',
             style: styles.monoSm.copyWith(

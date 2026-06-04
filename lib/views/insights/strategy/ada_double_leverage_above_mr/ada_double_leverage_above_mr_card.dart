@@ -8,20 +8,16 @@ class AdaDoubleLeverageAboveMrCard extends StatelessWidget {
   const AdaDoubleLeverageAboveMrCard({
     super.key,
     required this.asset,
+    required this.collateralAsset,
     required this.interestRate,
-    required this.redemptionMarginRatio,
-    required this.maintenanceRatio,
-    required this.liquidationRatio,
     required this.assetPrice,
     required this.debtMintingFee,
     required this.collateralRatio,
   });
 
   final String asset;
+  final String collateralAsset;
   final double interestRate;
-  final double redemptionMarginRatio;
-  final double maintenanceRatio;
-  final double liquidationRatio;
   final double assetPrice;
   final double debtMintingFee;
   final double collateralRatio;
@@ -30,6 +26,7 @@ class AdaDoubleLeverageAboveMrCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppColorScheme.of(context);
     final styles = AppTextStyles.of(context);
+    final collateral = collateralLabel(collateralAsset);
 
     informationRow(String label, Widget info) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -42,15 +39,17 @@ class AdaDoubleLeverageAboveMrCard extends StatelessWidget {
       ),
     );
 
-    calculatedAmount(double amount) => Text(
-      '${numberFormatter(amount, 2)}%',
-      style: styles.monoSm.copyWith(color: colors.textPrimary),
+    valueText(String v, {Color? color}) => Text(
+      v,
+      style: styles.monoSm.copyWith(
+        color: color ?? colors.textPrimary,
+        fontWeight: FontWeight.w600,
+      ),
     );
 
     final cr = collateralRatio / 100;
     final doubleLeverage = 1 + (1 + 1 / cr) / cr;
     final liquidationLoss = -(1 - (1 / cr) / cr) * 100;
-    final priceDropToLiquidation = (1 - (liquidationRatio / collateralRatio)) * 100;
 
     return Card(
       child: Padding(
@@ -61,10 +60,10 @@ class AdaDoubleLeverageAboveMrCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(asset, style: styles.cardTitle),
+                Text('$asset ($collateral Collateral)', style: styles.cardTitle),
                 Tooltip(
                   message:
-                      'This is the maximum theoretical double\nleverage achievable based on the\nMaintenance Ratio.',
+                      'Maximum theoretical double\nleverage based on the Maintenance Ratio.',
                   child: AnimatedGradientText(
                     '${numberFormatter(doubleLeverage, 2)}x',
                     gradientColors: [colors.success, colors.error],
@@ -75,25 +74,23 @@ class AdaDoubleLeverageAboveMrCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             informationRow(
-              'Liquidation Price Drop',
-              Text(
-                '-${numberFormatter(priceDropToLiquidation, 2)}%',
-                style: styles.monoSm.copyWith(color: colors.error, fontWeight: FontWeight.bold),
-              ),
-            ),
-            informationRow(
               'Liquidation Loss',
-              Text(
-                '${numberFormatter(liquidationLoss, 2)}%',
-                style: styles.monoSm.copyWith(color: colors.error, fontWeight: FontWeight.bold),
-              ),
+              valueText('${numberFormatter(liquidationLoss, 2)}%', color: colors.error),
             ),
             Divider(color: colors.border, height: 16),
-            informationRow('Interest Rate', calculatedAmount(interestRate)),
-            informationRow('Redemption Margin Ratio', calculatedAmount(redemptionMarginRatio)),
-            informationRow('Maintenance Ratio', calculatedAmount(maintenanceRatio)),
-            informationRow('Liquidation Ratio', calculatedAmount(liquidationRatio)),
-            informationRow('Minting Fee', calculatedAmount(debtMintingFee)),
+            informationRow('Collateral', valueText(collateral)),
+            informationRow(
+              'Price',
+              valueText('${numberFormatter(assetPrice, 4)} $collateral'),
+            ),
+            informationRow(
+              'Interest Rate',
+              valueText('${numberFormatter(interestRate, 2)}%'),
+            ),
+            informationRow(
+              'Minting Fee',
+              valueText('${numberFormatter(debtMintingFee, 2)}%'),
+            ),
           ],
         ),
       ),

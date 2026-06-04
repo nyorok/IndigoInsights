@@ -28,24 +28,14 @@ List<AmountPercentageData> normalizeAmountPercentageData(
     if (inputIndex < inputList.length) {
       final percent = (inputList[inputIndex].percent * 100).round();
       if (percent == currentPercent) {
-        normalizedList.add(
-          AmountPercentageData(
-            currentPercent / 100.0,
-            inputList[inputIndex].amount,
-          ),
-        );
+        lastAmount = inputList[inputIndex].amount;
+        normalizedList.add(AmountPercentageData(currentPercent / 100.0, lastAmount));
         inputIndex++;
       } else {
-        if (currentPercent > percent) {
-          // throw Exception(
-          //   "normalizeAmountPercentageData: Input should have unique percents by interval 1",
-          // );
-        }
-        normalizedList.add(
-          AmountPercentageData(currentPercent / 100.0, lastAmount),
-        );
+        normalizedList.add(AmountPercentageData(currentPercent / 100.0, lastAmount));
       }
-      lastAmount = inputList[inputIndex].amount;
+    } else {
+      normalizedList.add(AmountPercentageData(currentPercent / 100.0, lastAmount));
     }
 
     currentPercent += 1;

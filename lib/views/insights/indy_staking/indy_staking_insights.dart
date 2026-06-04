@@ -18,7 +18,7 @@ import 'package:indigo_insights/widgets/ii_tab_bar.dart';
 import 'package:indigo_insights/widgets/ii_top_bar.dart';
 
 /// Tab name constants for URL routing (`?tab=stake-history` etc.)
-const _kStakingTabs = ['stake-history', 'staking-velocity', 'governance-rewards'];
+const _kStakingTabs = ['stake-history', 'staking-trends', 'governance-rewards'];
 
 class IndyStakingInsights extends StatefulWidget {
   const IndyStakingInsights({super.key, this.initialTab});
@@ -190,7 +190,7 @@ class _StakingContent extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: IITabBar(
-              tabs: const ['Staked History', 'Velocity', 'Gov. Rewards'],
+              tabs: const ['Staked History', 'Trends', 'Gov. Rewards'],
               controller: tabController,
               onTap: (i) => context.goTab(_kStakingTabs[i]),
             ),

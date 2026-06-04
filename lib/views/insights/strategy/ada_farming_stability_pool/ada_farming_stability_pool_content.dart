@@ -49,12 +49,11 @@ class StabilityPoolFarmingStrategyContent extends StatelessWidget {
                         width: itemWidth,
                         child: AdaFarmingStabilityPoolCard(
                           title: strategyData.title,
+                          collateralAsset: strategyData.collateralAsset,
                           strategyYield: strategyData.strategyYield,
                           poolYield: strategyData.poolYield,
                           interestRate: strategyData.interestRate,
-                          redemptionMarginRatio: strategyData.rmr,
-                          maintenanceRatio: strategyData.mcr,
-                          liquidationRatio: strategyData.liquidationRatio,
+                          assetPrice: strategyData.assetPrice,
                           debtMintingFee: strategyData.debtMintingFee,
                         )
                             .animate()
