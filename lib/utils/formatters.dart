@@ -52,19 +52,26 @@ String numberAbbreviatedFormatter(
   }
 }
 
-/// Canonical display order for Indigo iAssets.
-const _kAssetOrder = ['iUSD', 'iBTC', 'iETH', 'iSOL'];
+/// Canonical display order for well-known Indigo iAssets. Assets not listed
+/// here (newly launched ones) sort after these, alphabetically, so the app
+/// needs no code change when the protocol adds an iAsset.
+const _kAssetOrder = ['iUSD', 'iBTC', 'iETH', 'iSOL', 'iADA', 'iJPY', 'iEUR'];
 
 int assetSortIndex(String asset) {
   final i = _kAssetOrder.indexOf(asset);
   return i >= 0 ? i : _kAssetOrder.length;
 }
 
-/// Sort a list of objects that expose an [asset] name by canonical order.
+/// Sort a list of objects that expose an [asset] name by canonical order,
+/// with unknown assets ordered alphabetically at the end.
 List<T> sortedByAsset<T>(List<T> items, String Function(T) getName) {
   final copy = List<T>.from(items);
-  copy.sort((a, b) => assetSortIndex(getName(a))
-      .compareTo(assetSortIndex(getName(b))));
+  copy.sort((a, b) {
+    final ai = assetSortIndex(getName(a));
+    final bi = assetSortIndex(getName(b));
+    if (ai != bi) return ai.compareTo(bi);
+    return getName(a).compareTo(getName(b));
+  });
   return copy;
 }
 

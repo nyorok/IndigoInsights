@@ -136,10 +136,13 @@ class StrategyRepository {
       final iAsset = indigoAssets.firstWhereOrNull((ia) => ia.asset == asset);
       if (iAsset == null) continue;
 
-      // SP APR from official endpoint (already in %, same for all collaterals of this asset).
+      // SP APR from the official endpoint (already in %). V3 pays three
+      // streams: INDY emissions, interest redistribution (sp_X_X) and
+      // liquidation premiums (sp_X_liquidations).
       final indyApr = aprMap['sp_${asset}_indy'] ?? 0.0;
-      final adaApr = aprMap['sp_${asset}_ada'] ?? 0.0;
-      final poolYield = indyApr + adaApr;
+      final interestShareApr = aprMap['sp_${asset}_$asset'] ?? 0.0;
+      final liquidationsApr = aprMap['sp_${asset}_liquidations'] ?? 0.0;
+      final poolYield = indyApr + interestShareApr + liquidationsApr;
 
       // One card per collateral price available for this asset.
       final pricesForAsset = assetPrices
@@ -187,13 +190,15 @@ class StrategyRepository {
     final indigoAssets = results[0] as List<IndigoAsset>;
     final dexYields = results[1] as List<LiquidityPoolYield>;
 
-    final minswapYields = dexYields
-        .where((e) => e.dex == Dex.minswapStableSwap)
+    // Any DEX pool containing an iAsset. Don't filter on a specific DEX:
+    // the listed venues change over time (MinswapStableSwap pools are gone;
+    // WingRiders/SundaeSwap host the current iUSD stable pairs).
+    final iAssetYields = dexYields
         .where((e) => indigoAssets.any((ia) => e.hasAsset(ia.asset)))
         .toList();
 
     final List<StablePoolStrategyData> strategies = [];
-    for (final e in minswapYields) {
+    for (final e in iAssetYields) {
       final iAsset = indigoAssets.firstWhere((ia) => e.hasAsset(ia.asset));
 
       for (final collateralAsset in iAsset.collateralAssets) {

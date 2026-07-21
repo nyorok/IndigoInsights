@@ -35,12 +35,13 @@ class _SizeDistContent extends StatelessWidget {
   final List<Liquidation> liquidations;
   const _SizeDistContent({required this.liquidations});
 
+  // Bucket bounds are USD values — collateral tokens differ per event.
   static const _buckets = [
-    (label: '<1k', min: 0.0, max: 1000.0),
-    (label: '1k–5k', min: 1000.0, max: 5000.0),
-    (label: '5k–20k', min: 5000.0, max: 20000.0),
-    (label: '20k–100k', min: 20000.0, max: 100000.0),
-    (label: '>100k', min: 100000.0, max: double.infinity),
+    (label: '<\$1k', min: 0.0, max: 1000.0),
+    (label: '\$1k–5k', min: 1000.0, max: 5000.0),
+    (label: '\$5k–20k', min: 5000.0, max: 20000.0),
+    (label: '\$20k–100k', min: 20000.0, max: 100000.0),
+    (label: '>\$100k', min: 100000.0, max: double.infinity),
   ];
 
   static const _colors = [
@@ -56,8 +57,8 @@ class _SizeDistContent extends StatelessWidget {
     final counts = List.filled(_buckets.length, 0);
     for (final l in liquidations) {
       for (int i = 0; i < _buckets.length; i++) {
-        if (l.collateralAbsorbed >= _buckets[i].min &&
-            l.collateralAbsorbed < _buckets[i].max) {
+        if (l.collateralUsdValue >= _buckets[i].min &&
+            l.collateralUsdValue < _buckets[i].max) {
           counts[i]++;
           break;
         }

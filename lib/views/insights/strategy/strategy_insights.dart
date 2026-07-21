@@ -93,7 +93,13 @@ class _StrategyInsightsState extends State<StrategyInsights>
                           mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(t.label),
+                            Flexible(
+                              child: Text(
+                                t.label,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
                             StrategyRisk(riskLevel: t.risk),
                           ],
                         );

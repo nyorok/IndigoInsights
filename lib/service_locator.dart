@@ -11,6 +11,9 @@ import 'package:indigo_insights/api/indigo_api/services/redemption_service.dart'
 import 'package:indigo_insights/api/indigo_api/services/stability_pool_account_service.dart';
 import 'package:indigo_insights/api/indigo_api/services/stability_pool_service.dart';
 import 'package:indigo_insights/api/indigo_api/services/stake_history_service.dart';
+import 'package:indigo_insights/api/danogo_api/danogo_service.dart';
+import 'package:indigo_insights/api/liqwid_api/liqwid_service.dart';
+import 'package:indigo_insights/api/surf_api/surf_lending_service.dart';
 import 'package:indigo_insights/repositories/apr_repository.dart';
 import 'package:indigo_insights/repositories/asset_price_repository.dart';
 import 'package:indigo_insights/repositories/asset_status_repository.dart';
@@ -19,12 +22,15 @@ import 'package:indigo_insights/repositories/dex_yield_repository.dart';
 import 'package:indigo_insights/repositories/indigo_asset_repository.dart';
 import 'package:indigo_insights/repositories/indy_price_repository.dart';
 import 'package:indigo_insights/repositories/liquidation_repository.dart';
+import 'package:indigo_insights/repositories/danogo_pool_repository.dart';
+import 'package:indigo_insights/repositories/liqwid_market_repository.dart';
 import 'package:indigo_insights/repositories/protocol_dashboard_repository.dart';
 import 'package:indigo_insights/repositories/redemption_repository.dart';
 import 'package:indigo_insights/repositories/solvency_repository.dart';
 import 'package:indigo_insights/repositories/stability_pool_account_repository.dart';
 import 'package:indigo_insights/repositories/stability_pool_repository.dart';
 import 'package:indigo_insights/repositories/stake_history_repository.dart';
+import 'package:indigo_insights/repositories/surf_pool_repository.dart';
 import 'package:indigo_insights/repositories/strategy_repository.dart';
 
 final GetIt sl = GetIt.instance;
@@ -43,6 +49,9 @@ void setupServiceLocator() {
   sl.registerLazySingleton(() => StabilityPoolService());
   sl.registerLazySingleton(() => StabilityPoolAccountService());
   sl.registerLazySingleton(() => StakeHistoryService());
+  sl.registerLazySingleton(() => LiqwidService());
+  sl.registerLazySingleton(() => DanogoService());
+  sl.registerLazySingleton(() => SurfLendingService());
 
   // Base repositories — lazy singletons (created on first access, live for app lifetime)
   sl.registerLazySingleton(() => AprRepository(sl()));
@@ -53,6 +62,9 @@ void setupServiceLocator() {
   sl.registerLazySingleton(() => IndigoAssetRepository(sl()));
   sl.registerLazySingleton(() => IndyPriceRepository(sl()));
   sl.registerLazySingleton(() => LiquidationRepository(sl()));
+  sl.registerLazySingleton(() => LiqwidMarketRepository(sl()));
+  sl.registerLazySingleton(() => DanogoPoolRepository(sl()));
+  sl.registerLazySingleton(() => SurfPoolRepository(sl()));
   sl.registerLazySingleton(() => RedemptionRepository(sl()));
   sl.registerLazySingleton(() => StabilityPoolRepository(sl()));
   sl.registerLazySingleton(() => StabilityPoolAccountRepository(sl()));

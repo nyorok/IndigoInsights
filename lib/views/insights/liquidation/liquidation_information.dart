@@ -66,11 +66,14 @@ class LiquidationInformation extends StatelessWidget {
               ],
             ).animate().scaleY(duration: 300.ms, curve: Curves.easeInOut),
             const SizedBox(height: 32),
+            // Collateral differs per CDP (ADA, NIGHT, USDC…), so totals are
+            // aggregated in USD using each event's recorded collateral price.
             informationRow(
               'Total Liquidated',
               assetAmount(
-                liquidations.map((c) => c.collateralAbsorbed).sum,
+                liquidations.map((c) => c.collateralUsdValue).sum,
                 context,
+                asset: 'USD',
               ),
             ),
             const Divider(),
@@ -87,27 +90,33 @@ class LiquidationInformation extends StatelessWidget {
               'Biggest Liquidation',
               assetAmount(
                 liquidations
-                    .map((c) => c.collateralAbsorbed)
+                    .map((c) => c.collateralUsdValue)
                     .reduce((value, element) => value > element ? value : element),
                 context,
+                asset: 'USD',
               ),
             ),
             const Divider(),
             informationRow(
-              'SP ADA Rewards (Total)',
+              'SP Rewards (Total)',
               assetAmount(
                 liquidations
-                    .map((c) => c.collateralAbsorbed * 0.98 - c.iAssetBurned * (c.oraclePrice ?? 0.0))
+                    .map((c) =>
+                        c.collateralUsdValue * 0.98 - (c.burnedUsdValue ?? 0.0))
                     .fold(0.0, (a, b) => a + b),
                 context,
+                asset: 'USD',
               ),
             ),
             const Divider(),
             informationRow(
-              'Governance ADA Rewards (Total)',
+              'Governance Rewards (Total)',
               assetAmount(
-                liquidations.map((c) => c.collateralAbsorbed * 0.02).fold(0.0, (a, b) => a + b),
+                liquidations
+                    .map((c) => c.collateralUsdValue * 0.02)
+                    .fold(0.0, (a, b) => a + b),
                 context,
+                asset: 'USD',
               ),
             ),
           ],

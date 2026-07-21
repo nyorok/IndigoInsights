@@ -115,8 +115,12 @@ class AmountDateChart extends StatelessWidget {
 
   double getAmountInterval() => (getAmountEnd() - getAmountStart()) / 20;
 
-  int getDateInterval() =>
-      (getDateStart().difference(getDateEnd()).inDays / 6).abs().ceil();
+  // Never 0: fl_chart asserts SideTitles.interval != 0, and a single-day
+  // dataset (e.g. an asset with very few events) would otherwise produce 0.
+  int getDateInterval() {
+    final days = (getDateStart().difference(getDateEnd()).inDays / 6).abs().ceil();
+    return days < 1 ? 1 : days;
+  }
 
   List<LineChartBarData> getChartLines() => data
       .mapIndexed(

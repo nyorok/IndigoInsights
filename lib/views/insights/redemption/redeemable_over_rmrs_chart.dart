@@ -10,10 +10,14 @@ import 'package:indigo_insights/theme/gradients.dart';
 import 'package:indigo_insights/utils/async_builder.dart';
 import 'package:indigo_insights/widgets/percentage_amount_chart.dart';
 
-double calculateRedeemableAmount(Cdp cdp, double rmr, double adaPrice) {
-  final ratio = cdp.collateralAmount / (adaPrice * cdp.mintedAmount);
+/// [collateralPrice] is the iAsset price expressed in the CDP's own collateral
+/// token (ADA, NIGHT, …). Using each CDP's pair price keeps collateral and
+/// debt in the same unit; the result is in iAsset units.
+double calculateRedeemableAmount(Cdp cdp, double rmr, double collateralPrice) {
+  final ratio = cdp.collateralAmount / (collateralPrice * cdp.mintedAmount);
   if (rmr <= ratio) return 0;
-  return ((-cdp.collateralAmount / adaPrice) + rmr * cdp.mintedAmount) / (rmr - 1);
+  return ((-cdp.collateralAmount / collateralPrice) + rmr * cdp.mintedAmount) /
+      (rmr - 1);
 }
 
 class RedeemableOverRmrsChart extends StatelessWidget {
@@ -23,18 +27,24 @@ class RedeemableOverRmrsChart extends StatelessWidget {
 
   List<PercentageAmountData> _getRedeemableOverRmrsData(
     List<Cdp> cdps,
-    double adaPrice,
+    Map<String, double> priceByCollateral,
     List<double> rmrs,
   ) {
     final redeemablePerCdp = cdps
-        .map(
-          (e) => rmrs.map(
+        .map((e) {
+          final price = priceByCollateral[e.collateralAsset];
+          // Skip CDPs whose collateral pair has no oracle price — mixing
+          // units would corrupt the aggregate.
+          if (price == null || price <= 0) {
+            return const Iterable<PercentageAmountData>.empty();
+          }
+          return rmrs.map(
             (rmr) => PercentageAmountData(
               rmr,
-              calculateRedeemableAmount(e, rmr / 100, adaPrice),
+              calculateRedeemableAmount(e, rmr / 100, price),
             ),
-          ),
-        )
+          );
+        })
         .expand((e) => e)
         .where((e) => e.amount.abs() > 0)
         .toList();
@@ -64,10 +74,12 @@ class RedeemableOverRmrsChart extends StatelessWidget {
         final cdps = (results[0] as List<Cdp>)
             .where((e) => e.asset == indigoAsset.asset)
             .toList();
-        final adaPrice = (results[1] as List<AssetPrice>)
-            .firstWhere((e) => e.asset == indigoAsset.asset)
-            .price;
-        return (cdps: cdps, adaPrice: adaPrice);
+        final priceByCollateral = <String, double>{
+          for (final p in (results[1] as List<AssetPrice>)
+              .where((e) => e.asset == indigoAsset.asset))
+            p.collateralAsset: p.price,
+        };
+        return (cdps: cdps, priceByCollateral: priceByCollateral);
       }),
       builder: (data) {
         return PercentageAmountChart(
@@ -75,7 +87,9 @@ class RedeemableOverRmrsChart extends StatelessWidget {
           currency: indigoAsset.asset,
           labels: [indigoAsset.asset],
           mintedSupply: data.cdps.map((e) => e.mintedAmount).sum,
-          data: [_getRedeemableOverRmrsData(data.cdps, data.adaPrice, rmrs)],
+          data: [
+            _getRedeemableOverRmrsData(data.cdps, data.priceByCollateral, rmrs)
+          ],
           colors: [getColorByAsset(indigoAsset.asset)],
           gradients: [getGradientByAsset(indigoAsset.asset)],
         );
