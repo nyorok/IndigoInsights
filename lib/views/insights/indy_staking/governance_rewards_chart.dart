@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:indigo_insights/models/liquidation.dart';
 import 'package:indigo_insights/models/redemption.dart';
+import 'package:indigo_insights/repositories/indigo_asset_repository.dart';
 import 'package:indigo_insights/repositories/indy_price_repository.dart';
 import 'package:indigo_insights/repositories/liquidation_repository.dart';
 import 'package:indigo_insights/repositories/redemption_repository.dart';
@@ -58,7 +59,8 @@ class _GovernanceContent extends StatelessWidget {
     for (final liq in sorted) {
       final day = DateTime(
           liq.createdAt.year, liq.createdAt.month, liq.createdAt.day);
-      byDay[day] = (byDay[day] ?? 0) + liq.collateralAbsorbed * 0.02;
+      // 2% governance fee, valued in USD — collateral tokens differ per event.
+      byDay[day] = (byDay[day] ?? 0) + liq.collateralUsdValue * 0.02;
     }
     final days = byDay.keys.toList()..sort();
     double cumulative = 0;
@@ -75,8 +77,8 @@ class _GovernanceContent extends StatelessWidget {
     final govRewardData = _buildCumulativeGovernanceRewards();
     if (govRewardData.isEmpty) return const SizedBox.shrink();
 
-    final totalGovAda = govRewardData.last.amount;
-    final adaAbbr = getAbbreviation(totalGovAda);
+    final totalGovUsd = govRewardData.last.amount;
+    final govAbbr = getAbbreviation(totalGovUsd);
     final stakedAbbr = getAbbreviation(data.totalStaked);
 
     final successGradient = LinearGradient(
@@ -98,8 +100,8 @@ class _GovernanceContent extends StatelessWidget {
             runSpacing: 8,
             children: [
               _GovernanceStat(
-                'Total Gov. ADA (all time)',
-                '${numberAbbreviatedFormatter(totalGovAda, adaAbbr)} ADA',
+                'Total Gov. Rewards (all time)',
+                '${numberAbbreviatedFormatter(totalGovUsd, govAbbr)} USD',
                 greenGradient,
                 styles: styles,
               ),
@@ -120,12 +122,12 @@ class _GovernanceContent extends StatelessWidget {
         ),
         Expanded(
           child: AmountDateChart(
-            title: 'Cumulative Governance ADA Rewards',
+            title: 'Cumulative Governance Rewards',
             data: [govRewardData],
             colors: [colors.success],
             gradients: [successGradient],
-            labels: ['Gov. ADA'],
-            currency: 'ADA',
+            labels: ['Gov. Rewards'],
+            currency: 'USD',
           ).animate().fade(duration: 500.ms),
         ),
       ],
@@ -174,7 +176,10 @@ class FeeRevenueChart extends StatelessWidget {
     return AsyncBuilder<
         ({List<Liquidation> liquidations, List<Redemption> redemptionsAll})>(
       fetcher: () async {
-        final assets = ['iUSD', 'iBTC', 'iETH', 'iSOL'];
+        // Asset list comes from the API so newly launched iAssets (iADA, …)
+        // are included without code changes.
+        final indigoAssets = await sl<IndigoAssetRepository>().getAssets();
+        final assets = indigoAssets.map((a) => a.asset).toList();
         final results = await Future.wait([
           sl<LiquidationRepository>().getLiquidations(),
           ...assets
@@ -204,7 +209,8 @@ class _FeeRevenueContent extends StatelessWidget {
     for (final l in data.liquidations) {
       final day =
           DateTime(l.createdAt.year, l.createdAt.month, l.createdAt.day);
-      byDay[day] = (byDay[day] ?? 0) + l.collateralAbsorbed * 0.02;
+      // 2% governance fee in USD terms (collateral tokens differ per event).
+      byDay[day] = (byDay[day] ?? 0) + l.collateralUsdValue * 0.02;
     }
     final days = byDay.keys.toList()..sort();
     double cum = 0;
@@ -219,9 +225,11 @@ class _FeeRevenueContent extends StatelessWidget {
     for (final r in data.redemptionsAll) {
       final day =
           DateTime(r.createdAt.year, r.createdAt.month, r.createdAt.day);
+      // Redemption fees are paid in ADA; convert with the ADA/USD price
+      // recorded on each redemption so both series share one currency.
+      final adaUsd = double.tryParse(r.adaPrice) ?? 0.0;
       byDay[day] = (byDay[day] ?? 0) +
-          r.processingFeeLovelaces +
-          r.reimbursementFeeLovelaces;
+          (r.processingFeeLovelaces + r.reimbursementFeeLovelaces) * adaUsd;
     }
     final days = byDay.keys.toList()..sort();
     double cum = 0;
@@ -270,7 +278,7 @@ class _FeeRevenueContent extends StatelessWidget {
         if (liqFees.isNotEmpty) 'Liquidation Gov.',
         if (redemptionFees.isNotEmpty) 'Redemption Fees',
       ],
-      currency: 'ADA',
+      currency: 'USD',
     ).animate().fade(duration: 500.ms);
   }
 }

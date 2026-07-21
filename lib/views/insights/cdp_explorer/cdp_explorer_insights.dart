@@ -765,11 +765,17 @@ class _CdpsTableState extends State<_CdpsTable> {
             )
           else ...[
             Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: SizedBox(
-                  width: double.infinity,
-                  child: DataTable(
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: ConstrainedBox(
+                      // Fill the card on wide screens; scroll instead of
+                      // overflowing when columns don't fit.
+                      constraints:
+                          BoxConstraints(minWidth: constraints.maxWidth),
+                      child: DataTable(
                     columnSpacing: 12,
                     headingRowHeight: 32,
                     dataRowMinHeight: 28,
@@ -854,6 +860,8 @@ class _CdpsTableState extends State<_CdpsTable> {
                         ],
                       );
                     }).toList(),
+                      ),
+                    ),
                   ),
                 ),
               ),

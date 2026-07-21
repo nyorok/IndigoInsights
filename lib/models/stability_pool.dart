@@ -129,4 +129,41 @@ class StabilityPool {
     return BigInt.from(((a1 + a2) * account.snapshotD / account.snapshotP)) /
         conversionValue;
   }
+
+  /// V3: unclaimed rewards per collateral asset ('' = ADA, else policy.hexName).
+  /// Same Liquity-style formula as [getAccountUnclaimedRewards], applied to each
+  /// collateral reward stream in [assetStates] against the account's matching
+  /// S snapshot in `asset_sums`. Amounts of different collaterals are different
+  /// tokens — never sum them without converting.
+  Map<String, double> getAccountUnclaimedRewardsByCollateral(
+      StabilityPoolAccount account) {
+    final rewards = <String, double>{};
+    final key = '${account.snapshotEpoch},${account.snapshotScale}';
+    final nextKey = '${account.snapshotEpoch},${account.snapshotScale + 1}';
+
+    for (final state in assetStates) {
+      final s1 = state.epochToScaleToSum[key];
+      if (s1 == null) continue;
+      // Account snapshot missing for this stream = account joined before the
+      // stream started accruing; its S snapshot is 0.
+      final accountS = account.assetSums[state.collateralAsset] ?? BigInt.zero;
+
+      final s2 = state.epochToScaleToSum[nextKey] ?? s1;
+      final a1 = s1 - accountS;
+      final a2 = BigInt.from((s2 - s1) / conversionValue);
+
+      final amount =
+          BigInt.from(((a1 + a2) * account.snapshotD / account.snapshotP)) /
+              conversionValue;
+      if (amount > 0) rewards[state.collateralAsset] = amount;
+    }
+
+    // V2 fallback: single ADA stream stored on the pool itself.
+    if (rewards.isEmpty && account.snapshotS != null) {
+      final v2 = getAccountUnclaimedRewards(account);
+      if (v2 > 0) rewards[''] = v2;
+    }
+
+    return rewards;
+  }
 }

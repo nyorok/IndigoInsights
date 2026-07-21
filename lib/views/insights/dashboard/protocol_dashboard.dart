@@ -13,8 +13,8 @@ import 'package:indigo_insights/utils/formatters.dart';
 import 'package:indigo_insights/widgets/ii_card.dart';
 import 'package:indigo_insights/widgets/ii_data_row.dart';
 import 'package:indigo_insights/widgets/ii_kpi_strip.dart';
-import 'package:indigo_insights/widgets/ii_section_header.dart';
 import 'package:indigo_insights/widgets/ii_top_bar.dart';
+import 'package:indigo_insights/widgets/yield_sources.dart';
 
 class ProtocolDashboard extends StatelessWidget {
   const ProtocolDashboard({super.key});
@@ -62,17 +62,27 @@ class _DashboardContent extends StatelessWidget {
                 children: [
                   Expanded(child: _TvlByAssetSection(data: data)),
                   const SizedBox(width: 16),
-                  SizedBox(width: 300, child: _ActivityCard(data: data)),
+                  SizedBox(
+                    width: 360,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _ActivityCard(data: data),
+                        const SizedBox(height: 16),
+                        const TopYieldsCard(),
+                      ],
+                    ),
+                  ),
                 ],
               )
             else ...[
               _ActivityCard(data: data),
               const SizedBox(height: 16),
+              const TopYieldsCard(),
+              const SizedBox(height: 16),
               _TvlByAssetSection(data: data),
             ],
-            const SizedBox(height: 24),
             _AssetHealthSection(data: data),
-            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -90,18 +100,25 @@ class _KpiStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppColorScheme.of(context);
 
-    final totalTvl = data.assetStatuses.fold(0.0, (s, a) => s + a.totalValueLocked);
+    // /api/assets/analytics reports totalValueLocked and marketCap in USD
+    // (marketCap ≈ totalSupply × iAsset USD price), so both KPIs are USD sums.
+    final totalTvl = data.assetStatuses.fold(
+      0.0,
+      (s, a) => s + a.totalValueLocked,
+    );
     final totalCdps = data.cdps.length;
     final indyPrice = data.indyPrice;
-    final totalMktCap =
-        data.assetStatuses.fold(0.0, (s, a) => s + a.marketCap);
+    final totalMktCap = data.assetStatuses.fold(0.0, (s, a) => s + a.marketCap);
 
     return IIKpiStrip(
       cells: [
         IIKpiCell(
           label: 'Total TVL',
-          value: numberAbbreviatedFormatter(totalTvl, getAbbreviation(totalTvl)),
-          unit: 'ADA',
+          value: numberAbbreviatedFormatter(
+            totalTvl,
+            getAbbreviation(totalTvl),
+          ),
+          unit: 'USD',
         ),
         IIKpiCell(
           label: 'Active CDPs',
@@ -119,7 +136,7 @@ class _KpiStrip extends StatelessWidget {
             totalMktCap,
             getAbbreviation(totalMktCap),
           ),
-          unit: 'ADA',
+          unit: 'USD',
           valueColor: colors.primary,
         ),
       ],
@@ -137,10 +154,13 @@ class _TvlByAssetSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final styles = AppTextStyles.of(context);
     final colors = AppColorScheme.of(context);
-    final statuses = sortedByAsset(data.assetStatuses, (s) => s.asset);
+    final statuses = [...data.assetStatuses]
+      ..sort((a, b) => b.totalValueLocked.compareTo(a.totalValueLocked));
     final maxTvl = statuses.isEmpty
         ? 1.0
-        : statuses.map((s) => s.totalValueLocked).reduce((a, b) => a > b ? a : b);
+        : statuses
+              .map((s) => s.totalValueLocked)
+              .reduce((a, b) => a > b ? a : b);
 
     return IICard(
       variant: IICardVariant.flat,
@@ -196,12 +216,9 @@ class _TvlBar extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Text(asset, style: styles.bodyMd.copyWith(color: color)),
               Text(
-                asset,
-                style: styles.bodyMd.copyWith(color: color),
-              ),
-              Text(
-                '${numberAbbreviatedFormatter(tvl, abbr)} ADA',
+                '${numberAbbreviatedFormatter(tvl, abbr)} USD',
                 style: styles.monoSm.copyWith(color: colors.textSecondary),
               ),
             ],
@@ -250,15 +267,19 @@ class _ActivityCard extends StatelessWidget {
     final now = DateTime.now();
     final yesterday = now.subtract(const Duration(hours: 24));
 
-    final liq24h =
-        data.liquidations.where((l) => l.createdAt.isAfter(yesterday)).length;
-    final liqCollateral24h = data.liquidations
+    final liq24h = data.liquidations
         .where((l) => l.createdAt.isAfter(yesterday))
-        .fold(0.0, (s, l) => s + l.collateralAbsorbed);
+        .length;
+    // Collateral can be ADA, NIGHT, USDC… — sum USD values, never raw amounts.
+    final liqCollateralUsd24h = data.liquidations
+        .where((l) => l.createdAt.isAfter(yesterday))
+        .fold(0.0, (s, l) => s + l.collateralUsdValue);
 
-    final stakeNow =
-        data.stakeHistory.isNotEmpty ? data.stakeHistory.last.staked : 0.0;
-    final stakeYday = data.stakeHistory
+    final stakeNow = data.stakeHistory.isNotEmpty
+        ? data.stakeHistory.last.staked
+        : 0.0;
+    final stakeYday =
+        data.stakeHistory
             .lastWhereOrNull((s) => s.date.isBefore(yesterday))
             ?.staked ??
         stakeNow;
@@ -278,7 +299,7 @@ class _ActivityCard extends StatelessWidget {
             icon: Icons.flash_on,
             label: 'Liquidations',
             value: '$liq24h events',
-            sub: '${numberFormatter(liqCollateral24h, 0)} ADA absorbed',
+            sub: '${numberFormatter(liqCollateralUsd24h, 0)} USD absorbed',
             valueColor: liq24h > 0 ? colors.error : colors.success,
             colors: colors,
             styles: styles,
@@ -348,10 +369,7 @@ class _ActivityRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: styles.bodySm.copyWith(color: colors.primary),
-              ),
+              Text(label, style: styles.bodySm.copyWith(color: colors.primary)),
               Text(
                 value,
                 style: styles.bodyMd.copyWith(
@@ -359,10 +377,7 @@ class _ActivityRow extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              Text(
-                sub,
-                style: styles.bodySm.copyWith(color: colors.textMuted),
-              ),
+              Text(sub, style: styles.bodySm.copyWith(color: colors.textMuted)),
             ],
           ),
         ),
@@ -381,13 +396,17 @@ class _AssetHealthSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width >= 700;
 
-    final cards = sortedByAsset(data.assetStatuses, (s) => s.asset).mapIndexed((i, status) {
-      final pool = data.stabilityPools
-          .firstWhereOrNull((p) => p.asset == status.asset);
-      final assetCdps =
-          data.cdps.where((c) => c.asset == status.asset).toList();
-      final totalMinted =
-          assetCdps.fold(0.0, (s, c) => s + c.mintedAmount);
+    final cards = sortedByAsset(data.assetStatuses, (s) => s.asset).mapIndexed((
+      i,
+      status,
+    ) {
+      final pool = data.stabilityPools.firstWhereOrNull(
+        (p) => p.asset == status.asset,
+      );
+      final assetCdps = data.cdps
+          .where((c) => c.asset == status.asset)
+          .toList();
+      final totalMinted = assetCdps.fold(0.0, (s, c) => s + c.mintedAmount);
       final spCoverage = (pool != null && totalMinted > 0)
           ? pool.totalAmount / totalMinted
           : 0.0;
@@ -397,31 +416,45 @@ class _AssetHealthSection extends StatelessWidget {
         spCoverage: spCoverage,
         cdpCount: assetCdps.length,
         index: i,
-        indigoAsset: data.indigoAssets
-            .firstWhereOrNull((a) => a.asset == status.asset),
+        indigoAsset: data.indigoAssets.firstWhereOrNull(
+          (a) => a.asset == status.asset,
+        ),
       );
     }).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const IISectionHeader('Asset Health'),
         const SizedBox(height: 8),
         if (isDesktop)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: cards.mapIndexed((i, card) => Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(left: i == 0 ? 0 : 12),
-                child: card,
-              ),
-            )).toList(),
+          // Wrap instead of a single Row: the asset list grows over time
+          // (7+ iAssets) and a fixed row overflows.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const gap = 12.0;
+              const minCardWidth = 220.0;
+              final columns =
+                  ((constraints.maxWidth + gap) / (minCardWidth + gap))
+                      .floor()
+                      .clamp(1, cards.length);
+              final cardWidth =
+                  (constraints.maxWidth - gap * (columns - 1)) / columns;
+              return Wrap(
+                spacing: gap,
+                runSpacing: gap,
+                children: cards
+                    .map((card) => SizedBox(width: cardWidth, child: card))
+                    .toList(),
+              );
+            },
           )
         else
-          ...cards.map((card) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: card,
-          )),
+          ...cards.map(
+            (card) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: card,
+            ),
+          ),
       ],
     );
   }
@@ -468,48 +501,48 @@ class _AssetHealthCard extends StatelessWidget {
     final abbr = getAbbreviation(status.totalSupply);
 
     return IICard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  status.asset,
-                  style: styles.cardTitle.copyWith(color: colors.textPrimary),
-                ),
-                Text(
-                  '$cdpCount CDPs',
-                  style: styles.bodySm.copyWith(color: colors.textMuted),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _HealthRow(
-              label: 'System CR',
-              value: '${status.totalCollateralRatio.toStringAsFixed(1)}%',
-              fraction: crFraction,
-              color: crColor(status.totalCollateralRatio),
-            ),
-            const SizedBox(height: 8),
-            _HealthRow(
-              label: 'SP Coverage',
-              value: '${(spCoverage * 100).toStringAsFixed(1)}%',
-              fraction: spFraction,
-              color: spFraction >= 0.5 ? colors.success : colors.warning,
-            ),
-            const SizedBox(height: 8),
-            IIDataRow(
-              label: 'Supply',
-              value:
-                  '${numberAbbreviatedFormatter(status.totalSupply, abbr)} ${status.asset}',
-              valueStyle: styles.monoSm,
-            ),
-          ],
-        ),
-      )
-      .animate()
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    status.asset,
+                    style: styles.cardTitle.copyWith(color: colors.textPrimary),
+                  ),
+                  Text(
+                    '$cdpCount CDPs',
+                    style: styles.bodySm.copyWith(color: colors.textMuted),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _HealthRow(
+                label: 'System CR',
+                value: '${status.totalCollateralRatio.toStringAsFixed(1)}%',
+                fraction: crFraction,
+                color: crColor(status.totalCollateralRatio),
+              ),
+              const SizedBox(height: 8),
+              _HealthRow(
+                label: 'SP Coverage',
+                value: '${(spCoverage * 100).toStringAsFixed(1)}%',
+                fraction: spFraction,
+                color: spFraction >= 0.5 ? colors.success : colors.warning,
+              ),
+              const SizedBox(height: 8),
+              IIDataRow(
+                label: 'Supply',
+                value:
+                    '${numberAbbreviatedFormatter(status.totalSupply, abbr)} ${status.asset}',
+                valueStyle: styles.monoSm,
+              ),
+            ],
+          ),
+        )
+        .animate()
         .slideX(
           begin: 0.2,
           duration: ((index + 2) * 100).ms,

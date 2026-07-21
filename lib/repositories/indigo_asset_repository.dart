@@ -12,7 +12,15 @@ class IndigoAssetRepository {
 
   DateTime? get lastFetchedAt => _cache?.fetchedAt;
 
-  static const _preferredOrder = ['iUSD', 'iBTC', 'iETH', 'iSOL', 'iJPY', 'iEUR'];
+  static const _preferredOrder = [
+    'iUSD',
+    'iBTC',
+    'iETH',
+    'iSOL',
+    'iADA',
+    'iJPY',
+    'iEUR',
+  ];
 
   Future<List<IndigoAsset>> getAssets() async {
     if (_cache != null && _cache!.isValid(_ttl)) return _cache!.value;

@@ -44,10 +44,13 @@ class LiquidityPoolYield {
     };
   }
 
-  static Dex _dexNameToEnum(String dexId) => switch (dexId) {
-    'MinswapStableSwap' => Dex.minswapStableSwap,
-    'SundaeswapStableSwap' => Dex.sundaeswapV3,
-    'WingridersV2' => Dex.wingridersV2,
+  // Case-insensitive: the API has used WingridersV2/WingRidersV2 and
+  // SundaeswapStableSwap/SundaeSwapV3 spellings across versions.
+  static Dex _dexNameToEnum(String dexId) => switch (dexId.toLowerCase()) {
+    'minswapstableswap' => Dex.minswapStableSwap,
+    'minswapv2' => Dex.minswapV2,
+    'sundaeswapstableswap' || 'sundaeswapv3' => Dex.sundaeswapV3,
+    'wingridersv2' => Dex.wingridersV2,
     _ => Dex.unknown,
   };
 
@@ -81,6 +84,32 @@ class LiquidityPoolYield {
     'c0ee29a85b13209423b10447d3c2e6a50641a15c57770e27cb9d5073.57696e67526964657273' =>
       'WRT',
     '29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6.4d494e' => 'MIN',
-    _ => assetId,
+    _ => _decodeAssetName(assetId),
   };
+
+  /// Fallback for tokens not in the table above: decode `policy.hexName` to
+  /// the ASCII token name (stripping the CIP-68 label prefix when present),
+  /// so newly listed assets stay readable without a code change.
+  static String _decodeAssetName(String assetId) {
+    final parts = assetId.split('.');
+    if (parts.length != 2) return assetId;
+    var hex = parts[1];
+    // CIP-68 asset-label prefix (4 bytes, starts with a 0 nibble),
+    // e.g. 0014df10 before "USDM".
+    if (hex.length > 8 && hex.startsWith('0')) {
+      hex = hex.substring(8);
+    }
+    try {
+      final bytes = <int>[
+        for (var i = 0; i + 1 < hex.length; i += 2)
+          int.parse(hex.substring(i, i + 2), radix: 16),
+      ];
+      final name = String.fromCharCodes(bytes);
+      if (name.isNotEmpty &&
+          name.codeUnits.every((c) => c >= 0x20 && c < 0x7f)) {
+        return name;
+      }
+    } catch (_) {}
+    return assetId;
+  }
 }

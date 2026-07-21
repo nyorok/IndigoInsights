@@ -24,7 +24,8 @@ class CumulativeLiquidationsChart extends StatelessWidget {
         .groupFoldBy<DateTime, double>(
           (item) =>
               DateTime(item.createdAt.year, item.createdAt.month, item.createdAt.day),
-          (a, b) => (a ?? 0) + b.collateralAbsorbed,
+          // Mixed collateral tokens (ADA, NIGHT…) — accumulate USD values.
+          (a, b) => (a ?? 0) + b.collateralUsdValue,
         )
         .entries
         .map((entry) => AmountDateData(entry.key, entry.value))
@@ -59,7 +60,7 @@ class CumulativeLiquidationsChart extends StatelessWidget {
 
         return AmountDateChart(
           title: 'Cumulative Liquidations',
-          currency: 'ADA',
+          currency: 'USD',
           labels: [indigoAsset.asset],
           data: [normalizeAmountDateData(assetData, startDate, endDate)],
           colors: [getColorByAsset(indigoAsset.asset)],

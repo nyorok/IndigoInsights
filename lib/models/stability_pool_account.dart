@@ -10,9 +10,14 @@ class StabilityPoolAccount {
 
   final BigInt snapshotD;
   final BigInt snapshotP;
-  final BigInt? snapshotS; // null in V3 (moved to per-collateral asset_states)
+  final BigInt? snapshotS; // V2 only; V3 moved to per-collateral [assetSums]
   final int snapshotEpoch;
   final int snapshotScale;
+
+  /// V3: the account's S snapshot per collateral asset ('' = ADA), from
+  /// `asset_sums`. Pairs with StabilityPool.assetStates to compute unclaimed
+  /// rewards per collateral token.
+  final Map<String, BigInt> assetSums;
 
   StabilityPoolAccount({
     required this.asset,
@@ -22,9 +27,20 @@ class StabilityPoolAccount {
     this.snapshotS,
     required this.snapshotEpoch,
     required this.snapshotScale,
+    this.assetSums = const {},
   });
 
   factory StabilityPoolAccount.fromJson(Map<String, dynamic> json) {
+    final Map<String, BigInt> assetSums = {};
+    final rawSums = json['asset_sums'];
+    if (rawSums is List) {
+      for (final entry in rawSums) {
+        final row = entry as Map<String, dynamic>;
+        assetSums[(row['asset'] as String?) ?? ''] =
+            BigInt.parse(row['sumVal'] as String);
+      }
+    }
+
     return StabilityPoolAccount(
       asset: json['asset'] as String,
       owner: json['owner'] as String,
@@ -35,6 +51,7 @@ class StabilityPoolAccount {
           : null,
       snapshotEpoch: json['snapshotEpoch'] as int,
       snapshotScale: json['snapshotScale'] as int,
+      assetSums: assetSums,
     );
   }
 }

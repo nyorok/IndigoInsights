@@ -108,6 +108,21 @@ class PercentageAmountChart extends StatelessWidget {
     final appColors = AppColorScheme.of(context);
     final styles = AppTextStyles.of(context);
 
+    // Assets with no redeemable positions produce only empty series; the
+    // reduce/last calls below assume at least one data point.
+    if (data.every((series) => series.isEmpty)) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Text(title, style: styles.cardTitle),
+          ),
+          const Expanded(child: Center(child: Text('No data available.'))),
+        ],
+      );
+    }
+
     return Column(
       children: [
         Container(

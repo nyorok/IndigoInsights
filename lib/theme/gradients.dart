@@ -8,18 +8,38 @@ Color getColorByAsset(String asset) => switch (asset) {
   'iBTC' => const Color(0xFFFF9416),
   'iETH' => Colors.white,
   'iSOL' => const Color(0xFF9945FF),
+  'iADA' => const Color(0xFF3468D1), // Cardano blue
   'iJPY' => const Color(0xFFf56872),
   'iEUR' => const Color(0xFF043dd3),
-  _ => const Color(0xFF9945FF),
+  _ => _fallbackColorForAsset(asset),
 };
+
+/// Deterministic, readable color for iAssets launched after this build, so
+/// new assets stay visually distinguishable without a code change.
+Color _fallbackColorForAsset(String asset) {
+  final hue = (asset.codeUnits.fold(0, (h, c) => h * 31 + c) % 360).toDouble();
+  return HSLColor.fromAHSL(1, hue, 0.65, 0.60).toColor();
+}
 
 LinearGradient getGradientByAsset(String asset) => switch (asset) {
   'iUSD' => usdTransparentGradient,
   'iBTC' => btcTransparentGradient,
   'iETH' => ethTransparentGradient,
   'iSOL' => solTransparentGradient,
-  _ => solTransparentGradient,
+  _ => _fallbackGradientForAsset(asset),
 };
+
+LinearGradient _fallbackGradientForAsset(String asset) {
+  final base = getColorByAsset(asset);
+  return LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Colors.white.withValues(alpha: 0.7),
+      base.withValues(alpha: 0.4),
+    ],
+  );
+}
 
 // ── Sidebar / nav active state ────────────────────────────────────────────────
 
