@@ -50,25 +50,25 @@ class _DashboardContent extends StatelessWidget {
 
     return SelectionArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _KpiStrip(data: data),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             if (isDesktop)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(child: _TvlByAssetSection(data: data)),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 8),
                   SizedBox(
                     width: 360,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _ActivityCard(data: data),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 8),
                         const TopYieldsCard(),
                       ],
                     ),
@@ -161,7 +161,7 @@ class _TvlByAssetSection extends StatelessWidget {
 
     return IICard(
       variant: IICardVariant.flat,
-      padding: EdgeInsets.zero,
+      padding: const EdgeInsets.all(8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -171,12 +171,8 @@ class _TvlByAssetSection extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           ...entries.mapIndexed(
-            (i, e) => _TvlBar(
-              asset: e.key,
-              tvl: e.value,
-              maxTvl: maxTvl,
-              index: i,
-            ),
+            (i, e) =>
+                _TvlBar(asset: e.key, tvl: e.value, maxTvl: maxTvl, index: i),
           ),
         ],
       ),
