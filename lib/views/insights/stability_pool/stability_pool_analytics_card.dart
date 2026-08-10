@@ -1,11 +1,11 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:indigo_insights/models/asset_status.dart';
+import 'package:indigo_insights/models/cdp.dart';
 import 'package:indigo_insights/models/indigo_asset.dart';
 import 'package:indigo_insights/models/stability_pool.dart';
 import 'package:indigo_insights/models/stability_pool_account.dart';
-import 'package:indigo_insights/repositories/asset_status_repository.dart';
+import 'package:indigo_insights/repositories/cdp_repository.dart';
 import 'package:indigo_insights/repositories/stability_pool_account_repository.dart';
 import 'package:indigo_insights/repositories/stability_pool_repository.dart';
 import 'package:indigo_insights/service_locator.dart';
@@ -16,7 +16,7 @@ import 'package:indigo_insights/utils/formatters.dart';
 
 typedef _SpAnalyticsData = ({
   StabilityPool pool,
-  double totalSupply,
+  double cdpMinted,
   List<StabilityPoolAccount> accounts,
 });
 
@@ -30,21 +30,23 @@ class StabilityPoolAnalyticsCard extends StatelessWidget {
       fetcher: () async {
         final results = await Future.wait([
           sl<StabilityPoolRepository>().getPools(),
-          sl<AssetStatusRepository>().getStatuses(),
+          sl<CdpRepository>().getCdps(),
           sl<StabilityPoolAccountRepository>().getAccounts(),
         ]);
         final pools = results[0] as List<StabilityPool>;
-        final statuses = results[1] as List<AssetStatus>;
+        final cdps = results[1] as List<Cdp>;
         final accounts = results[2] as List<StabilityPoolAccount>;
 
         final pool = pools.firstWhere((p) => p.asset == indigoAsset.asset);
-        final totalSupply = statuses
-            .firstWhere((s) => s.asset == indigoAsset.asset)
-            .totalSupply;
+        // Measure against CDP debt, not total supply: PSM-minted iAssets are
+        // fully backed by stablecoins and are never liquidated into the SP.
+        final cdpMinted = cdps
+            .where((c) => c.asset == indigoAsset.asset)
+            .fold(0.0, (s, c) => s + c.mintedAmount);
         final assetAccounts =
             accounts.where((a) => a.asset == indigoAsset.asset).toList();
 
-        return (pool: pool, totalSupply: totalSupply, accounts: assetAccounts);
+        return (pool: pool, cdpMinted: cdpMinted, accounts: assetAccounts);
       },
       builder: (data) => _AnalyticsContent(
         data: data,
@@ -111,9 +113,9 @@ class _AnalyticsContent extends StatelessWidget {
         infoRow('Total Deposits', '${numberAbbreviatedFormatter(totalSp, abbr)} $asset'),
         Divider(color: colors.border),
         infoRow(
-          'Supply Deposited',
-          data.totalSupply > 0
-              ? '${(totalSp / data.totalSupply * 100).toStringAsFixed(1)}%'
+          'CDP Debt Covered',
+          data.cdpMinted > 0
+              ? '${(totalSp / data.cdpMinted * 100).toStringAsFixed(1)}%'
               : '—',
         ),
         Divider(color: colors.border, height: 24),

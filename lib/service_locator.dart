@@ -7,6 +7,7 @@ import 'package:indigo_insights/api/indigo_api/services/dex_yield_service.dart';
 import 'package:indigo_insights/api/indigo_api/services/indigo_asset_service.dart';
 import 'package:indigo_insights/api/indigo_api/services/indy_service.dart';
 import 'package:indigo_insights/api/indigo_api/services/liquidation_service.dart';
+import 'package:indigo_insights/api/indigo_api/services/protocol_analytics_service.dart';
 import 'package:indigo_insights/api/indigo_api/services/redemption_service.dart';
 import 'package:indigo_insights/api/indigo_api/services/stability_pool_account_service.dart';
 import 'package:indigo_insights/api/indigo_api/services/stability_pool_service.dart';
@@ -24,6 +25,7 @@ import 'package:indigo_insights/repositories/indy_price_repository.dart';
 import 'package:indigo_insights/repositories/liquidation_repository.dart';
 import 'package:indigo_insights/repositories/danogo_pool_repository.dart';
 import 'package:indigo_insights/repositories/liqwid_market_repository.dart';
+import 'package:indigo_insights/repositories/protocol_analytics_repository.dart';
 import 'package:indigo_insights/repositories/protocol_dashboard_repository.dart';
 import 'package:indigo_insights/repositories/redemption_repository.dart';
 import 'package:indigo_insights/repositories/solvency_repository.dart';
@@ -45,6 +47,7 @@ void setupServiceLocator() {
   sl.registerLazySingleton(() => IndigoAssetService());
   sl.registerLazySingleton(() => IndyService());
   sl.registerLazySingleton(() => LiquidationService());
+  sl.registerLazySingleton(() => ProtocolAnalyticsService());
   sl.registerLazySingleton(() => RedemptionService());
   sl.registerLazySingleton(() => StabilityPoolService());
   sl.registerLazySingleton(() => StabilityPoolAccountService());
@@ -65,6 +68,7 @@ void setupServiceLocator() {
   sl.registerLazySingleton(() => LiqwidMarketRepository(sl()));
   sl.registerLazySingleton(() => DanogoPoolRepository(sl()));
   sl.registerLazySingleton(() => SurfPoolRepository(sl()));
+  sl.registerLazySingleton(() => ProtocolAnalyticsRepository(sl()));
   sl.registerLazySingleton(() => RedemptionRepository(sl()));
   sl.registerLazySingleton(() => StabilityPoolRepository(sl()));
   sl.registerLazySingleton(() => StabilityPoolAccountRepository(sl()));
@@ -78,6 +82,8 @@ void setupServiceLocator() {
     () => StrategyRepository(sl(), sl(), sl(), sl(), sl(), sl()),
   );
   sl.registerLazySingleton(
-    () => ProtocolDashboardRepository(sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl()),
+    () => ProtocolDashboardRepository(
+      sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(),
+    ),
   );
 }

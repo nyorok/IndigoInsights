@@ -100,20 +100,18 @@ class _KpiStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppColorScheme.of(context);
 
-    // /api/assets/analytics reports totalValueLocked and marketCap in USD
-    // (marketCap ≈ totalSupply × iAsset USD price), so both KPIs are USD sums.
-    final totalTvl = data.assetStatuses.fold(
-      0.0,
-      (s, a) => s + a.totalValueLocked,
-    );
-    final totalCdps = data.cdps.length;
+    // Protocol TVL and CDP debt come from /api/v3/analytics/{tvl,loans}: the
+    // per-asset `totalValueLocked` field adds raw ADA/NIGHT/USDCx amounts
+    // together and can't be converted to a currency.
+    final totalTvl = data.tvl.protocolUsd;
+    final totalCdps = data.loanAnalytics.totalLoans;
     final indyPrice = data.indyPrice;
-    final totalMktCap = data.assetStatuses.fold(0.0, (s, a) => s + a.marketCap);
+    final totalDebt = data.loanAnalytics.debtValueUsd;
 
     return IIKpiStrip(
       cells: [
         IIKpiCell(
-          label: 'Total TVL',
+          label: 'Protocol TVL',
           value: numberAbbreviatedFormatter(
             totalTvl,
             getAbbreviation(totalTvl),
@@ -131,10 +129,10 @@ class _KpiStrip extends StatelessWidget {
           unit: 'ADA',
         ),
         IIKpiCell(
-          label: 'iAsset Market Cap',
+          label: 'CDP Debt',
           value: numberAbbreviatedFormatter(
-            totalMktCap,
-            getAbbreviation(totalMktCap),
+            totalDebt,
+            getAbbreviation(totalDebt),
           ),
           unit: 'USD',
           valueColor: colors.primary,
@@ -154,13 +152,12 @@ class _TvlByAssetSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final styles = AppTextStyles.of(context);
     final colors = AppColorScheme.of(context);
-    final statuses = [...data.assetStatuses]
-      ..sort((a, b) => b.totalValueLocked.compareTo(a.totalValueLocked));
-    final maxTvl = statuses.isEmpty
+    // USD collateral per iAsset — the only cross-collateral comparable figure.
+    final entries = data.loanAnalytics.collateralUsdByAsset.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final maxTvl = entries.isEmpty
         ? 1.0
-        : statuses
-              .map((s) => s.totalValueLocked)
-              .reduce((a, b) => a > b ? a : b);
+        : entries.map((e) => e.value).reduce((a, b) => a > b ? a : b);
 
     return IICard(
       variant: IICardVariant.flat,
@@ -169,14 +166,14 @@ class _TvlByAssetSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'TVL by Asset',
+            'Collateral by Asset',
             style: styles.sectionLabel.copyWith(color: colors.textMuted),
           ),
           const SizedBox(height: 12),
-          ...statuses.mapIndexed(
-            (i, s) => _TvlBar(
-              asset: s.asset,
-              tvl: s.totalValueLocked,
+          ...entries.mapIndexed(
+            (i, e) => _TvlBar(
+              asset: e.key,
+              tvl: e.value,
               maxTvl: maxTvl,
               index: i,
             ),
@@ -411,11 +408,20 @@ class _AssetHealthSection extends StatelessWidget {
           ? pool.totalAmount / totalMinted
           : 0.0;
 
+      // CR from USD collateral over USD CDP debt. `totalSupply` can exceed the
+      // CDP debt because iAssets may also be minted through the PSM.
+      final collateralUsd =
+          data.loanAnalytics.collateralUsdByAsset[status.asset] ?? 0.0;
+      final debtUsd = totalMinted * status.usdPrice;
+      final collateralRatio = debtUsd > 0 ? collateralUsd / debtUsd * 100 : 0.0;
+
       return _AssetHealthCard(
         status: status,
         spCoverage: spCoverage,
         cdpCount: assetCdps.length,
         index: i,
+        collateralRatio: collateralRatio,
+        cdpMinted: totalMinted,
         indigoAsset: data.indigoAssets.firstWhereOrNull(
           (a) => a.asset == status.asset,
         ),
@@ -466,6 +472,8 @@ class _AssetHealthCard extends StatelessWidget {
     required this.spCoverage,
     required this.cdpCount,
     required this.index,
+    required this.collateralRatio,
+    required this.cdpMinted,
     this.indigoAsset,
   });
 
@@ -473,6 +481,13 @@ class _AssetHealthCard extends StatelessWidget {
   final double spCoverage;
   final int cdpCount;
   final int index;
+
+  /// USD collateral / USD CDP debt, in percent.
+  final double collateralRatio;
+
+  /// Amount minted through CDPs (excludes PSM mints).
+  final double cdpMinted;
+
   final IndigoAsset? indigoAsset;
 
   @override
@@ -496,9 +511,12 @@ class _AssetHealthCard extends StatelessWidget {
       return colors.error;
     }
 
-    final crFraction = (status.totalCollateralRatio / 300).clamp(0.0, 1.0);
+    final crFraction = (collateralRatio / 300).clamp(0.0, 1.0);
     final spFraction = spCoverage.clamp(0.0, 1.0);
-    final abbr = getAbbreviation(status.totalSupply);
+    final abbr = getAbbreviation(cdpMinted);
+    // iUSD is also minted 1:1 against stablecoins in the PSM; that portion has
+    // no CDP and no collateral ratio, so it is listed separately.
+    final psmMinted = status.totalSupply - cdpMinted;
 
     return IICard(
           padding: const EdgeInsets.all(16),
@@ -521,9 +539,9 @@ class _AssetHealthCard extends StatelessWidget {
               const SizedBox(height: 12),
               _HealthRow(
                 label: 'System CR',
-                value: '${status.totalCollateralRatio.toStringAsFixed(1)}%',
+                value: '${collateralRatio.toStringAsFixed(1)}%',
                 fraction: crFraction,
-                color: crColor(status.totalCollateralRatio),
+                color: crColor(collateralRatio),
               ),
               const SizedBox(height: 8),
               _HealthRow(
@@ -534,11 +552,20 @@ class _AssetHealthCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               IIDataRow(
-                label: 'Supply',
+                label: 'CDP Minted',
                 value:
-                    '${numberAbbreviatedFormatter(status.totalSupply, abbr)} ${status.asset}',
+                    '${numberAbbreviatedFormatter(cdpMinted, abbr)} ${status.asset}',
                 valueStyle: styles.monoSm,
               ),
+              if (psmMinted > 1)
+                IIDataRow(
+                  label: 'PSM Minted',
+                  value:
+                      '${numberAbbreviatedFormatter(psmMinted, getAbbreviation(psmMinted))} ${status.asset}',
+                  valueStyle: styles.monoSm.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
             ],
           ),
         )
