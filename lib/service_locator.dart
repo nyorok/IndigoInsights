@@ -76,7 +76,7 @@ void setupServiceLocator() {
 
   // Composed repositories — inject their base repository dependencies
   sl.registerLazySingleton(
-    () => SolvencyRepository(sl(), sl(), sl()),
+    () => SolvencyRepository(sl(), sl(), sl(), sl()),
   );
   sl.registerLazySingleton(
     () => StrategyRepository(sl(), sl(), sl(), sl(), sl(), sl()),

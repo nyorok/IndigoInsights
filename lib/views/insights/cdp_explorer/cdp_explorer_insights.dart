@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:indigo_insights/models/asset_price.dart';
+import 'package:indigo_insights/models/asset_status.dart';
 import 'package:indigo_insights/models/cdp.dart';
 import 'package:indigo_insights/models/indigo_asset.dart';
 import 'package:indigo_insights/repositories/asset_price_repository.dart';
+import 'package:indigo_insights/repositories/asset_status_repository.dart';
+import 'package:indigo_insights/utils/collateral_prices.dart';
 import 'package:indigo_insights/repositories/cdp_repository.dart';
 import 'package:indigo_insights/repositories/indigo_asset_repository.dart';
 import 'package:indigo_insights/service_locator.dart';
@@ -24,6 +27,7 @@ typedef _CdpExplorerData = ({
   List<Cdp> cdps,
   List<AssetPrice> prices,
   List<IndigoAsset> assets,
+  List<AssetStatus> statuses,
 });
 
 // ─── Tier definitions ─────────────────────────────────────────────────────────
@@ -79,11 +83,13 @@ class CdpExplorerInsights extends StatelessWidget {
                 sl<CdpRepository>().getCdps(),
                 sl<AssetPriceRepository>().getPrices(),
                 sl<IndigoAssetRepository>().getAssets(),
+                sl<AssetStatusRepository>().getStatuses(),
               ]);
               return (
                 cdps: results[0] as List<Cdp>,
                 prices: results[1] as List<AssetPrice>,
                 assets: results[2] as List<IndigoAsset>,
+                statuses: results[3] as List<AssetStatus>,
               );
             },
             builder: (data) =>
@@ -112,6 +118,10 @@ class _CdpExplorerContentState extends State<_CdpExplorerContent>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late List<IndigoAsset> _sortedAssets;
+  late final CollateralPrices _priceResolver = CollateralPrices.from(
+    widget.data.statuses,
+    widget.data.prices,
+  );
 
   @override
   void initState() {
@@ -168,13 +178,20 @@ class _CdpExplorerContentState extends State<_CdpExplorerContent>
               child: TabBarView(
                 controller: _tabController,
                 children: _sortedAssets.map((asset) {
-                  final priceByCollateral = <String, double>{
-                    for (final p in widget.data.prices.where((p) => p.asset == asset.asset))
-                      p.collateralAsset: p.price,
-                  };
                   final assetCdps = widget.data.cdps
                       .where((c) => c.asset == asset.asset)
                       .toList();
+                  // Resolve a price for every collateral these CDPs actually
+                  // use — /api/asset-prices omits pairs (iUSD/ADA is often
+                  // absent) and a missing entry used to fall back to 1.0.
+                  final priceByCollateral = <String, double>{
+                    for (final collateral
+                        in assetCdps.map((c) => c.collateralAsset).toSet())
+                      collateral: ?_priceResolver.priceFor(
+                        asset.asset,
+                        collateral,
+                      ),
+                  };
                   return _AssetCdpTab(
                     asset: asset,
                     cdps: assetCdps,
@@ -213,7 +230,10 @@ class _AssetCdpTabState extends State<_AssetCdpTab> {
 
   double _collateralRatio(Cdp cdp) {
     if (cdp.mintedAmount <= 0) return double.infinity;
-    final price = widget.priceByCollateral[cdp.collateralAsset] ?? 1.0;
+    // No price means no ratio — falling back to 1.0 used to inflate the CR by
+    // the collateral's own price (ADA CDPs read ~5x too high).
+    final price = widget.priceByCollateral[cdp.collateralAsset];
+    if (price == null || price <= 0) return double.nan;
     return ((cdp.collateralAmount / price) / cdp.mintedAmount) * 100;
   }
 
@@ -703,10 +723,18 @@ class _CdpsTableState extends State<_CdpsTable> {
     return cdp.collateralAmount / (cdp.mintedAmount * (lr / 100));
   }
 
+  /// How far the collateral's value can fall before this CDP is liquidated.
+  ///
+  /// Prices are quoted as collateral units per 1 iAsset, so the collateral is
+  /// worth 1/price and liquidation happens when the quote *rises* to
+  /// [_liqPrice]. The fall in collateral value is therefore
+  /// `1 - currentPrice / liqPrice` (equivalently `1 - LR / CR`) — the inverse
+  /// of this produced the negative percentages.
   double _dropToLiq(Cdp cdp) {
     final currentPrice = widget.priceByCollateral[cdp.collateralAsset] ?? 0.0;
-    if (currentPrice <= 0) return 0.0;
-    return (1 - _liqPrice(cdp) / currentPrice) * 100;
+    final liqPrice = _liqPrice(cdp);
+    if (currentPrice <= 0 || liqPrice <= 0) return double.nan;
+    return (1 - currentPrice / liqPrice) * 100;
   }
 
   Color _crColor(Cdp cdp, double cr, AppColorScheme colors) {
@@ -839,9 +867,11 @@ class _CdpsTableState extends State<_CdpsTable> {
                             style: monoStyle.copyWith(color: colors.primary),
                           )),
                           DataCell(Text(
-                            '${cr.toStringAsFixed(1)}%',
+                            cr.isFinite ? '${cr.toStringAsFixed(1)}%' : '—',
                             style: styles.monoSm.copyWith(
-                              color: _crColor(cdp, cr, colors),
+                              color: cr.isFinite
+                                  ? _crColor(cdp, cr, colors)
+                                  : colors.textMuted,
                               fontWeight: FontWeight.w600,
                             ),
                           )),
@@ -850,9 +880,12 @@ class _CdpsTableState extends State<_CdpsTable> {
                             style: monoStyle,
                           )),
                           DataCell(Text(
-                            '${drop.toStringAsFixed(1)}%',
+                            drop.isFinite
+                                ? '${drop.toStringAsFixed(1)}%'
+                                : '—',
                             style: styles.monoSm.copyWith(
-                              color: drop > 15
+                              // A small drop means liquidation is close.
+                              color: drop.isFinite && drop < 15
                                   ? colors.error
                                   : colors.textSecondary,
                             ),
