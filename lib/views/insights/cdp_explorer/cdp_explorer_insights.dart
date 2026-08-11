@@ -1,13 +1,17 @@
 import 'package:indigo_insights/router.dart';
 import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:indigo_insights/models/asset_price.dart';
+import 'package:indigo_insights/models/asset_status.dart';
 import 'package:indigo_insights/models/cdp.dart';
 import 'package:indigo_insights/models/indigo_asset.dart';
 import 'package:indigo_insights/repositories/asset_price_repository.dart';
+import 'package:indigo_insights/repositories/asset_status_repository.dart';
+import 'package:indigo_insights/utils/collateral_prices.dart';
 import 'package:indigo_insights/repositories/cdp_repository.dart';
 import 'package:indigo_insights/repositories/indigo_asset_repository.dart';
 import 'package:indigo_insights/service_locator.dart';
@@ -24,6 +28,7 @@ typedef _CdpExplorerData = ({
   List<Cdp> cdps,
   List<AssetPrice> prices,
   List<IndigoAsset> assets,
+  List<AssetStatus> statuses,
 });
 
 // ─── Tier definitions ─────────────────────────────────────────────────────────
@@ -79,11 +84,13 @@ class CdpExplorerInsights extends StatelessWidget {
                 sl<CdpRepository>().getCdps(),
                 sl<AssetPriceRepository>().getPrices(),
                 sl<IndigoAssetRepository>().getAssets(),
+                sl<AssetStatusRepository>().getStatuses(),
               ]);
               return (
                 cdps: results[0] as List<Cdp>,
                 prices: results[1] as List<AssetPrice>,
                 assets: results[2] as List<IndigoAsset>,
+                statuses: results[3] as List<AssetStatus>,
               );
             },
             builder: (data) =>
@@ -112,6 +119,10 @@ class _CdpExplorerContentState extends State<_CdpExplorerContent>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late List<IndigoAsset> _sortedAssets;
+  late final CollateralPrices _priceResolver = CollateralPrices.from(
+    widget.data.statuses,
+    widget.data.prices,
+  );
 
   @override
   void initState() {
@@ -168,13 +179,20 @@ class _CdpExplorerContentState extends State<_CdpExplorerContent>
               child: TabBarView(
                 controller: _tabController,
                 children: _sortedAssets.map((asset) {
-                  final priceByCollateral = <String, double>{
-                    for (final p in widget.data.prices.where((p) => p.asset == asset.asset))
-                      p.collateralAsset: p.price,
-                  };
                   final assetCdps = widget.data.cdps
                       .where((c) => c.asset == asset.asset)
                       .toList();
+                  // Resolve a price for every collateral these CDPs actually
+                  // use — /api/asset-prices omits pairs (iUSD/ADA is often
+                  // absent) and a missing entry used to fall back to 1.0.
+                  final priceByCollateral = <String, double>{
+                    for (final collateral
+                        in assetCdps.map((c) => c.collateralAsset).toSet())
+                      collateral: ?_priceResolver.priceFor(
+                        asset.asset,
+                        collateral,
+                      ),
+                  };
                   return _AssetCdpTab(
                     asset: asset,
                     cdps: assetCdps,
@@ -208,12 +226,29 @@ class _AssetCdpTab extends StatefulWidget {
 }
 
 class _AssetCdpTabState extends State<_AssetCdpTab> {
-  _CdpTier _selectedTier = _CdpTier.dolphin;
-  String? _collateralFilter; // null = all
+  final Set<_CdpTier> _selectedTiers = _CdpTier.values.toSet();
+
+  /// Every collateral this asset's CDPs use, all enabled to begin with.
+  late Set<String> _selectedCollaterals = _allCollaterals();
+
+  Set<String> _allCollaterals() =>
+      widget.cdps.map((c) => c.collateralAsset).toSet();
+
+  @override
+  void didUpdateWidget(_AssetCdpTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Keep the selection valid when the CDP list changes underneath us.
+    final available = _allCollaterals();
+    final kept = _selectedCollaterals.intersection(available);
+    _selectedCollaterals = kept.isEmpty ? available : kept;
+  }
 
   double _collateralRatio(Cdp cdp) {
     if (cdp.mintedAmount <= 0) return double.infinity;
-    final price = widget.priceByCollateral[cdp.collateralAsset] ?? 1.0;
+    // No price means no ratio — falling back to 1.0 used to inflate the CR by
+    // the collateral's own price (ADA CDPs read ~5x too high).
+    final price = widget.priceByCollateral[cdp.collateralAsset];
+    if (price == null || price <= 0) return double.nan;
     return ((cdp.collateralAmount / price) / cdp.mintedAmount) * 100;
   }
 
@@ -228,10 +263,18 @@ class _AssetCdpTabState extends State<_AssetCdpTab> {
     final filtersBar = _FiltersBar(
       asset: widget.asset,
       cdps: widget.cdps,
-      selectedTier: _selectedTier,
-      onTierChanged: (t) => setState(() => _selectedTier = t),
-      collateralFilter: _collateralFilter,
-      onCollateralChanged: (c) => setState(() => _collateralFilter = c),
+      selectedTiers: _selectedTiers,
+      onTierToggled: (t) => setState(() {
+        _selectedTiers.contains(t)
+            ? _selectedTiers.remove(t)
+            : _selectedTiers.add(t);
+      }),
+      selectedCollaterals: _selectedCollaterals,
+      onCollateralToggled: (c) => setState(() {
+        _selectedCollaterals.contains(c)
+            ? _selectedCollaterals.remove(c)
+            : _selectedCollaterals.add(c);
+      }),
     );
 
     final crChart = _CrDistributionCard(
@@ -245,8 +288,8 @@ class _AssetCdpTabState extends State<_AssetCdpTab> {
       cdps: widget.cdps,
       priceByCollateral: widget.priceByCollateral,
       crOf: _collateralRatio,
-      tierFilter: _selectedTier,
-      collateralFilter: _collateralFilter,
+      tierFilter: _selectedTiers,
+      collateralFilter: _selectedCollaterals,
     );
 
     if (isDesktop) {
@@ -444,18 +487,18 @@ class _CrDistributionCard extends StatelessWidget {
 class _FiltersBar extends StatelessWidget {
   final IndigoAsset asset;
   final List<Cdp> cdps;
-  final _CdpTier selectedTier;
-  final ValueChanged<_CdpTier> onTierChanged;
-  final String? collateralFilter;
-  final ValueChanged<String?> onCollateralChanged;
+  final Set<_CdpTier> selectedTiers;
+  final ValueChanged<_CdpTier> onTierToggled;
+  final Set<String> selectedCollaterals;
+  final ValueChanged<String> onCollateralToggled;
 
   const _FiltersBar({
     required this.asset,
     required this.cdps,
-    required this.selectedTier,
-    required this.onTierChanged,
-    required this.collateralFilter,
-    required this.onCollateralChanged,
+    required this.selectedTiers,
+    required this.onTierToggled,
+    required this.selectedCollaterals,
+    required this.onCollateralToggled,
   });
 
   String _collateralSummary(List<Cdp> list) {
@@ -482,9 +525,14 @@ class _FiltersBar extends StatelessWidget {
         .toList()
       ..sort((a, b) => collateralLabel(a).compareTo(collateralLabel(b)));
 
+    // Tier stats count only the collaterals currently in scope, so the numbers
+    // in the menu match what the table actually shows.
+    final inScope =
+        cdps.where((c) => selectedCollaterals.contains(c.collateralAsset));
+
     // Build tier dropdown items with full stats.
     final tierItems = _CdpTier.values.map((tier) {
-      final list = cdps.where(tier.matches).toList();
+      final list = inScope.where(tier.matches).toList();
       final mint = list.fold(0.0, (s, c) => s + c.mintedAmount);
       final mintAbbr = getAbbreviation(mint);
       return _DropdownItem<_CdpTier>(
@@ -496,13 +544,16 @@ class _FiltersBar extends StatelessWidget {
       );
     }).toList();
 
-    // Build collateral dropdown items.
-    final collateralItems = [
-      const _DropdownItem<String?>(value: null, label: 'All'),
-      ...collateralTypes.map(
-        (c) => _DropdownItem<String?>(value: c, label: collateralLabel(c)),
-      ),
-    ];
+    // Build collateral dropdown items — every collateral is selectable and all
+    // start enabled, so there is no separate "All" entry.
+    final collateralItems = collateralTypes.map((c) {
+      final list = cdps.where((cdp) => cdp.collateralAsset == c).toList();
+      return _DropdownItem<String>(
+        value: c,
+        label: collateralLabel(c),
+        subtitle: '${list.length} positions',
+      );
+    }).toList();
 
     return IICard(
       padding: const EdgeInsets.all(16),
@@ -514,11 +565,12 @@ class _FiltersBar extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _StyledDropdown<_CdpTier>(
+                child: _MultiSelectDropdown<_CdpTier>(
                   prefixLabel: 'Size',
-                  value: selectedTier,
+                  selected: selectedTiers,
                   items: tierItems,
-                  onChanged: (v) { if (v != null) onTierChanged(v); },
+                  onToggled: onTierToggled,
+                  labelOf: (t) => t.tierName,
                   colors: colors,
                   styles: styles,
                 ),
@@ -526,11 +578,12 @@ class _FiltersBar extends StatelessWidget {
               if (collateralTypes.length > 1) ...[
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _StyledDropdown<String?>(
+                  child: _MultiSelectDropdown<String>(
                     prefixLabel: 'Collateral',
-                    value: collateralFilter,
+                    selected: selectedCollaterals,
                     items: collateralItems,
-                    onChanged: onCollateralChanged,
+                    onToggled: onCollateralToggled,
+                    labelOf: collateralLabel,
                     colors: colors,
                     styles: styles,
                   ),
@@ -554,28 +607,39 @@ class _DropdownItem<T> {
   const _DropdownItem({required this.value, required this.label, this.subtitle});
 }
 
-class _StyledDropdown<T> extends StatelessWidget {
+/// Dropdown that toggles several values at once. The menu stays open while
+/// toggling: the whole list lives inside one disabled [PopupMenuItem] (so it
+/// never auto-dismisses) and a [StatefulBuilder] repaints the checkmarks.
+class _MultiSelectDropdown<T> extends StatelessWidget {
   final String prefixLabel;
-  final T value;
+  final Set<T> selected;
   final List<_DropdownItem<T>> items;
-  final ValueChanged<T?> onChanged;
+  final ValueChanged<T> onToggled;
+  final String Function(T) labelOf;
   final AppColorScheme colors;
   final AppTextStyles styles;
 
-  const _StyledDropdown({
+  const _MultiSelectDropdown({
     required this.prefixLabel,
-    required this.value,
+    required this.selected,
     required this.items,
-    required this.onChanged,
+    required this.onToggled,
+    required this.labelOf,
     required this.colors,
     required this.styles,
   });
 
+  String get _summary {
+    if (selected.isEmpty) return 'None';
+    if (selected.length == items.length) return 'All';
+    // Names only fit while there is one; the column is narrow.
+    if (selected.length == 1) return labelOf(selected.first);
+    return '${selected.length} selected';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final selected = items.firstWhereOrNull((i) => i.value == value) ?? items.first;
-
-    return PopupMenuButton<dynamic>(
+    return PopupMenuButton<void>(
       position: PopupMenuPosition.under,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -583,45 +647,77 @@ class _StyledDropdown<T> extends StatelessWidget {
       ),
       color: colors.surface,
       elevation: 8,
-      // onTap per-item handles null values correctly (onSelected skips nulls).
-      itemBuilder: (context) => items.map((item) {
-        final isSelected = item.value == value;
-        return PopupMenuItem<dynamic>(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          onTap: () => onChanged(item.value),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      item.label,
-                      style: styles.bodySm.copyWith(
-                        color: isSelected ? colors.primary : colors.textPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
+      padding: EdgeInsets.zero,
+      itemBuilder: (context) => [
+        PopupMenuItem<void>(
+          // Disabled so tapping a row cannot close the menu; the rows below
+          // handle their own taps.
+          enabled: false,
+          padding: EdgeInsets.zero,
+          child: StatefulBuilder(
+            builder: (context, setMenuState) => Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: items.map((item) {
+                final isSelected = selected.contains(item.value);
+                return InkWell(
+                  onTap: () {
+                    onToggled(item.value);
+                    setMenuState(() {});
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
                     ),
-                    if (item.subtitle != null) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        item.subtitle!,
-                        style: styles.bodySm.copyWith(
-                          color: colors.textMuted,
-                          fontSize: 10,
+                    child: Row(
+                      children: [
+                        Icon(
+                          isSelected
+                              ? Icons.check_box
+                              : Icons.check_box_outline_blank,
+                          size: 16,
+                          color: isSelected
+                              ? colors.primary
+                              : colors.textMuted,
                         ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (isSelected)
-                Icon(Icons.check, size: 14, color: colors.primary),
-            ],
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                item.label,
+                                style: styles.bodySm.copyWith(
+                                  color: isSelected
+                                      ? colors.primary
+                                      : colors.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              if (item.subtitle != null) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  item.subtitle!,
+                                  style: styles.bodySm.copyWith(
+                                    color: colors.textMuted,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
-        );
-      }).toList(),
+        ),
+      ],
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
@@ -632,18 +728,30 @@ class _StyledDropdown<T> extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
-            Text(
-              '$prefixLabel: ',
-              style: styles.bodySm.copyWith(color: colors.textMuted),
-            ),
-            Text(
-              selected.label,
-              style: styles.bodySm.copyWith(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w600,
+            // One rich text so the whole label ellipsizes as a unit — the
+            // dropdown sits in a narrow column and used to overflow.
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '$prefixLabel: ',
+                      style: styles.bodySm.copyWith(color: colors.textMuted),
+                    ),
+                    TextSpan(
+                      text: _summary,
+                      style: styles.bodySm.copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            const Spacer(),
+            const SizedBox(width: 4),
             Icon(Icons.expand_more, size: 16, color: colors.textMuted),
           ],
         ),
@@ -659,8 +767,8 @@ class _CdpsTable extends StatefulWidget {
   final List<Cdp> cdps;
   final Map<String, double> priceByCollateral;
   final double Function(Cdp) crOf;
-  final _CdpTier tierFilter;
-  final String? collateralFilter;
+  final Set<_CdpTier> tierFilter;
+  final Set<String> collateralFilter;
 
   const _CdpsTable({
     required this.asset,
@@ -691,8 +799,9 @@ class _CdpsTableState extends State<_CdpsTable> {
   @override
   void didUpdateWidget(_CdpsTable oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.tierFilter != widget.tierFilter ||
-        oldWidget.collateralFilter != widget.collateralFilter) {
+    // The sets are mutated in place, so compare contents rather than identity.
+    if (!setEquals(oldWidget.tierFilter, widget.tierFilter) ||
+        !setEquals(oldWidget.collateralFilter, widget.collateralFilter)) {
       _page = 0;
     }
   }
@@ -703,10 +812,18 @@ class _CdpsTableState extends State<_CdpsTable> {
     return cdp.collateralAmount / (cdp.mintedAmount * (lr / 100));
   }
 
+  /// How far the collateral's value can fall before this CDP is liquidated.
+  ///
+  /// Prices are quoted as collateral units per 1 iAsset, so the collateral is
+  /// worth 1/price and liquidation happens when the quote *rises* to
+  /// [_liqPrice]. The fall in collateral value is therefore
+  /// `1 - currentPrice / liqPrice` (equivalently `1 - LR / CR`) — the inverse
+  /// of this produced the negative percentages.
   double _dropToLiq(Cdp cdp) {
     final currentPrice = widget.priceByCollateral[cdp.collateralAsset] ?? 0.0;
-    if (currentPrice <= 0) return 0.0;
-    return (1 - _liqPrice(cdp) / currentPrice) * 100;
+    final liqPrice = _liqPrice(cdp);
+    if (currentPrice <= 0 || liqPrice <= 0) return double.nan;
+    return (1 - currentPrice / liqPrice) * 100;
   }
 
   Color _crColor(Cdp cdp, double cr, AppColorScheme colors) {
@@ -727,10 +844,8 @@ class _CdpsTableState extends State<_CdpsTable> {
 
     final filtered = widget.cdps
         .where((c) => widget.crOf(c).isFinite)
-        .where(widget.tierFilter.matches)
-        .where((c) =>
-            widget.collateralFilter == null ||
-            c.collateralAsset == widget.collateralFilter)
+        .where((c) => widget.tierFilter.any((t) => t.matches(c)))
+        .where((c) => widget.collateralFilter.contains(c.collateralAsset))
         .sortedByCompare<double>(
           (c) => widget.crOf(c),
           (a, b) => a.compareTo(b),
@@ -759,7 +874,7 @@ class _CdpsTableState extends State<_CdpsTable> {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'No CDPs in this tier.',
+                'No CDPs match these filters.',
                 style: styles.bodyMd.copyWith(color: colors.textMuted),
               ),
             )
@@ -839,9 +954,11 @@ class _CdpsTableState extends State<_CdpsTable> {
                             style: monoStyle.copyWith(color: colors.primary),
                           )),
                           DataCell(Text(
-                            '${cr.toStringAsFixed(1)}%',
+                            cr.isFinite ? '${cr.toStringAsFixed(1)}%' : '—',
                             style: styles.monoSm.copyWith(
-                              color: _crColor(cdp, cr, colors),
+                              color: cr.isFinite
+                                  ? _crColor(cdp, cr, colors)
+                                  : colors.textMuted,
                               fontWeight: FontWeight.w600,
                             ),
                           )),
@@ -850,9 +967,12 @@ class _CdpsTableState extends State<_CdpsTable> {
                             style: monoStyle,
                           )),
                           DataCell(Text(
-                            '${drop.toStringAsFixed(1)}%',
+                            drop.isFinite
+                                ? '${drop.toStringAsFixed(1)}%'
+                                : '—',
                             style: styles.monoSm.copyWith(
-                              color: drop > 15
+                              // A small drop means liquidation is close.
+                              color: drop.isFinite && drop < 15
                                   ? colors.error
                                   : colors.textSecondary,
                             ),

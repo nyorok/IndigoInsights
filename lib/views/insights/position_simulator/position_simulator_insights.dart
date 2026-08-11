@@ -16,10 +16,14 @@ import 'package:indigo_insights/widgets/ii_card.dart';
 import 'package:indigo_insights/widgets/ii_disclaimer.dart';
 import 'package:indigo_insights/widgets/ii_tab_bar.dart';
 import 'package:indigo_insights/widgets/ii_top_bar.dart';
+import 'package:indigo_insights/models/asset_status.dart';
+import 'package:indigo_insights/repositories/asset_status_repository.dart';
+import 'package:indigo_insights/utils/collateral_prices.dart';
 
 typedef _SimulatorData = ({
   List<IndigoAsset> assets,
   List<AssetPrice> prices,
+  List<AssetStatus> statuses,
 });
 
 class PositionSimulatorInsights extends StatelessWidget {
@@ -41,10 +45,12 @@ class PositionSimulatorInsights extends StatelessWidget {
                     final results = await Future.wait([
                       sl<IndigoAssetRepository>().getAssets(),
                       sl<AssetPriceRepository>().getPrices(),
+                      sl<AssetStatusRepository>().getStatuses(),
                     ]);
                     return (
                       assets: results[0] as List<IndigoAsset>,
                       prices: results[1] as List<AssetPrice>,
+                      statuses: results[2] as List<AssetStatus>,
                     );
                   },
                   builder: (data) => _SimulatorLayout(data: data),
@@ -117,16 +123,15 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
 
   String get _collLabel => collateralLabel(_selectedCollateral);
 
-  double get _price {
-    final match = widget.data.prices.firstWhereOrNull(
-      (p) => p.asset == _asset.asset && p.collateralAsset == _selectedCollateral,
-    );
-    return match?.price ??
-        widget.data.prices
-            .firstWhereOrNull((p) => p.asset == _asset.asset)
-            ?.price ??
-        1.0;
-  }
+  /// Collateral units per 1 iAsset for the *selected* collateral. Falling back
+  /// to another collateral's pair (or to 1.0) silently produced ratios for the
+  /// wrong token, so unresolved prices yield 0 and the UI shows no numbers.
+  double get _price =>
+      CollateralPrices.from(
+        widget.data.statuses,
+        widget.data.prices,
+      ).priceFor(_asset.asset, _selectedCollateral) ??
+      0.0;
 
   // interestRate from CollateralPair is a decimal fraction (e.g. 0.035 = 3.5%).
   double get _interestRate => _pair?.interestRate ?? 0.0;
@@ -157,9 +162,12 @@ class _SimulatorLayoutState extends State<_SimulatorLayout>
     return _collateral / (_minted * (pair.redemptionRatioPercent / 100));
   }
 
+  /// Fall in collateral value before liquidation. Prices are collateral units
+  /// per 1 iAsset, so the collateral is worth 1/price and liquidation happens
+  /// when the quote *rises* to [_liqPrice] — the drop is `1 - price/liqPrice`.
   double get _dropToLiq {
     if (_price <= 0 || _liqPrice <= 0) return 0;
-    return ((_price - _liqPrice) / _price) * 100;
+    return (1 - _price / _liqPrice) * 100;
   }
 
   double _collateralToReachCr(double targetCr) {
@@ -564,9 +572,11 @@ class _ScenarioTable extends StatelessWidget {
           DataColumn(label: Text('Status', style: styles.monoSm)),
         ],
         rows: drops.map((drop) {
+          // A drop in collateral value raises the collateral-per-iAsset quote,
+          // which is what lowers the collateral ratio.
           final simPrice = drop >= 100
               ? double.infinity
-              : currentPrice * (1 - drop / 100);
+              : currentPrice / (1 - drop / 100);
           double cr = double.infinity;
           if (minted > 0 && simPrice.isFinite && simPrice > 0) {
             cr = (collateral / simPrice / minted) * 100;

@@ -18,13 +18,13 @@ import 'package:indigo_insights/theme/app_text_styles.dart';
 import 'package:indigo_insights/widgets/ii_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Why the Indigo Orderbook (RoB) exists — shown as an info tooltip.
+/// Why the Indigo Orderbook (ROB) exists — shown as an info tooltip.
 const robDescription =
-    'Indigo Orderbook (RoB) incentivises tradable liquidity instead of raw '
+    'Indigo Orderbook (ROB) incentivises tradable liquidity instead of raw '
     'TVL. AMM v2 DEX pools incur high slippage even when deep (a 10k swap '
     'against 1M liquidity still slips), which hurts the peg and real use '
     'cases — most liquidity on other chains has already moved to '
-    'concentrated forms. RoB rewards liquidity that is actually quotable at '
+    'concentrated forms. ROB rewards liquidity that is actually quotable at '
     'market price.';
 
 const yieldSafeColor = Color(0xFF00ACC1);
@@ -41,6 +41,10 @@ class YieldDapp {
   static const indigo = YieldDapp(
     'assets/images/dapps/indigo.png',
     'https://app.indigoprotocol.io/earn',
+  );
+  static const indigoRob = YieldDapp(
+    'assets/images/dapps/indigo.png',
+    'https://app.indigoprotocol.io/order-book',
   );
   static const liqwid = YieldDapp(
     'assets/images/dapps/liqwid.png',
@@ -134,7 +138,7 @@ List<Future<List<YieldRow>> Function()> yieldSourceTasks() => [
                 riskLabel: 'Moderate',
                 riskColor: yieldModerateColor,
                 description: robDescription,
-                dapp: YieldDapp.indigo,
+                dapp: YieldDapp.indigoRob,
               ),
           if ((aprs['stake_indy'] ?? 0) > 0)
             YieldRow(

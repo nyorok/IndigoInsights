@@ -3,6 +3,7 @@ import 'package:indigo_insights/models/asset_status.dart';
 import 'package:indigo_insights/models/cdp.dart';
 import 'package:indigo_insights/models/indigo_asset.dart';
 import 'package:indigo_insights/models/liquidation.dart';
+import 'package:indigo_insights/models/protocol_analytics.dart';
 import 'package:indigo_insights/models/stability_pool.dart';
 import 'package:indigo_insights/models/stake_history.dart';
 import 'package:indigo_insights/repositories/asset_price_repository.dart';
@@ -11,6 +12,7 @@ import 'package:indigo_insights/repositories/cdp_repository.dart';
 import 'package:indigo_insights/repositories/indigo_asset_repository.dart';
 import 'package:indigo_insights/repositories/indy_price_repository.dart';
 import 'package:indigo_insights/repositories/liquidation_repository.dart';
+import 'package:indigo_insights/repositories/protocol_analytics_repository.dart';
 import 'package:indigo_insights/repositories/stability_pool_repository.dart';
 import 'package:indigo_insights/repositories/stake_history_repository.dart';
 import 'package:indigo_insights/utils/cached_result.dart';
@@ -24,6 +26,8 @@ class DashboardData {
   final List<Liquidation> liquidations;
   final List<StakeHistory> stakeHistory;
   final List<IndigoAsset> indigoAssets;
+  final LoanAnalytics loanAnalytics;
+  final TvlAnalytics tvl;
 
   const DashboardData({
     required this.assetStatuses,
@@ -34,7 +38,19 @@ class DashboardData {
     required this.liquidations,
     required this.stakeHistory,
     required this.indigoAssets,
+    required this.loanAnalytics,
+    required this.tvl,
   });
+
+  /// CDP-minted amount per iAsset. Excludes PSM mints, so this — not
+  /// `AssetStatus.totalSupply` — is the debt a CDP position must cover.
+  Map<String, double> get mintedByAsset {
+    final map = <String, double>{};
+    for (final cdp in cdps) {
+      map[cdp.asset] = (map[cdp.asset] ?? 0) + cdp.mintedAmount;
+    }
+    return map;
+  }
 }
 
 class ProtocolDashboardRepository {
@@ -48,6 +64,7 @@ class ProtocolDashboardRepository {
   final LiquidationRepository _liquidations;
   final StakeHistoryRepository _stakeHistory;
   final IndigoAssetRepository _indigoAssets;
+  final ProtocolAnalyticsRepository _protocolAnalytics;
 
   CachedResult<DashboardData>? _cache;
 
@@ -60,6 +77,7 @@ class ProtocolDashboardRepository {
     this._liquidations,
     this._stakeHistory,
     this._indigoAssets,
+    this._protocolAnalytics,
   );
 
   Future<DashboardData> getDashboardData() async {
@@ -74,6 +92,8 @@ class ProtocolDashboardRepository {
       _liquidations.getLiquidations(),
       _stakeHistory.getHistory(),
       _indigoAssets.getAssets(),
+      _protocolAnalytics.getLoanAnalytics(),
+      _protocolAnalytics.getTvl(),
     ]);
 
     final data = DashboardData(
@@ -85,6 +105,8 @@ class ProtocolDashboardRepository {
       liquidations: results[5] as List<Liquidation>,
       stakeHistory: results[6] as List<StakeHistory>,
       indigoAssets: results[7] as List<IndigoAsset>,
+      loanAnalytics: results[8] as LoanAnalytics,
+      tvl: results[9] as TvlAnalytics,
     );
 
     _cache = CachedResult(data);
