@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:indigo_insights/models/indigo_asset.dart';
 import 'package:indigo_insights/repositories/solvency_repository.dart';
 import 'package:indigo_insights/service_locator.dart';

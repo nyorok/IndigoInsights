@@ -1,6 +1,6 @@
 import 'package:indigo_insights/router.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:indigo_insights/models/stake_history.dart';
 import 'package:indigo_insights/repositories/stake_history_repository.dart';
 import 'package:indigo_insights/service_locator.dart';

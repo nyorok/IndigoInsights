@@ -10,6 +10,9 @@ Flutter analytics dashboard for Indigo Protocol (Cardano DeFi). Read-only; no wa
 - DI / State: `get_it` (service locator) + `FutureBuilder` via `AsyncBuilder`
 - Charts: `fl_chart`
 - HTTP: `package:http`
+- UI: `package:material_ui/material_ui.dart` — the app is migrated off the SDK-bundled
+  `package:flutter/material.dart` (deprecated in the Nov 2026 stable). Never reintroduce the old import;
+  `dart fix --apply --code=migrate_design_widgets` is the migration for any code that still uses it.
 - Fonts: `google_fonts` — Outfit (display) + Manrope (body) + JetBrains Mono (numeric); theme: Material 3 (`lib/theme/`)
 
 ---

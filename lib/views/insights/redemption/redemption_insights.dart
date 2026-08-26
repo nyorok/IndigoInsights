@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:indigo_insights/views/insights/redemption/redeemable_over_rmrs_chart.dart';
 import 'package:indigo_insights/views/insights/redemption/redemption_fee_breakdown_chart.dart';
 import 'package:indigo_insights/views/insights/redemption/redemption_information.dart';

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:indigo_insights/theme/app_color_scheme.dart';
 import 'package:indigo_insights/theme/app_text_styles.dart';
 

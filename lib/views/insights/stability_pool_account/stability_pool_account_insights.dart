@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:indigo_insights/views/insights/stability_pool_account/stability_pool_account_distribution_pie_chart.dart';
 import 'package:indigo_insights/views/insights/stability_pool_account/stability_pool_account_unclaimed_rewards_pie_chart.dart';
 import 'package:indigo_insights/widgets/ii_asset_tabs.dart';

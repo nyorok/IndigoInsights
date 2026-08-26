@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:indigo_insights/theme/app_text_styles.dart';
 import 'package:indigo_insights/utils/formatters.dart';

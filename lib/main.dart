@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:indigo_insights/router.dart';
 import 'package:indigo_insights/service_locator.dart';
 import 'package:indigo_insights/theme/app_theme.dart';
