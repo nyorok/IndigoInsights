@@ -6,7 +6,7 @@ Flutter analytics dashboard for Indigo Protocol (Cardano DeFi). Read-only; no wa
 
 ## Tech Stack
 
-- Flutter 3.44.6 / Dart SDK ^3.12.0
+- Flutter 3.47.1 / Dart SDK ^3.12.0
 - DI / State: `get_it` (service locator) + `FutureBuilder` via `AsyncBuilder`
 - Charts: `fl_chart`
 - HTTP: `package:http`
@@ -165,3 +165,13 @@ flutter run
 ```
 
 All repositories are hand-written with explicit TTL caching. No code generation.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
