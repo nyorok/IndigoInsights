@@ -6,36 +6,43 @@ Flutter analytics dashboard for Indigo Protocol (Cardano DeFi). Read-only; no wa
 
 ## Tech Stack
 
-- Flutter 3.44.6 / Dart SDK ^3.12.0
+- Flutter 3.47.1 / Dart SDK ^3.12.0
 - DI / State: `get_it` (service locator) + `FutureBuilder` via `AsyncBuilder`
 - Charts: `fl_chart`
 - HTTP: `package:http`
-- Font: Quicksand; theme: Material 3 (`lib/theme/`)
+- UI: `package:material_ui/material_ui.dart` — the app is migrated off the SDK-bundled
+  `package:flutter/material.dart` (deprecated in the Nov 2026 stable). Never reintroduce the old import;
+  `dart fix --apply --code=migrate_design_widgets` is the migration for any code that still uses it.
+- Fonts: `google_fonts` — Outfit (display) + Manrope (body) + JetBrains Mono (numeric); theme: Material 3 (`lib/theme/`)
 
 ---
 
 ## Navigation
 
-`lib/sidebar.dart` — `SidebarMenu` enum is the single source of truth for pages.  
-`lib/main.dart` — `switch(SidebarMenu.values[_selectedMenuItem])` renders the active page.
+`lib/router.dart` — `appRouter` (go_router) is the single source of truth for routes; `AppRoutes`
+holds every path constant and the `tab` query-param key. `lib/main.dart` wires it via
+`MaterialApp.router(routerConfig: appRouter)`.
+`lib/sidebar.dart` — `SidebarMenu` enum drives the sidebar list; `sidebarIndexForLocation` /
+`routeForSidebarIndex` in `router.dart` map between the enum and the URL.
 
-**To add a page:** add an enum value to `SidebarMenu` → add a `getListTile` call in `Sidebar.build` → add an import + switch case in `main.dart`.
+**To add a page:** add a path constant to `AppRoutes` → add a `GoRoute` to `appRouter` → add an
+enum value to `SidebarMenu` + a `getListTile` call in `Sidebar.build` → add the enum↔path pair to
+`sidebarIndexForLocation` and `routeForSidebarIndex`.
 
 Current pages:
 
-| Enum value             | View file                                                                        | Section    |
-| ---------------------- | -------------------------------------------------------------------------------- | ---------- |
-| `dashboard`            | `lib/views/insights/dashboard/protocol_dashboard.dart`                           | Overview   |
-| `strategy`             | `lib/views/insights/strategy/strategy_insights.dart`                             | Strategies |
-| `yieldOptimizer`       | `lib/views/insights/yield_optimizer/yield_optimizer_insights.dart`               | Strategies |
-| `liquidation`          | `lib/views/insights/liquidation/liquidation_insights.dart`                       | Analytics  |
-| `liquidationScenario`  | `lib/views/insights/liquidation_scenario/liquidation_scenario_insights.dart`     | Analytics  |
-| `redemption`           | `lib/views/insights/redemption/redemption_insights.dart`                         | Analytics  |
-| `indyStaking`          | `lib/views/insights/indy_staking/indy_staking_insights.dart`                     | Analytics  |
-| `stabilityPool`        | `lib/views/insights/stability_pool/stability_pool_insights.dart`                 | Analytics  |
-| `stabilityPoolAccount` | `lib/views/insights/stability_pool_account/stability_pool_account_insights.dart` | Analytics  |
-| `cdpExplorer`          | `lib/views/insights/cdp_explorer/cdp_explorer_insights.dart`                     | Tools      |
-| `positionSimulator`    | `lib/views/insights/position_simulator/position_simulator_insights.dart`         | Tools      |
+| Enum value             | Route               | View file                                                                        | Section    |
+| ---------------------- | ------------------- | -------------------------------------------------------------------------------- | ---------- |
+| `dashboard`            | `/dashboard`        | `lib/views/insights/dashboard/protocol_dashboard.dart`                           | Overview   |
+| `strategy`             | `/strategy`         | `lib/views/insights/strategy/strategy_insights.dart`                             | Strategies |
+| `yieldOptimizer`       | `/yield-optimizer`  | `lib/views/insights/yield_optimizer/yield_optimizer_insights.dart`               | Strategies |
+| `liquidation`          | `/liquidation`      | `lib/views/insights/liquidation/liquidation_insights.dart`                       | Analytics  |
+| `redemption`           | `/redemption`       | `lib/views/insights/redemption/redemption_insights.dart`                         | Analytics  |
+| `indyStaking`          | `/indy-staking`     | `lib/views/insights/indy_staking/indy_staking_insights.dart`                     | Analytics  |
+| `stabilityPool`        | `/stability-pool`   | `lib/views/insights/stability_pool/stability_pool_insights.dart`                 | Analytics  |
+| `stabilityPoolAccount` | `/sp-account`       | `lib/views/insights/stability_pool_account/stability_pool_account_insights.dart` | Analytics  |
+| `cdpExplorer`          | `/cdp-explorer`     | `lib/views/insights/cdp_explorer/cdp_explorer_insights.dart`                     | Tools      |
+| `positionSimulator`    | `/position-simulator` | `lib/views/insights/position_simulator/position_simulator_insights.dart`       | Tools      |
 
 ---
 
@@ -131,12 +138,12 @@ class MyWidget extends StatelessWidget {
 | ----------------------- | --------------------------------------------------------------------------------------- |
 | Async data loader       | `lib/utils/async_builder.dart` — `AsyncBuilder(fetcher, builder, errorBuilder?)`        |
 | TTL cache wrapper       | `lib/utils/cached_result.dart` — `CachedResult<T>(value)`                               |
-| Multi-asset tab wrapper | `lib/widgets/indigo_asset_tabs.dart` — `IndigoAssetTabs(builder)`                       |
-| Info card row           | `lib/widgets/scrollable_information_cards.dart` — `ScrollableInformationCards(builder)` |
+| Multi-asset tab wrapper | `lib/widgets/ii_asset_tabs.dart` — `IIAssetTabs(assets, builder)`                       |
+| KPI card row            | `lib/widgets/ii_kpi_strip.dart` — `IIKpiStrip(cells)`                                   |
 | Number formatting       | `lib/utils/formatters.dart` — `numberFormatter(amount, decimals)`                       |
 | Loading spinner         | `lib/utils/loader.dart` — `const Loader()`                                              |
-| Page heading            | `lib/utils/page_title.dart` — `PageTitle(title: '...')`                                 |
-| Colors                  | `lib/theme/color_scheme.dart`                                                           |
+| Text styles / colors    | `lib/theme/app_text_styles.dart` — `AppTextStyles.of(context)`; `lib/theme/app_color_scheme.dart` — `AppColorScheme.of(context)` |
+| Legacy colors           | `lib/theme/color_scheme.dart` (pre-v3, still used by `slider_selector.dart`)            |
 | Gradients               | `lib/theme/gradients.dart`                                                              |
 
 iAsset list (currently iUSD, iBTC, iETH, iSOL, iADA, iJPY, iEUR) is fetched at runtime via `IndigoAssetRepository` (`GET /api/v3/assets`). Use `sl<IndigoAssetRepository>().getAssets()` wherever asset iteration is needed rather than hardcoding. `getColorByAsset` / `sortedByAsset` fall back deterministically for assets they don't know about.
@@ -165,3 +172,13 @@ flutter run
 ```
 
 All repositories are hand-written with explicit TTL caching. No code generation.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).

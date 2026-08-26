@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:indigo_insights/models/stability_pool.dart';
 import 'package:indigo_insights/models/stability_pool_account.dart';
 import 'package:indigo_insights/repositories/stability_pool_account_repository.dart';

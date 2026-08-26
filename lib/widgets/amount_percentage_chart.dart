@@ -2,8 +2,9 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:indigo_insights/theme/app_text_styles.dart';
 import 'package:indigo_insights/utils/formatters.dart';
 
 class AmountPercentageData {
@@ -158,11 +159,10 @@ class AmountPercentageChart extends StatelessWidget {
                             padding: const EdgeInsets.only(left: 8),
                             child: Text(
                               e,
-                              style: TextStyle(
+                              style: AppTextStyles.of(context).bodySm.copyWith(
                                 color: colors[index],
                                 fontWeight: FontWeight.w600,
                                 fontSize: 12.8,
-                                fontFamily: 'Quicksand',
                               ),
                             ),
                           ),
@@ -255,11 +255,10 @@ class AmountPercentageChart extends StatelessWidget {
                       final double amount = spotData.y;
                       return LineTooltipItem(
                         '${labels[touchedSpot.barIndex]}: ${numberFormatter(amount, 0)} $currency',
-                        TextStyle(
+                        AppTextStyles.of(context).bodySm.copyWith(
                           color: colors[touchedSpot.barIndex],
                           fontWeight: FontWeight.w500,
                           fontSize: 11,
-                          fontFamily: 'Quicksand',
                         ),
                       );
                     }).toList();

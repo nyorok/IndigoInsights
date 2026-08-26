@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:indigo_insights/models/indigo_asset.dart';
 import 'package:indigo_insights/models/liquidation.dart';
 import 'package:indigo_insights/repositories/liquidation_repository.dart';

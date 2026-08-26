@@ -1,7 +1,7 @@
 # Indigo Insights
 
 [![Deploy Web App to GitHub Pages](https://github.com/nyorok/IndigoInsights/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/nyorok/IndigoInsights/actions/workflows/deploy.yml)
-[![Flutter](https://img.shields.io/badge/Flutter-3.44.6-blue?logo=flutter)](https://flutter.dev)
+[![Flutter](https://img.shields.io/badge/Flutter-3.47.1-blue?logo=flutter)](https://flutter.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple)](LICENSE)
 
 > Protocol analytics dashboard for the [Indigo Protocol](https://indigoprotocol.io) community, built with Flutter — available as a **web app**, **Android APK**, and **PWA**.
@@ -58,12 +58,12 @@ Stability pool account distribution and unclaimed rewards visualised as pie char
 
 | Layer      | Library                                                                                        |
 | ---------- | ---------------------------------------------------------------------------------------------- |
-| Framework  | Flutter 3.44.6 / Dart 3.x                                                                      |
+| Framework  | Flutter 3.47.1 / Dart 3.x                                                                      |
 | Routing    | `go_router` — URL-based navigation with tab-level deep links (e.g. `/#/cdp-explorer?tab=iUSD`) |
 | State / DI | `get_it` — service locator + repository pattern                                                |
 | Charts     | `fl_chart`                                                                                     |
 | Animations | `flutter_animate`                                                                              |
-| Fonts      | `google_fonts` — Outfit + JetBrains Mono                                                       |
+| Fonts      | `google_fonts` — Outfit + Manrope + JetBrains Mono                                             |
 | HTTP       | `http`                                                                                         |
 | Theme      | Custom `ThemeExtension<T>` design token system (`AppColorScheme`, `AppTextStyles`)             |
 
@@ -142,7 +142,7 @@ Every page and tab is directly addressable:
 
 ### Prerequisites
 
-- Flutter `3.44.6` (or compatible `>=3.29.0`)
+- Flutter `3.47.1` (or compatible `>=3.29.0`)
 - Dart `>=3.12.0`
 
 ### Run locally

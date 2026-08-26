@@ -46,3 +46,6 @@ app.*.map.json
 
 # Local architectural task notes (not for version control)
 /tasks/
+
+# graphify knowledge graph output
+graphify-out/

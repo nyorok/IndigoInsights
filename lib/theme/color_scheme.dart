@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 const Color primaryRed = Color.fromRGBO(255, 51, 68, 1);
 const Color secondaryRed = Color.fromRGBO(255, 103, 53, 1);

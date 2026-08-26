@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:indigo_insights/views/insights/liquidation/cumulative_liquidations_chart.dart';
 import 'package:indigo_insights/views/insights/liquidation/liquidation_information.dart';
 import 'package:indigo_insights/views/insights/liquidation/liquidation_size_distribution_chart.dart';
