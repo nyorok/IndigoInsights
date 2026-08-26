@@ -63,7 +63,7 @@ Stability pool account distribution and unclaimed rewards visualised as pie char
 | State / DI | `get_it` — service locator + repository pattern                                                |
 | Charts     | `fl_chart`                                                                                     |
 | Animations | `flutter_animate`                                                                              |
-| Fonts      | `google_fonts` — Outfit + JetBrains Mono                                                       |
+| Fonts      | `google_fonts` — Outfit + Manrope + JetBrains Mono                                             |
 | HTTP       | `http`                                                                                         |
 | Theme      | Custom `ThemeExtension<T>` design token system (`AppColorScheme`, `AppTextStyles`)             |
 

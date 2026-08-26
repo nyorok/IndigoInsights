@@ -14,7 +14,6 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_animate: ^4.5.2
-  flutter_launcher_icons: ^0.14.3
   flutter_svg: ^2.3.0
   get_it: ^9.2.1
   go_router: ^18.0.0
@@ -27,6 +26,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  flutter_launcher_icons: ^0.14.3
   flutter_lints: ^6.0.0
 
 flutter_launcher_icons:
@@ -56,17 +56,3 @@ flutter:
     - assets/images/dapps/
     - assets/images/tokens/
     - assets/socials/
-
-  fonts:
-    - family: Quicksand
-      fonts:
-        - asset: fonts/Quicksand-Light.ttf
-          weight: 300
-        - asset: fonts/Quicksand-Regular.ttf
-          weight: 400
-        - asset: fonts/Quicksand-Medium.ttf
-          weight: 500
-        - asset: fonts/Quicksand-SemiBold.ttf
-          weight: 600
-        - asset: fonts/Quicksand-Bold.ttf
-          weight: 700
